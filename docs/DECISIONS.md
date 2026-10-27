@@ -51,3 +51,14 @@ This document records the architectural decisions made for **SatBhoomi Score + R
 * **Consequences**:
   * *Positive*: Guarantees that decisions remain deterministic, fully explainable, audit-compliant, and grounded in human review.
   * *Negative*: Farmer summaries are constrained to templated structures rather than fully open-ended conversational advice.
+
+---
+
+## ADR-6: Farmer Data Deletion Strategy (Right to Erasure & Audit Trail)
+* **Status**: Accepted
+* **Context**: India's Digital Personal Data Protection (DPDP) Act, 2023 grants data principals the right to withdraw consent and request erasure of personal data. In SatBhoomi, farmers can request deletion of their records. The system must completely remove all identifiable agricultural records, plots, and credit assessments associated with that farmer, while preserving an immutable operational audit log for financial compliance.
+* **Decision**: Implement a database-level cascading deletion (`ON DELETE CASCADE`) rooted at the `farmer` entity. Deleting a farmer automatically cascades and purges all related `plots`, `consents`, `season_observations`, `assessments`, `what_ifs`, `alerts`, and `action_logs`. The `audit_log` records system events (e.g. `event='farmer_deleted'`, `entity='farmer'`, `entity_id=<id>`) with `user_id` set via `ON DELETE SET NULL`, retaining an immutable compliance ledger without preserving any farmer personal or geospatial data.
+* **Consequences**:
+  * *Positive*: Guarantees clean, zero-leak erasure of all farmer records on request, satisfying DPDP Act requirements and preventing orphaned plot assessments.
+  * *Negative*: Irreversible removal of historical observations associated with that farmer's plots (aggregate regional yield and mandi price baselines remain preserved separately).
+
