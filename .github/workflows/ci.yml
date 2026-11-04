@@ -32,5 +32,8 @@ jobs:
       - name: Check linting (ruff check)
         run: python -m ruff check src tests
 
+      - name: Apply database migrations (alembic)
+        run: python -m alembic upgrade head
+
       - name: Run test suite with pytest & coverage
         run: python -m pytest --cov=src/satbhoomi --cov-report=term-missing tests/

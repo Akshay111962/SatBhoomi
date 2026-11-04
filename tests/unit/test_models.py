@@ -279,6 +279,11 @@ def test_farmer_cascade_deletion(db_session: Session) -> None:
 
 def test_seed_synthetic_idempotency() -> None:
     """Verify seed_synthetic_data can execute repeatedly without generating duplicate records."""
+    from satbhoomi.db.session import engine
+
+    # Ensure schema exists on default engine before running synthetic seed
+    Base.metadata.create_all(bind=engine)
+
     # First execution
     u1, f1, p1, o1 = seed_synthetic_data()
     # Second execution must add 0 duplicate entities
