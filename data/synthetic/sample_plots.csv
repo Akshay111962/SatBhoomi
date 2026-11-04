@@ -1,4 +1,13 @@
 plot_code,lat,lon,buffer_m,crop,irrigation,insured,district
-SAMPLE_WHEAT_001,22.5645,72.9289,50,wheat,tube_well,1,Anand
-SAMPLE_WHEAT_002,22.5412,72.9156,60,wheat,canal,0,Anand
-SAMPLE_WHEAT_003,22.5801,72.9642,40,wheat,rainfed,1,Anand
+ANAND_WHEAT_01,22.5125,72.9340,50,wheat,tube_well,1,Anand
+ANAND_WHEAT_02,22.5280,72.9515,60,wheat,canal,1,Anand
+BORSAD_WHEAT_03,22.4110,72.9015,50,wheat,tube_well,0,Anand
+BORSAD_WHEAT_04,22.4250,72.9180,50,wheat,tube_well,1,Anand
+PETLAD_WHEAT_05,22.4720,72.8050,70,wheat,canal,1,Anand
+PETLAD_WHEAT_06,22.4860,72.8210,50,wheat,tube_well,0,Anand
+SOJITRA_WHEAT_07,22.5410,72.7150,60,wheat,canal,1,Anand
+SOJITRA_WHEAT_08,22.5550,72.7320,50,wheat,tube_well,1,Anand
+UMRETH_WHEAT_09,22.6980,73.1150,50,wheat,tube_well,0,Anand
+UMRETH_WHEAT_10,22.7120,73.1310,50,wheat,canal,1,Anand
+TARAPUR_WHEAT_11,22.4910,72.6580,80,wheat,canal,1,Anand
+KHAMBHAT_WHEAT_12,22.3150,72.6220,50,wheat,tube_well,0,Anand

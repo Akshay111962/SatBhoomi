@@ -1,16 +1,19 @@
-.PHONY: help install lint format test migrate seed run-api run-ui fetch-ndvi
+.PHONY: help install lint format test migrate seed run-api run-ui fetch-ndvi fetch-rainfall fetch-prices build-dataset
 
 help:
 	@echo "SatBhoomi Score + Raksha - Development Commands"
-	@echo "  make install    Install dependencies in editable mode with dev tools"
-	@echo "  make lint       Run ruff linting and formatting checks"
-	@echo "  make format     Format code using ruff"
-	@echo "  make test       Run test suite with coverage report"
-	@echo "  make migrate    Apply latest Alembic database migrations"
-	@echo "  make seed       Seed database with synthetic demo data"
-	@echo "  make fetch-ndvi Fetch multi-season NDVI observations for sample plots"
-	@echo "  make run-api    Start FastAPI backend on http://localhost:8000"
-	@echo "  make run-ui     Start Streamlit dashboard on http://localhost:8501"
+	@echo "  make install         Install dependencies in editable mode with dev tools"
+	@echo "  make lint            Run ruff linting and formatting checks"
+	@echo "  make format          Format code using ruff"
+	@echo "  make test            Run test suite with coverage report"
+	@echo "  make migrate         Apply latest Alembic database migrations"
+	@echo "  make seed            Seed database with synthetic demo data"
+	@echo "  make fetch-ndvi      Fetch multi-season NDVI observations for sample plots"
+	@echo "  make fetch-rainfall  Fetch multi-season daily rainfall for sample plots"
+	@echo "  make fetch-prices    Fetch multi-season mandi commodity prices"
+	@echo "  make build-dataset   Assemble multi-source seasonal training/evaluation dataset"
+	@echo "  make run-api         Start FastAPI backend on http://localhost:8000"
+	@echo "  make run-ui          Start Streamlit dashboard on http://localhost:8501"
 
 install:
 	python -m pip install --upgrade pip
@@ -41,3 +44,12 @@ run-ui:
 
 fetch-ndvi:
 	python scripts/fetch_ndvi.py --provider fixture
+
+fetch-rainfall:
+	python scripts/fetch_rainfall.py --provider fixture
+
+fetch-prices:
+	python scripts/fetch_prices.py --provider manual_csv
+
+build-dataset:
+	python scripts/build_dataset.py

@@ -55,6 +55,16 @@ class Settings(BaseSettings):
         description="Database connection URI (SQLite for PoC, PostgreSQL for production)",
     )
 
+    # External Provider Credentials
+    ceda_api_key: str | None = Field(
+        default=None,
+        description="API key for CEDA Agri Market API",
+    )
+    gee_project: str | None = Field(
+        default=None,
+        description="Google Earth Engine project ID",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
