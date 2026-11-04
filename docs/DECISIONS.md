@@ -81,3 +81,14 @@ This document records the architectural decisions made for **SatBhoomi Score + R
 * **Consequences**:
   * *Positive*: Guarantees clean, zero-leak erasure of all farmer records on request, satisfying DPDP Act requirements and preventing orphaned plot assessments.
   * *Negative*: Irreversible removal of historical observations associated with that farmer's plots (aggregate regional yield and mandi price baselines remain preserved separately).
+
+
+---
+
+## ADR-9: Python Runtime Compatibility (Local Python 3.13 vs Blueprint Python 3.11)
+* **Status**: Accepted
+* **Context**: The project blueprint initially recommended Python 3.11 for maximal compatibility with existing agricultural ML libraries. However, the local development workstation host environment uses Python 3.13.5 (`.venv`), while the remote GitHub Actions CI environment tests on Ubuntu with Python 3.11 (`python-version: "3.11"`). Incompatible syntax or deprecated library features could cause divergence between local runs and automated CI.
+* **Decision**: Maintain strict bi-directional compatibility across Python 3.11, 3.12, and 3.13. All code, data connectors, and test fixtures must execute without deprecation warnings or platform-specific failures on both Python 3.11 and Python 3.13. Dependencies added to `pyproject.toml` must provide pre-built wheels and verified support for Python 3.13 without modifying or forcing a downgrade of the developer's local runtime.
+* **Consequences**:
+  * *Positive*: Enables seamless local development on modern Python 3.13 while guaranteeing green CI verification on standard Python 3.11 runners.
+  * *Negative*: Restricts adoption of bleeding-edge or legacy C-extensions that lack Python 3.13 wheel distributions (mitigated by selecting lightweight, pure-Python or universally supported geospatial tools).

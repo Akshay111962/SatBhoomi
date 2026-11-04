@@ -41,6 +41,7 @@ data/processed/*
 !data/processed/.gitkeep
 data/synthetic/*
 !data/synthetic/.gitkeep
+!data/synthetic/sample_plots.csv
 
 # IDE and OS files
 .idea/
