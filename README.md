@@ -8,6 +8,22 @@
 
 ---
 
+## How to Work on This Project
+
+All contributors and AI agents must strictly follow our engineering principles and project guardrails:
+1. **Rule Precedence**: Safety and honesty in [docs/PROJECT_CONTEXT.md](file:///d:/SatBhoomi/docs/PROJECT_CONTEXT.md) supersede all other instructions, followed by [docs/ENGINEERING_RULES.md](file:///d:/SatBhoomi/docs/ENGINEERING_RULES.md), followed by the specific task prompt.
+2. **Approval Before Code**: Always present a short plan with assumptions and wait for user approval before writing code.
+3. **Scope Control**: Implement only the requested task; no extra unrequested features.
+4. **Radical Honesty**: Never claim code or tests are verified unless actually executed and observed.
+5. **No Destructive Actions**: Never perform destructive, irreversible, or expensive operations without explicit approval.
+6. **Task Completion Report**: Conclude every task with the Section 8 report format from [docs/ENGINEERING_RULES.md](file:///d:/SatBhoomi/docs/ENGINEERING_RULES.md).
+7. **Frontend Gate**: Do not build UI screens (S1–S9) until layout and branding details are provided.
+8. **Progress Tracking**: Keep [docs/PROGRESS.md](file:///d:/SatBhoomi/docs/PROGRESS.md) updated at the completion of every task.
+
+> **Antigravity Rule Integration**: Antigravity automatically discovers project-level rules from `GEMINI.md`, `AGENTS.md`, or `.agents/rules/*.md` at the project root, or global rules in `~/.gemini/config/`. To load these rules automatically in every session without prompt overhead, copy or symlink `docs/PROJECT_CONTEXT.md` and `docs/ENGINEERING_RULES.md` into a root `GEMINI.md` file.
+
+---
+
 ## Overview
 
 Smallholder farmers frequently lack formal credit histories, forcing financial institutions to rely on slow, manual field appraisals or arbitrary lending caps. When unseasonal rains, drought, or mandi price collapses occur, repayment stress builds up silently until an installment is missed.
@@ -44,7 +60,11 @@ SatBhoomi/
 ├── docs/
 │   ├── blueprint.pdf              # Full product blueprint (FR-001 to FR-014)
 │   ├── PROJECT_CONTEXT.md         # Permanent project rules & ethical guidelines
-│   └── DECISIONS.md               # Architecture Decision Records (ADR-1 to ADR-5)
+│   ├── ENGINEERING_RULES.md       # Universal engineering practices & workflow
+│   ├── DECISIONS.md               # Architecture Decision Records (ADR-1 to ADR-8)
+│   ├── RISKS.md                   # Risk register & mitigations
+│   ├── PROGRESS.md                # Blueprint implementation tracking
+│   └── DATA_MODEL.md              # Relational schema & entity specifications
 ├── scripts/                       # Operational and migration scripts
 ├── src/satbhoomi/
 │   ├── config/                    # Settings loaded from environment variables

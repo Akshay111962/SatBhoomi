@@ -54,11 +54,30 @@ This document records the architectural decisions made for **SatBhoomi Score + R
 
 ---
 
-## ADR-6: Farmer Data Deletion Strategy (Right to Erasure & Audit Trail)
+## ADR-6: LangGraph for Future Agent Layer
+* **Status**: DECIDED, NOT IMPLEMENTED
+* **Context**: The future agent layer will orchestrate multi-step research, assessment drafting, and in-season stress investigations for bank officers. This requires stateful workflows, persistence checkpoints, reversible turns, and strict human approval gates.
+* **Decision**: The future agent layer will use LangGraph (stateful graph, checkpointing, human approval gates). Do not install it or write agent code until explicitly requested by the user.
+* **Consequences**:
+  * *Positive*: Provides native cyclic graph execution, checkpointed conversation/investigation states, and programmatic breakpoints for human-in-the-loop validation.
+  * *Negative*: Avoids premature dependency bloat and keeps current development focused on core deterministic data models and ML pipelines.
+
+---
+
+## ADR-7: Agent Boundaries & Human Approval Gates
+* **Status**: DECIDED, NOT IMPLEMENTED
+* **Context**: Autonomous AI agents operating in agricultural lending risk making hallucinated assertions, taking unintended actions, or violating borrower privacy if boundaries are loose.
+* **Decision**: Agents only investigate and draft. They call deterministic tools (score, what-if, alerts, relief evidence). Humans approve every write action. Agents never approve or reject a loan, never contact farmers, never infer anyone's mental state, only state numbers returned by tools, and receive no personal data. Every tool call is written to the audit log.
+* **Consequences**:
+  * *Positive*: Preserves strict human accountability, eliminates hallucinated financial commitments, enforces ethical restrictions regarding farmer welfare, and ensures complete auditability.
+  * *Negative*: Precludes zero-touch automated lending; bank officers must review and approve all agent-drafted actions.
+
+---
+
+## ADR-8: Farmer Data Deletion Strategy (Right to Erasure & Audit Trail)
 * **Status**: Accepted
 * **Context**: India's Digital Personal Data Protection (DPDP) Act, 2023 grants data principals the right to withdraw consent and request erasure of personal data. In SatBhoomi, farmers can request deletion of their records. The system must completely remove all identifiable agricultural records, plots, and credit assessments associated with that farmer, while preserving an immutable operational audit log for financial compliance.
 * **Decision**: Implement a database-level cascading deletion (`ON DELETE CASCADE`) rooted at the `farmer` entity. Deleting a farmer automatically cascades and purges all related `plots`, `consents`, `season_observations`, `assessments`, `what_ifs`, `alerts`, and `action_logs`. The `audit_log` records system events (e.g. `event='farmer_deleted'`, `entity='farmer'`, `entity_id=<id>`) with `user_id` set via `ON DELETE SET NULL`, retaining an immutable compliance ledger without preserving any farmer personal or geospatial data.
 * **Consequences**:
   * *Positive*: Guarantees clean, zero-leak erasure of all farmer records on request, satisfying DPDP Act requirements and preventing orphaned plot assessments.
   * *Negative*: Irreversible removal of historical observations associated with that farmer's plots (aggregate regional yield and mandi price baselines remain preserved separately).
-

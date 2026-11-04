@@ -4,6 +4,22 @@ This document establishes the permanent ethical, architectural, operational, and
 
 ---
 
+## 0. Rule Precedence & Development Clarifications
+
+When rules conflict, this strict precedence order applies:
+1. **PROJECT_CONTEXT.md safety and honesty rules** (highest priority)
+2. **[docs/ENGINEERING_RULES.md](file:///d:/SatBhoomi/docs/ENGINEERING_RULES.md)**
+3. **The instructions in the current task prompt**
+
+### Project-Specific Operational Clarifications
+- **Mandatory Plan Approval**: For every task, produce a short plan and wait for my approval before writing code. This explicitly overrides "make reasonable assumptions and proceed" at the start of a task. Keep assumptions short and state them in the plan.
+- **Strict Scope Boundaries**: Implement only the task given. No extra features.
+- **Radical Verification Honesty**: Never claim anything is tested, verified, or working unless you actually ran it. Say "not verified" when you could not run or verify it.
+- **Safe Operations**: Never perform destructive, irreversible, or expensive actions, or deploy anywhere, without explicit approval.
+- **Mandatory Reporting**: Use the Task Completion Report format from [docs/ENGINEERING_RULES.md](file:///d:/SatBhoomi/docs/ENGINEERING_RULES.md) Section 8 at the end of every task.
+
+---
+
 ## 1. Product Identity & Purpose
 - **Product Name**: SatBhoomi Score + Raksha
 - **Domain**: AI farm credit scoring and early-warning decision-support tool for bank loan officers.
@@ -53,6 +69,11 @@ This document establishes the permanent ethical, architectural, operational, and
 - **Never state that something is tested unless tests were actually run and passed**.
 - When reporting results, evaluations, or benchmarks, report real held-out metrics and acknowledge gaps or limitations openly.
 - If data is missing (e.g., cloud cover over satellite passes), surface a **"data gap"** banner and use fallback logic; never invent or hallucinate data points.
+
+### Rule 9: Frontend Gate (UI Screens S1–S9)
+- Do **NOT** build any real UI screens (blueprint S1 to S9) until the user provides frontend details (design preferences, branding, languages, and layout choices).
+- Until then, only the existing placeholder Streamlit home page is allowed.
+- When a task reaches the dashboard, stop and ask the user for these details.
 
 ---
 
