@@ -28,12 +28,25 @@ def parse_rabi_season_name(season_name: str) -> tuple[int, int]:
     return start_year, end_year
 
 
-def get_rabi_season_window(start_year: int) -> SeasonWindow:
-    """Return the standard Rabi wheat season window (Nov 1 to Apr 15)."""
+def get_rabi_season_window(season_or_year: int | str) -> SeasonWindow:
+    """Return the standard Rabi wheat season window (Nov 1 to Apr 15).
+
+    Accepts either an integer start_year (e.g. 2021) or a string season_name (e.g. '2021-22').
+    """
+    if isinstance(season_or_year, str):
+        start_year, _ = parse_rabi_season_name(season_or_year)
+    else:
+        start_year = season_or_year
+
     season_name = format_rabi_season_name(start_year)
     start_date = date(start_year, 11, 1)
     end_date = date(start_year + 1, 4, 15)
     return SeasonWindow(season_name=season_name, start_date=start_date, end_date=end_date)
+
+
+def sort_seasons_chronologically(season_names: list[str]) -> list[str]:
+    """Sort a list of 'YYYY-YY' season strings in ascending chronological order."""
+    return sorted(season_names, key=lambda s: parse_rabi_season_name(s)[0])
 
 
 def get_default_rabi_seasons(count: int = 5, latest_start_year: int = 2024) -> list[SeasonWindow]:
