@@ -1,0 +1,53 @@
+{
+  "model_version": "satbhoomi-risk-v1.0-logreg-feat1-opt1th15-f85e5949-20261105",
+  "algorithm": "logreg",
+  "created_at": "2026-11-05T16:50:10.641647",
+  "data_hash": "f85e59495ce70d18c05453e52d3d0fc26dca1371abb0f1eec4cbe2a7eee105a8",
+  "feature_columns": [
+    "ndvi_early",
+    "ndvi_pre_cutoff_mean",
+    "ndvi_pre_cutoff_std",
+    "ndvi_trend_pre_cutoff",
+    "rain_pre_cutoff_total_mm",
+    "rain_pre_cutoff_deficit_pct",
+    "mandi_pre_cutoff_volatility",
+    "past_stressed_seasons_count",
+    "prev_season_ndvi_peak",
+    "area_acre",
+    "irrigation",
+    "insured"
+  ],
+  "test_season": "2024-25",
+  "criteria_status": "CRITERIA_NOT_EVALUABLE_SINGLE_CLASS",
+  "narrative": "Held-out test season contains a single class (all healthy), preventing ROC-AUC calculation. Brier score was used for calibration assessment.",
+  "metrics_summary": {
+    "selected_model": {
+      "roc_auc": NaN,
+      "pr_auc": NaN,
+      "brier_score": 0.0,
+      "sample_count": 12,
+      "event_rate": 0.0
+    },
+    "rules_baseline": {
+      "roc_auc": NaN,
+      "pr_auc": NaN,
+      "brier_score": 0.2025,
+      "sample_count": 12,
+      "event_rate": 0.0
+    },
+    "persistence": {
+      "roc_auc": NaN,
+      "pr_auc": NaN,
+      "brier_score": 0.03999999999999999,
+      "sample_count": 12,
+      "event_rate": 0.0
+    },
+    "majority_class": {
+      "roc_auc": NaN,
+      "pr_auc": NaN,
+      "brier_score": 0.0,
+      "sample_count": 12,
+      "event_rate": 0.0
+    }
+  }
+}

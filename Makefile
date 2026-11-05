@@ -1,4 +1,4 @@
-.PHONY: help install lint format test migrate seed run-api run-ui fetch-ndvi fetch-rainfall fetch-prices build-dataset build-features
+.PHONY: help install lint format test migrate seed run-api run-ui fetch-ndvi fetch-rainfall fetch-prices build-dataset build-features train
 
 help:
 	@echo "SatBhoomi Score + Raksha - Development Commands"
@@ -13,6 +13,7 @@ help:
 	@echo "  make fetch-prices    Fetch multi-season mandi commodity prices"
 	@echo "  make build-dataset   Assemble multi-source seasonal training/evaluation dataset"
 	@echo "  make build-features  Extract pre-cutoff features and compute proxy stress labels"
+	@echo "  make train           Train baseline heuristics and ML models, evaluating held-out season"
 	@echo "  make run-api         Start FastAPI backend on http://localhost:8000"
 	@echo "  make run-ui          Start Streamlit dashboard on http://localhost:8501"
 
@@ -57,3 +58,7 @@ build-dataset:
 
 build-features:
 	python scripts/build_features.py
+
+train:
+	python scripts/train_models.py
+
