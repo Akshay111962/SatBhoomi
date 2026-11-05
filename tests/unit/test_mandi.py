@@ -1,6 +1,7 @@
 """Unit tests for mandi price connector and manual CSV fallback (T-03)."""
 
 import csv
+import json
 from datetime import date
 from pathlib import Path
 
@@ -274,3 +275,39 @@ def test_fixture_price_provider_returns_multi_market_records(
     assert "Anand APMC" in markets
     assert "Umreth APMC" in markets
     assert all(1800 <= r.modal_price <= 3000 for r in records)
+
+
+def test_ceda_provider_parses_cached_json(tmp_path: Path, sample_rabi_window: SeasonWindow) -> None:
+    """Verify CedaPriceProvider correctly parses a cached JSON response offline."""
+    payload = {
+        "data": [
+            {
+                "date": "2023-11-15",
+                "market": "Anand APMC",
+                "modal_price": "2200.0",
+                "min_price": "2150.0",
+                "max_price": "2250.0",
+                "arrivals_tonnes": "45.0",
+            },
+            {
+                "date": "2023-11-22",
+                "market": "Anand APMC",
+                "modal_price": "2250.0",
+                "min_price": "2200.0",
+                "max_price": "2300.0",
+                "arrivals_tonnes": "55.0",
+            },
+        ]
+    }
+
+    provider = CedaPriceProvider(api_key="test-key", cache_dir=tmp_path)
+    cache_file = tmp_path / f"ceda_wheat_anand_{sample_rabi_window.season_name}.json"
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(payload, f)
+
+    records = provider.fetch_prices("wheat", "Gujarat", "Anand", sample_rabi_window)
+    assert len(records) == 2
+    assert records[0].date == date(2023, 11, 15)
+    assert records[0].modal_price == 2200.0
+    assert records[0].source == "ceda"
+    assert records[1].modal_price == 2250.0

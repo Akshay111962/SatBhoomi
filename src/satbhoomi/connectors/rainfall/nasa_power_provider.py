@@ -59,14 +59,18 @@ class NasaPowerRainfallProvider(RainfallProvider):
         filename = f"power_{lat:.4f}_{lon:.4f}_{window.season_name}.json"
         return self.cache_dir / filename
 
-    def _fetch_from_api(
+    def _fetch_from_api(  # pragma: no cover
         self,
         lat: float,
         lon: float,
         start_str: str,
         end_str: str,
     ) -> dict[str, Any]:
-        """Execute HTTP GET request to NASA POWER API with retries and exponential backoff."""
+        """Execute HTTP GET request to NASA POWER API with retries and exponential backoff.
+
+        This method makes live network calls and cannot be exercised in offline CI.
+        It is excluded from coverage measurement.
+        """
         params = {
             "parameters": "PRECTOTCORR",
             "community": "AG",

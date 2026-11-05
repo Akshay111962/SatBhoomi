@@ -1,6 +1,8 @@
 """Unit tests for rainfall connector (T-03)."""
 
-from datetime import date
+import json
+from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -10,6 +12,10 @@ from satbhoomi.connectors.rainfall import (
     DailyRainfallRecord,
     FixtureRainfallProvider,
     aggregate_season_rainfall,
+)
+from satbhoomi.connectors.rainfall.nasa_power_provider import (
+    MISSING_VALUE_SENTINEL,
+    NasaPowerRainfallProvider,
 )
 from satbhoomi.connectors.satellite.base import SeasonWindow
 
@@ -229,3 +235,103 @@ def test_fixture_rainfall_provider_deterministic(sample_rabi_window: SeasonWindo
         assert r1.date == r2.date
         assert r1.precipitation_mm == r2.precipitation_mm
         assert r1.is_valid == r2.is_valid
+
+
+# ---------------------------------------------------------------------------
+# NasaPowerRainfallProvider — offline cache-path tests
+# These tests write a JSON fixture to tmp_path and exercise the cache-read
+# and parsing paths without any live network calls.
+# ---------------------------------------------------------------------------
+
+
+def _build_precip_dict(window: SeasonWindow, default_mm: float = 0.0) -> dict:
+    """Build a date-keyed precipitation dict for a full season window."""
+    result: dict = {}
+    cur = window.start_date
+    while cur <= window.end_date:
+        result[cur.strftime("%Y%m%d")] = default_mm
+        cur += timedelta(days=1)
+    return result
+
+
+def _write_power_cache(
+    tmp_path: Path, lat: float, lon: float, window: SeasonWindow, precip_dict: dict
+) -> None:
+    """Write a NASA POWER-shaped JSON file to the expected cache location."""
+    payload = {"properties": {"parameter": {"PRECTOTCORR": precip_dict}}}
+    cache_file = tmp_path / f"power_{lat:.4f}_{lon:.4f}_{window.season_name}.json"
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(payload, f)
+
+
+def test_nasa_power_provider_parses_cached_json(
+    tmp_path: Path, sample_rabi_window: SeasonWindow
+) -> None:
+    """NasaPowerRainfallProvider parses cached NASA POWER JSON correctly (no network)."""
+    lat, lon = 22.5125, 72.9340
+    precip_dict = _build_precip_dict(sample_rabi_window)
+    # Set one rainy day: 5.0 mm on Nov 15
+    precip_dict[date(2023, 11, 15).strftime("%Y%m%d")] = 5.0
+    _write_power_cache(tmp_path, lat, lon, sample_rabi_window, precip_dict)
+
+    provider = NasaPowerRainfallProvider(cache_dir=tmp_path)
+    records = provider.fetch_daily_rainfall(lat, lon, sample_rabi_window)
+
+    assert len(records) == 167
+    rain_days = [r for r in records if r.precipitation_mm and r.precipitation_mm > 0]
+    assert len(rain_days) == 1
+    assert rain_days[0].date == date(2023, 11, 15)
+    assert rain_days[0].precipitation_mm == 5.0
+    assert rain_days[0].is_valid is True
+    assert all(r.source == "nasa_power" for r in records)
+
+
+def test_nasa_power_provider_handles_missing_value_sentinel(
+    tmp_path: Path, sample_rabi_window: SeasonWindow
+) -> None:
+    """Sentinel -999.0 values are converted to None and flagged invalid (never imputed)."""
+    lat, lon = 22.5125, 72.9340
+    precip_dict = _build_precip_dict(sample_rabi_window, default_mm=MISSING_VALUE_SENTINEL)
+    _write_power_cache(tmp_path, lat, lon, sample_rabi_window, precip_dict)
+
+    provider = NasaPowerRainfallProvider(cache_dir=tmp_path)
+    records = provider.fetch_daily_rainfall(lat, lon, sample_rabi_window)
+
+    assert len(records) == 167
+    assert all(r.precipitation_mm is None for r in records)
+    assert all(r.is_valid is False for r in records)
+
+
+def test_nasa_power_provider_raises_on_bad_json_format(
+    tmp_path: Path, sample_rabi_window: SeasonWindow
+) -> None:
+    """ValueError is raised when cached JSON does not match NASA POWER schema."""
+    lat, lon = 22.5125, 72.9340
+    # Deliberately bad JSON — missing 'properties' key
+    cache_file = tmp_path / f"power_{lat:.4f}_{lon:.4f}_{sample_rabi_window.season_name}.json"
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump({"wrong_key": {}}, f)
+
+    provider = NasaPowerRainfallProvider(cache_dir=tmp_path)
+    with pytest.raises(ValueError, match="Unexpected NASA POWER response format"):
+        provider.fetch_daily_rainfall(lat, lon, sample_rabi_window)
+
+
+def test_nasa_power_provider_skips_out_of_window_dates(
+    tmp_path: Path, sample_rabi_window: SeasonWindow
+) -> None:
+    """Dates outside the season window in the cache are silently skipped."""
+    lat, lon = 22.5125, 72.9340
+    precip_dict = _build_precip_dict(sample_rabi_window)
+    # Add an out-of-window date (October — before Nov 1 start)
+    precip_dict["20231015"] = 99.0
+    _write_power_cache(tmp_path, lat, lon, sample_rabi_window, precip_dict)
+
+    provider = NasaPowerRainfallProvider(cache_dir=tmp_path)
+    records = provider.fetch_daily_rainfall(lat, lon, sample_rabi_window)
+
+    # Out-of-window date must not appear in results
+    assert all(r.date >= sample_rabi_window.start_date for r in records)
+    assert all(r.date <= sample_rabi_window.end_date for r in records)
+    # 99.0 mm day is excluded, so no record should have that value
+    assert all(r.precipitation_mm != 99.0 for r in records if r.precipitation_mm is not None)

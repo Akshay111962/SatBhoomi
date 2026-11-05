@@ -68,7 +68,7 @@ class CedaPriceProvider(PriceProvider):
         filename = f"ceda_{crop.lower()}_{district.lower()}_{window.season_name}.json"
         return self.cache_dir / filename
 
-    def _fetch_from_api(
+    def _fetch_from_api(  # pragma: no cover
         self,
         crop: str,
         state: str,
@@ -76,7 +76,11 @@ class CedaPriceProvider(PriceProvider):
         start_str: str,
         end_str: str,
     ) -> dict[str, Any]:
-        """Execute authenticated request to CEDA API with retries."""
+        """Execute authenticated request to CEDA API with retries.
+
+        This method makes live network calls and cannot be exercised in offline CI.
+        It is excluded from coverage measurement.
+        """
         if not self._api_key or not self._api_key.strip():
             raise ValueError(
                 "CEDA_API_KEY environment variable is not configured. "
