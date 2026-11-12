@@ -277,9 +277,28 @@ def test_result_metadata_and_zero_pii(healthy_row: dict) -> None:
         assert pii not in lower_keys
 
 
-def test_score_plot_cli_prints_valid_json(capsys: pytest.CaptureFixture[str]) -> None:
-    """CLI scores ANAND_WHEAT_01 2024-25 from features.csv and prints valid JSON."""
-    exit_code = score_cli_main(["--plot", "ANAND_WHEAT_01", "--season", "2024-25"])
+def test_score_plot_cli_prints_valid_json(
+    tmp_path,
+    healthy_row: dict,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """CLI scores a plot-season from a features CSV and prints valid JSON."""
+    csv_path = tmp_path / "features.csv"
+    row = dict(healthy_row)
+    row["plot_code"] = "ANAND_WHEAT_01"
+    row["season"] = "2024-25"
+    pd.DataFrame([row]).to_csv(csv_path, index=False)
+
+    exit_code = score_cli_main(
+        [
+            "--plot",
+            "ANAND_WHEAT_01",
+            "--season",
+            "2024-25",
+            "--features-csv",
+            str(csv_path),
+        ]
+    )
     assert exit_code == 0
     captured = capsys.readouterr()
     parsed = json.loads(captured.out)
