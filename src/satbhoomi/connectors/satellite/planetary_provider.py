@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import logging
 import math
+import threading
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
@@ -68,6 +70,7 @@ class PlanetaryComputerProvider(NdviProvider):
         self._sas_token_fetcher = sas_token_fetcher
         self._cached_sas_token: str | None = None
         self._cached_sas_expiry: datetime | None = None
+        self._sas_lock = threading.Lock()
 
     @property
     def source_name(self) -> str:
@@ -76,38 +79,39 @@ class PlanetaryComputerProvider(NdviProvider):
 
     def _get_sas_token(self, force_refresh: bool = False) -> str:
         """Fetch and cache the Planetary Computer SAS token with expiry awareness."""
-        now = datetime.now(UTC)
-        if (
-            not force_refresh
-            and self._cached_sas_token is not None
-            and (self._cached_sas_expiry is None or now < self._cached_sas_expiry)
-        ):
-            return self._cached_sas_token
-        if self._sas_token_fetcher is not None:
-            self._cached_sas_token = self._sas_token_fetcher()
-            self._cached_sas_expiry = now + timedelta(minutes=30)
-            return self._cached_sas_token
+        with self._sas_lock:
+            now = datetime.now(UTC)
+            if (
+                not force_refresh
+                and self._cached_sas_token is not None
+                and (self._cached_sas_expiry is None or now < self._cached_sas_expiry)
+            ):
+                return self._cached_sas_token
+            if self._sas_token_fetcher is not None:
+                self._cached_sas_token = self._sas_token_fetcher()
+                self._cached_sas_expiry = now + timedelta(minutes=30)
+                return self._cached_sas_token
 
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                response = self.http_client.get(PLANETARY_SAS_TOKEN_URL)
-                response.raise_for_status()
-                payload = response.json()
-                token = str(payload["token"])
-                expiry_str = payload.get("msft:expiry")
-                if expiry_str:
-                    expiry_dt = datetime.fromisoformat(str(expiry_str).replace("Z", "+00:00"))
-                    self._cached_sas_expiry = expiry_dt - timedelta(seconds=120)
-                else:
-                    self._cached_sas_expiry = now + timedelta(minutes=30)
-                self._cached_sas_token = token
-                return token
-            except (httpx.HTTPError, KeyError, ValueError) as exc:
-                if attempt == self.max_retries:
-                    msg = f"Failed to fetch Planetary SAS token: {exc}"
-                    raise ConnectionError(msg) from exc
-                time.sleep(self.backoff_sec * (2 ** (attempt - 1)))
-        return ""
+            for attempt in range(1, self.max_retries + 1):
+                try:
+                    response = self.http_client.get(PLANETARY_SAS_TOKEN_URL)
+                    response.raise_for_status()
+                    payload = response.json()
+                    token = str(payload["token"])
+                    expiry_str = payload.get("msft:expiry")
+                    if expiry_str:
+                        expiry_dt = datetime.fromisoformat(str(expiry_str).replace("Z", "+00:00"))
+                        self._cached_sas_expiry = expiry_dt - timedelta(seconds=120)
+                    else:
+                        self._cached_sas_expiry = now + timedelta(minutes=30)
+                    self._cached_sas_token = token
+                    return token
+                except (httpx.HTTPError, KeyError, ValueError) as exc:
+                    if attempt == self.max_retries:
+                        msg = f"Failed to fetch Planetary SAS token: {exc}"
+                        raise ConnectionError(msg) from exc
+                    time.sleep(self.backoff_sec * (2 ** (attempt - 1)))
+            return ""
 
     def sign_asset_href(self, href: str, force_refresh: bool = False) -> str:
         """Append SAS query token to Azure Blob URLs; leave local/non-Azure paths untouched."""
@@ -191,6 +195,9 @@ class PlanetaryComputerProvider(NdviProvider):
         env_opts = {
             "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
             "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif,.tiff",
+            "GDAL_HTTP_TIMEOUT": "15",
+            "GDAL_HTTP_MAX_RETRY": "2",
+            "GDAL_HTTP_RETRY_DELAY": "1",
         }
         with (
             rasterio.Env(**env_opts),
@@ -310,8 +317,7 @@ class PlanetaryComputerProvider(NdviProvider):
             if window.contains(obs_date):
                 by_date.setdefault(obs_date, []).append(feat)
 
-        observations: list[RawObservation] = []
-        for obs_date in sorted(by_date):
+        def _fetch_date(obs_date: date) -> RawObservation | None:
             candidates = sorted(
                 by_date[obs_date],
                 key=lambda f: float(f.get("properties", {}).get("eo:cloud_cover", 100.0)),
@@ -319,7 +325,11 @@ class PlanetaryComputerProvider(NdviProvider):
             for feat in candidates:
                 obs = self._read_feature_observation(feat, obs_date, bbox)
                 if obs is not None:
-                    observations.append(obs)
-                    break
+                    return obs
+            return None
 
-        return observations
+        dates_sorted = sorted(by_date)
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            results = list(pool.map(_fetch_date, dates_sorted))
+
+        return [obs for obs in results if obs is not None]
