@@ -5,10 +5,18 @@ evaluation results to reports/metrics.json, and writes the benchmark
 report to docs/MODEL_EVAL.md.
 """
 
+import argparse
 import json
 import sys
 from pathlib import Path
 
+import pandas as pd
+
+from satbhoomi.features.provenance import (
+    enforce_non_fixture_sources,
+    extract_source_counts,
+    format_provenance_summary,
+)
 from satbhoomi.risk.train import train_and_evaluate_pipeline
 
 
@@ -132,15 +140,55 @@ def generate_markdown_report(result: dict) -> str:
     return "\n".join(lines)
 
 
-def main() -> None:
+def main() -> int:
     """Run model training CLI."""
+    parser = argparse.ArgumentParser(description="Train and evaluate SatBhoomi baseline and ML models.")
+    parser.add_argument(
+        "--features-csv",
+        type=Path,
+        default=Path("data/processed/features.csv"),
+        help="Path to features CSV",
+    )
+    parser.add_argument(
+        "--season-dataset-csv",
+        type=Path,
+        default=Path("data/processed/season_dataset.csv"),
+        help="Path to season dataset CSV (for provenance verification)",
+    )
+    parser.add_argument(
+        "--allow-fixture",
+        action="store_true",
+        help="Explicitly allow fixture-sourced data (blocked by default).",
+    )
+    args = parser.parse_args()
+
+    # Verify input provenance
+    source_counts: dict[str, dict[str, int]] = {}
+    if args.season_dataset_csv.exists():
+        df_season = pd.read_csv(args.season_dataset_csv)
+        source_counts = extract_source_counts(df_season)
+    elif args.features_csv.exists():
+        df_feat = pd.read_csv(args.features_csv)
+        source_counts = extract_source_counts(df_feat)
+
+    print(format_provenance_summary(source_counts))
+    try:
+        enforce_non_fixture_sources(
+            source_counts,
+            allow_fixture=args.allow_fixture,
+            context="train_models",
+        )
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
     print("Executing SatBhoomi model training and validation pipeline...")
     output_dir = Path("models")
     reports_dir = Path("reports")
     reports_dir.mkdir(parents=True, exist_ok=True)
 
     result = train_and_evaluate_pipeline(
-        features_csv_path="data/processed/features.csv",
+        features_csv_path=str(args.features_csv),
         output_dir=output_dir,
         test_season="2024-25",
     )
@@ -159,7 +207,8 @@ def main() -> None:
     print(f"Evaluation report written to {doc_path}")
     print(f"Selected model version: {result['model_version']}")
     print(f"Status: {result['criteria_status']}")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

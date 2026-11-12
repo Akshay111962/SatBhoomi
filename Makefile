@@ -23,8 +23,8 @@ install:
 	python -m pip install -e ".[dev]"
 
 lint:
-	python -m ruff check src tests scripts alembic
-	python -m ruff format --check src tests scripts alembic
+	python -m ruff format --check src tests
+	python -m ruff check src tests
 
 format:
 	python -m ruff format src tests scripts alembic

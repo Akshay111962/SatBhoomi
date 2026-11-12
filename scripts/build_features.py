@@ -24,6 +24,11 @@ from satbhoomi.features import (  # noqa: E402
     FeaturePipelineConfig,
     build_feature_dataset,
 )
+from satbhoomi.features.provenance import (  # noqa: E402
+    enforce_non_fixture_sources,
+    extract_source_counts,
+    format_provenance_summary,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("build_features")
@@ -62,6 +67,11 @@ def main() -> int:
         default=15.0,
         help="Percentage drop below prior historical baseline to label as stressed (default: 15.0)",
     )
+    parser.add_argument(
+        "--allow-fixture",
+        action="store_true",
+        help="Explicitly allow fixture-sourced data (blocked by default).",
+    )
     args = parser.parse_args()
 
     if not args.input_csv.is_file():
@@ -71,6 +81,18 @@ def main() -> int:
     logger.info("Loading seasonal dataset from %s", args.input_csv)
     season_df = pd.read_csv(args.input_csv)
     logger.info("Loaded %d rows across %d seasons", len(season_df), season_df["season"].nunique())
+
+    source_counts = extract_source_counts(season_df)
+    logger.info("%s", format_provenance_summary(source_counts))
+    try:
+        enforce_non_fixture_sources(
+            source_counts,
+            allow_fixture=args.allow_fixture,
+            context="build_features",
+        )
+    except ValueError as exc:
+        logger.error("%s", exc)
+        return 1
 
     config = FeaturePipelineConfig(drop_threshold_pct=args.drop_threshold)
     sat_dir = args.raw_sat_dir if args.raw_sat_dir.is_dir() else None

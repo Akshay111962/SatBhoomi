@@ -25,6 +25,11 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from satbhoomi.connectors.satellite.loader import load_sample_plots  # noqa: E402
 from satbhoomi.connectors.yield_stats import load_district_yield_records  # noqa: E402
+from satbhoomi.features.provenance import (  # noqa: E402
+    enforce_non_fixture_sources,
+    extract_source_counts,
+    format_provenance_summary,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("build_dataset")
@@ -71,6 +76,7 @@ def build_dataset(
     prices_path: Path,
     yield_path: Path,
     output_path: Path,
+    allow_fixture: bool = False,
 ) -> int:
     """Perform deterministic left-join on (plot_code, season) skeleton and write joined dataset."""
     logger.info("Starting multi-source seasonal dataset join...")
@@ -303,6 +309,18 @@ def build_dataset(
             f"output dataset rows ({len(joined_rows)})."
         )
 
+    # Check data provenance and guard against fixture sources
+    import pandas as pd
+
+    df_joined = pd.DataFrame(joined_rows)
+    source_counts = extract_source_counts(df_joined)
+    logger.info("%s", format_provenance_summary(source_counts))
+    enforce_non_fixture_sources(
+        source_counts,
+        allow_fixture=allow_fixture,
+        context="build_dataset",
+    )
+
     # 8. Write to output CSV
     output_path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = list(joined_rows[0].keys())
@@ -412,16 +430,26 @@ def main() -> int:
         default=PROJECT_ROOT / "data" / "processed" / "season_dataset.csv",
         help="Path to output joined dataset CSV",
     )
+    parser.add_argument(
+        "--allow-fixture",
+        action="store_true",
+        help="Explicitly allow fixture-sourced data (blocked by default).",
+    )
 
     args = parser.parse_args()
-    return build_dataset(
-        ndvi_path=args.ndvi,
-        plots_path=args.plots,
-        rainfall_path=args.rainfall,
-        prices_path=args.prices,
-        yield_path=args.yield_file,
-        output_path=args.output,
-    )
+    try:
+        return build_dataset(
+            ndvi_path=args.ndvi,
+            plots_path=args.plots,
+            rainfall_path=args.rainfall,
+            prices_path=args.prices,
+            yield_path=args.yield_file,
+            output_path=args.output,
+            allow_fixture=args.allow_fixture,
+        )
+    except ValueError as exc:
+        logger.error("%s", exc)
+        return 1
 
 
 if __name__ == "__main__":
