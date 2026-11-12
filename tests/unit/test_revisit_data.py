@@ -211,4 +211,3 @@ def test_revisit_data_smoke_on_synthetic_fixture(tmp_path: Path) -> None:
     )
     assert rc == 0
     assert out_json.exists()
-

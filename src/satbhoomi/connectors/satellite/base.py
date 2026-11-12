@@ -47,7 +47,7 @@ class RawObservation:
     """A single satellite pass observation over the plot."""
 
     date: date
-    ndvi: float
+    ndvi: float | None
     is_valid: bool
     cloud_prob: float | None = None
     scl_class: int | None = None

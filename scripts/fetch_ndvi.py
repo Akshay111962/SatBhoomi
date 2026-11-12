@@ -47,7 +47,7 @@ def deserialize_observation(data: dict[str, object]) -> RawObservation:
     """Deserialize dict to RawObservation."""
     return RawObservation(
         date=date.fromisoformat(str(data["date"])),
-        ndvi=float(data["ndvi"]),  # type: ignore[arg-type]
+        ndvi=float(data["ndvi"]) if data.get("ndvi") is not None else None,  # type: ignore[arg-type]
         is_valid=bool(data["is_valid"]),
         cloud_prob=float(data["cloud_prob"]) if data.get("cloud_prob") is not None else None,  # type: ignore[arg-type]
         scl_class=int(data["scl_class"]) if data.get("scl_class") is not None else None,  # type: ignore[arg-type]

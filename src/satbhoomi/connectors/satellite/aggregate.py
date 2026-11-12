@@ -25,6 +25,10 @@ def validate_observation(obs: RawObservation, window: SeasonWindow) -> None:
             f"Observation date {obs.date} falls outside season window {window.season_name} "
             f"({window.start_date} to {window.end_date})."
         )
+    if obs.ndvi is None:
+        if obs.is_valid:
+            raise ValueError("Valid observation cannot have ndvi=None.")
+        return
     if not (NDVI_MIN_BOUND <= obs.ndvi <= NDVI_MAX_BOUND):
         raise ValueError(
             f"Observation NDVI {obs.ndvi} violates valid bounds "
