@@ -35,5 +35,28 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ---
 
+## Modeling & Scoring Risks
+
+### RISK-03: Zero Stressed Labels & Unvalidated Scoring / ML Models
+- **Category**: Data Quality / Model Validity / Credit Risk
+- **Description**: In `data/processed/features.csv`, all available training seasons (`2021-22` to `2023-24`) and the held-out test season (`2024-25`) had **zero stressed labels** (`ndvi_peak = 0.65` across all plots in the cached T-02 satellite file). Consequently, **ROC-AUC was not evaluable, and the ML models (`logreg`, `random_forest`, `xgboost`) could not be validated**. Live scoring currently relies on the unvalidated `AgronomicRulesBaseline` heuristic.
+- **Severity**: High
+- **Likelihood**: High (observed in current dataset)
+- **Mitigation & Guardrails**:
+  1. **Rules Baseline Active Scorer**: Saved single-class Logistic Regression is barred from live scoring; `AgronomicRulesBaseline` (`rules_baseline`) is used instead per ADR-2.
+  2. **Mandatory Reliability Note**: Every `RiskScoreResult` outputs the fixed `reliability_note`: *"Not validated: no stressed outcomes were available in the sample data, so this score has not been shown to predict crop stress."*
+  3. **Data Acquisition Requirement**: Before any pilot deployment, replace placeholder NDVI reflectance with real Sentinel-2 L2A band-level NDVI time-series across multi-district plots and historical drought seasons containing genuine stressed and default outcomes.
+
+---
+
+## Open Questions
+
+### OPEN QUESTION-01: Pre-Sowing Loan Approval vs. In-Season (January 31) Assessment
+- **Context**: The current T-04/T-06 scoring pipeline uses in-season observations up to **January 31** (mid-season wheat vegetative growth). It cannot be used at **pre-sowing loan origination** (November), when current-season NDVI and winter rainfall do not yet exist.
+- **What a Pre-Sowing Assessment Would Need Instead**: Multi-year historical plot NDVI/yield resilience, field-verified irrigation and soil moisture capacity, seasonal monsoon/reservoir outlook, and historical repayment track record.
+- **Decision Needed from Team**: Should SatBhoomi define a separate pre-sowing historical-resilience score for origination and keep the January 31 score strictly for in-season interim review, top-up, and Raksha restructuring? *(Not built in T-06.)*
+
+---
+
 ## Rule for Risk Management
 - Any new architectural component or feature that introduces autonomous behavior, external data dependency, or AI generation must record an entry in this risk register with concrete mitigations before implementation.
