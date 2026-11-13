@@ -1,9 +1,11 @@
 """Application configuration loaded from environment variables."""
 
+import json
+import os
 from functools import lru_cache
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,7 +24,13 @@ class Settings(BaseSettings):
     )
     app_env: Literal["development", "staging", "production", "test"] = Field(
         default="development",
+        alias="APP_ENV",
         description="Deployment environment name",
+    )
+    environment: str | None = Field(
+        default=None,
+        alias="ENVIRONMENT",
+        description="Alternative deployment environment name",
     )
     log_level: str = Field(
         default="INFO",
@@ -33,7 +41,7 @@ class Settings(BaseSettings):
         description="Whether debug mode and verbose errors are enabled",
     )
 
-    # API Server
+    # API Server & Mock Mode
     api_host: str = Field(
         default="0.0.0.0",
         description="Network interface for FastAPI server",
@@ -42,6 +50,32 @@ class Settings(BaseSettings):
         default=8000,
         description="Port for FastAPI server",
     )
+    mock_api: bool = Field(
+        default=False,
+        alias="MOCK_API",
+        description="Whether to run API in synthetic mock mode for frontend development",
+    )
+    cors_allowed_origins: list[str] = Field(
+        default_factory=lambda: ["http://localhost:5173", "http://localhost:3000"],
+        alias="CORS_ALLOWED_ORIGINS",
+        description="Configurable allowed origins for Cross-Origin Resource Sharing",
+    )
+
+    @field_validator("cors_allowed_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("[") and v.endswith("]"):
+                return json.loads(v)
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+
+    @property
+    def is_production(self) -> bool:
+        """Return True if running in production environment."""
+        env_val = os.environ.get("ENVIRONMENT") or self.environment or self.app_env or "development"
+        return env_val.lower() == "production"
 
     # Security
     secret_key: str = Field(

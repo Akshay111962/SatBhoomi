@@ -1,4 +1,4 @@
-.PHONY: help install lint format test migrate seed run-api run-ui fetch-ndvi fetch-rainfall fetch-prices build-dataset build-features train score
+.PHONY: help install lint format test migrate seed run-api run-api-mock export-openapi run-ui fetch-ndvi fetch-rainfall fetch-prices build-dataset build-features train score
 
 help:
 	@echo "SatBhoomi Score + Raksha - Development Commands"
@@ -8,6 +8,10 @@ help:
 	@echo "  make test            Run test suite with coverage report"
 	@echo "  make migrate         Apply latest Alembic database migrations"
 	@echo "  make seed            Seed database with synthetic demo data"
+	@echo "  make export-openapi  Export deterministic OpenAPI schema to docs/api/openapi.json"
+	@echo "  make run-api         Start FastAPI backend on http://localhost:8000"
+	@echo "  make run-api-mock    Start FastAPI mock server on http://localhost:8000 (MOCK_API=true)"
+	@echo "  make run-ui          Start Streamlit dashboard on http://localhost:8501"
 	@echo "  make fetch-ndvi      Fetch multi-season NDVI observations for sample plots"
 	@echo "  make fetch-rainfall  Fetch multi-season daily rainfall for sample plots"
 	@echo "  make fetch-prices    Fetch multi-season mandi commodity prices"
@@ -15,8 +19,6 @@ help:
 	@echo "  make build-features  Extract pre-cutoff features and compute proxy stress labels"
 	@echo "  make train           Train baseline heuristics and ML models, evaluating held-out season"
 	@echo "  make score           Score one plot-season (ANAND_WHEAT_01, 2024-25) and print JSON"
-	@echo "  make run-api         Start FastAPI backend on http://localhost:8000"
-	@echo "  make run-ui          Start Streamlit dashboard on http://localhost:8501"
 
 install:
 	python -m pip install --upgrade pip
@@ -41,6 +43,12 @@ seed:
 
 run-api:
 	python -m uvicorn satbhoomi.api.main:app --reload --host 0.0.0.0 --port 8000
+
+run-api-mock:
+	MOCK_API=true python -m uvicorn satbhoomi.api.main:app --reload --host 0.0.0.0 --port 8000
+
+export-openapi:
+	python scripts/export_openapi.py
 
 run-ui:
 	python -m streamlit run src/satbhoomi/ui/app.py

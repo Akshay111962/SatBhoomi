@@ -142,7 +142,9 @@ def generate_markdown_report(result: dict) -> str:
 
 def main() -> int:
     """Run model training CLI."""
-    parser = argparse.ArgumentParser(description="Train and evaluate SatBhoomi baseline and ML models.")
+    parser = argparse.ArgumentParser(
+        description="Train and evaluate SatBhoomi baseline and ML models."
+    )
     parser.add_argument(
         "--features-csv",
         type=Path,

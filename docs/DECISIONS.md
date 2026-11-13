@@ -92,3 +92,14 @@ This document records the architectural decisions made for **SatBhoomi Score + R
 * **Consequences**:
   * *Positive*: Enables seamless local development on modern Python 3.13 while guaranteeing green CI verification on standard Python 3.11 runners.
   * *Negative*: Restricts adoption of bleeding-edge or legacy C-extensions that lack Python 3.13 wheel distributions (mitigated by selecting lightweight, pure-Python or universally supported geospatial tools).
+
+---
+
+## ADR-10: API Contract-First Development & Mock Server Default Off
+* **Status**: Accepted
+* **Context**: Two independent frontend implementations are being developed concurrently: a Streamlit dashboard and a React single-page application built by a frontend teammate. If the frontend teams build against ad-hoc backend assumptions, UI components will diverge, break, or require costly rework once real business logic lands. Furthermore, business logic for loan suggestions, what-if simulations, alerts, and vernacular summaries is still evolving across tasks T-07, T-08, T-09, and T-12.
+* **Decision**: Adopt a strict contract-first API design based on Blueprint Section 8. Publish a versioned, deterministic OpenAPI specification (`docs/api/openapi.json`) with contract version `0.1.0`. Provide a standalone synthetic mock server activated strictly by environment variable `MOCK_API=true`. By default (`MOCK_API=false` or unset), all `/api/v1` endpoints return HTTP `501 Not Implemented`. In production (`ENVIRONMENT=production`), the application refuses to start if `MOCK_API=true` is set.
+* **Consequences**:
+  * *Positive*: Unblocks parallel frontend development immediately; guarantees both React and Streamlit frontends integrate against the identical typed schema; prevents premature or fake business logic from masquerading as real code; eliminates risk of mock data leaking into production.
+  * *Negative*: Requires maintaining schema synchronicity between Pydantic API schemas and internal risk/feature calculation models as later tasks advance.
+

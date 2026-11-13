@@ -1,0 +1,2651 @@
+{
+  "components": {
+    "schemas": {
+      "AlertActionRequest": {
+        "description": "[DRAFT] Request payload to record an officer intervention on an alert.",
+        "properties": {
+          "action_type": {
+            "description": "Category of supportive officer intervention",
+            "enum": [
+              "supportive_field_visit",
+              "check_water_irrigation",
+              "insurance_claim_help",
+              "harvest_repayment_rescheduling"
+            ],
+            "example": "supportive_field_visit",
+            "title": "Action Type",
+            "type": "string"
+          },
+          "note": {
+            "description": "Detailed officer note documenting supportive findings and support needed",
+            "example": "Conducted field inspection; confirmed tubewell motor repair underway, repayment stress mitigated.",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Note",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_type",
+          "note"
+        ],
+        "title": "AlertActionRequest",
+        "type": "object"
+      },
+      "AlertActionResponse": {
+        "description": "[DRAFT] Audited confirmation of recorded officer intervention.\n\nTagged DRAFT: Will be refined in Task T-09 / T-12.",
+        "properties": {
+          "action_id": {
+            "description": "Unique action log entry ID",
+            "example": 1,
+            "title": "Action Id",
+            "type": "integer"
+          },
+          "action_type": {
+            "example": "supportive_field_visit",
+            "title": "Action Type",
+            "type": "string"
+          },
+          "alert_id": {
+            "description": "Target alert ID",
+            "example": 1,
+            "title": "Alert Id",
+            "type": "integer"
+          },
+          "done_by": {
+            "description": "Identifier of officer logging action",
+            "example": "Officer-001",
+            "title": "Done By",
+            "type": "string"
+          },
+          "done_on": {
+            "description": "Action execution timestamp",
+            "example": "2026-11-13T10:30:00Z",
+            "title": "Done On",
+            "type": "string"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata container"
+          },
+          "note": {
+            "example": "Field visit logged.",
+            "title": "Note",
+            "type": "string"
+          },
+          "status": {
+            "default": "recorded",
+            "example": "recorded",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action_id",
+          "alert_id",
+          "action_type",
+          "note",
+          "done_by",
+          "done_on"
+        ],
+        "title": "AlertActionResponse",
+        "type": "object"
+      },
+      "AlertSummary": {
+        "description": "In-season stress alert summary.",
+        "properties": {
+          "detail": {
+            "description": "Detailed agronomic explanation",
+            "example": "At Dec 15, plot recorded vegetative drag indicating support needed.",
+            "title": "Detail",
+            "type": "string"
+          },
+          "detected_on": {
+            "description": "Date alert was detected",
+            "example": "2023-12-15",
+            "title": "Detected On",
+            "type": "string"
+          },
+          "headline": {
+            "description": "Brief headline describing stress event",
+            "example": "Vegetation vigor decline (18% drop below plot prior baseline)",
+            "title": "Headline",
+            "type": "string"
+          },
+          "id": {
+            "description": "Alert ID",
+            "example": 1,
+            "title": "Id",
+            "type": "integer"
+          },
+          "severity": {
+            "description": "Severity level matching database constraint",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "example": "medium",
+            "title": "Severity",
+            "type": "string"
+          },
+          "status": {
+            "default": "open",
+            "description": "Alert workflow state",
+            "enum": [
+              "open",
+              "acknowledged",
+              "resolved",
+              "dismissed"
+            ],
+            "example": "open",
+            "title": "Status",
+            "type": "string"
+          },
+          "supportive_action": {
+            "description": "Recommended supportive action playbook for loan officer",
+            "example": "Schedule supportive field visit to verify plot moisture and canopy vigor.",
+            "title": "Supportive Action",
+            "type": "string"
+          },
+          "type": {
+            "description": "Type of in-season stress condition detected",
+            "enum": [
+              "crop_health_drop",
+              "rainfall_deficit",
+              "price_crash"
+            ],
+            "example": "crop_health_drop",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "severity",
+          "detected_on",
+          "headline",
+          "detail",
+          "supportive_action"
+        ],
+        "title": "AlertSummary",
+        "type": "object"
+      },
+      "AssessmentCreateRequest": {
+        "description": "Payload to trigger a new farm risk assessment for a plot.",
+        "properties": {
+          "season": {
+            "default": "2024-25",
+            "description": "Target agricultural cropping season",
+            "example": "2024-25",
+            "title": "Season",
+            "type": "string"
+          }
+        },
+        "title": "AssessmentCreateRequest",
+        "type": "object"
+      },
+      "AssessmentResponse": {
+        "description": "Farm credit risk assessment result matching RiskScoreResult (T-06).\n\nZero personal data fields. Only farm agronomic risk attributes.",
+        "properties": {
+          "band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Risk tier categorization (low, medium, high)",
+            "example": "low",
+            "title": "Band"
+          },
+          "created_at": {
+            "description": "Assessment generation timestamp",
+            "example": "2026-11-13T10:05:00Z",
+            "title": "Created At",
+            "type": "string"
+          },
+          "cutoff_date": {
+            "default": "January 31",
+            "description": "In-season temporal cutoff date",
+            "example": "January 31",
+            "title": "Cutoff Date",
+            "type": "string"
+          },
+          "data_warnings": {
+            "description": "Diagnostic data quality warnings (e.g. cloud gaps)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Data Warnings",
+            "type": "array"
+          },
+          "id": {
+            "description": "Unique assessment identifier",
+            "example": 1,
+            "title": "Id",
+            "type": "integer"
+          },
+          "insufficient_data_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explanation if status is insufficient_data",
+            "title": "Insufficient Data Reason"
+          },
+          "interpretation": {
+            "default": "In-season farm stress risk estimate as of the January 31 cut-off date. This score is a model/heuristic estimate of crop stress for loan officer decision support only\u2014not a measured probability of loan default, not a pre-sowing loan approval score, and never an automated loan decision.",
+            "description": "Mandatory scoring interpretation banner",
+            "title": "Interpretation",
+            "type": "string"
+          },
+          "loan_suggestion": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DraftLoanSuggestion"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "[DRAFT] Preliminary loan suggestion structure. Subject to change in T-07."
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata container"
+          },
+          "model_version": {
+            "default": "satbhoomi-rules-v1.0-agronomic-jan31",
+            "description": "Exact model or baseline version identifier",
+            "example": "satbhoomi-rules-v1.0-agronomic-jan31",
+            "title": "Model Version",
+            "type": "string"
+          },
+          "plot_code": {
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
+          },
+          "plot_id": {
+            "description": "Plot reference identifier",
+            "example": 1,
+            "title": "Plot Id",
+            "type": "integer"
+          },
+          "protective_factor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Key resilience or protective factor mitigating risk",
+            "example": "Assured tubewell irrigation buffers plot from winter precipitation deficit.",
+            "title": "Protective Factor"
+          },
+          "reasons": {
+            "description": "Exactly 3 plain-language explanations with feature names",
+            "items": {
+              "$ref": "#/components/schemas/ReasonItem"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "reliability_note": {
+            "default": "Not validated: no stressed outcomes were available in the sample data, so this score has not been shown to predict crop stress.",
+            "description": "Mandatory validation status disclosure",
+            "title": "Reliability Note",
+            "type": "string"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deterministic risk score (0=lowest risk, 100=highest risk; null if insufficient_data)",
+            "example": 18,
+            "title": "Score"
+          },
+          "scorer": {
+            "default": "rules_baseline",
+            "description": "Active scoring implementation",
+            "enum": [
+              "rules_baseline",
+              "logreg"
+            ],
+            "example": "rules_baseline",
+            "title": "Scorer",
+            "type": "string"
+          },
+          "season": {
+            "description": "Assessed cropping season",
+            "example": "2024-25",
+            "title": "Season",
+            "type": "string"
+          },
+          "status": {
+            "description": "Evaluation status: ok or insufficient_data",
+            "enum": [
+              "ok",
+              "insufficient_data"
+            ],
+            "example": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "plot_id",
+          "plot_code",
+          "season",
+          "status",
+          "created_at"
+        ],
+        "title": "AssessmentResponse",
+        "type": "object"
+      },
+      "DraftLoanSuggestion": {
+        "description": "[DRAFT] Preliminary loan suggestion structure.\n\nSubject to expansion and rule refinement in Task T-07.",
+        "properties": {
+          "disclaimer": {
+            "default": "Loan limits are decision-support suggestions for bank loan officers only. The human loan officer makes the final credit decision.",
+            "description": "Decision-support disclaimer",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "mandatory_crop_insurance": {
+            "default": true,
+            "description": "Whether PMFBY enrollment is mandatory for this risk profile",
+            "example": true,
+            "title": "Mandatory Crop Insurance",
+            "type": "boolean"
+          },
+          "repayment_month": {
+            "default": "May",
+            "description": "Harvest-aligned bullet repayment month",
+            "example": "May",
+            "title": "Repayment Month",
+            "type": "string"
+          },
+          "risk_haircut_pct": {
+            "default": 0.0,
+            "description": "Risk band adjustment haircut percentage applied to limit",
+            "example": 0.0,
+            "title": "Risk Haircut Pct",
+            "type": "number"
+          },
+          "scale_of_finance_applied_inr_per_acre": {
+            "default": 32000.0,
+            "description": "District DLTC Scale of Finance benchmark per acre",
+            "example": 32000.0,
+            "title": "Scale Of Finance Applied Inr Per Acre",
+            "type": "number"
+          },
+          "status": {
+            "default": "ok",
+            "description": "Loan suggestion determination status",
+            "enum": [
+              "ok",
+              "insufficient_data"
+            ],
+            "example": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "suggested_limit_inr": {
+            "description": "Recommended maximum credit limit in INR",
+            "example": 80000.0,
+            "minimum": 0.0,
+            "title": "Suggested Limit Inr",
+            "type": "number"
+          }
+        },
+        "required": [
+          "suggested_limit_inr"
+        ],
+        "title": "DraftLoanSuggestion",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "description": "Structured error object conforming to SatBhoomi blueprint section 8.",
+        "properties": {
+          "code": {
+            "description": "Machine-readable error code (e.g. VALIDATION_ERROR, NOT_FOUND, NOT_IMPLEMENTED)",
+            "example": "VALIDATION_ERROR",
+            "title": "Code",
+            "type": "string"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Request field that triggered the error, if applicable",
+            "example": "area_acre",
+            "title": "Field"
+          },
+          "message": {
+            "description": "Human-readable explanation of the error",
+            "example": "area_acre must be above 0",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "description": "Standard API error response envelope.",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "FarmerSummaryResponse": {
+        "description": "[DRAFT] Vernacular plain-language credit summary for farmer communication.\n\nTagged DRAFT: Will be refined in Task T-12.",
+        "properties": {
+          "assessment_id": {
+            "description": "Parent assessment identifier",
+            "example": 1,
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "key_points": {
+            "description": "Bulleted highlights explaining limit basis and support needed",
+            "example": [
+              "Vegetative health is normal.",
+              "Tubewell water availability protects against winter dry spells.",
+              "Crop insurance is active."
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Key Points",
+            "type": "array"
+          },
+          "lang": {
+            "default": "en",
+            "description": "Language code: en (English), gu (Gujarati), hi (Hindi)",
+            "enum": [
+              "en",
+              "gu",
+              "hi"
+            ],
+            "example": "en",
+            "title": "Lang",
+            "type": "string"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata container"
+          },
+          "plot_code": {
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
+          },
+          "source": {
+            "default": "template",
+            "description": "Text generation provenance: deterministic template or human-reviewed translation",
+            "enum": [
+              "template",
+              "reviewed"
+            ],
+            "example": "template",
+            "title": "Source",
+            "type": "string"
+          },
+          "summary_text": {
+            "description": "Plain-language assessment explanation in selected language",
+            "example": "Your wheat crop shows strong vegetative health with assured tubewell water. Your suggested credit limit is \u20b980,000 with repayment scheduled in May after harvest.",
+            "title": "Summary Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "plot_code",
+          "summary_text"
+        ],
+        "title": "FarmerSummaryResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "description": "Officer login credential payload.",
+        "properties": {
+          "password": {
+            "description": "User password",
+            "example": "demo_password_123",
+            "minLength": 6,
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "description": "Bank loan officer or admin username",
+            "example": "officer_anand",
+            "maxLength": 50,
+            "minLength": 3,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "PlotCreateRequest": {
+        "description": "Payload to register a new agricultural plot for assessment.\n\nWording Rule: Zero personal data fields. Only anonymized identifiers allowed.",
+        "properties": {
+          "area_acre": {
+            "description": "Plot operational area in acres (must be > 0)",
+            "example": 2.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Area Acre",
+            "type": "number"
+          },
+          "crop": {
+            "default": "wheat",
+            "description": "Primary crop grown on the plot",
+            "example": "wheat",
+            "title": "Crop",
+            "type": "string"
+          },
+          "district": {
+            "default": "Anand",
+            "description": "District name in Gujarat",
+            "example": "Anand",
+            "title": "District",
+            "type": "string"
+          },
+          "farmer_id": {
+            "description": "Internal anonymized farmer reference ID",
+            "example": 1,
+            "title": "Farmer Id",
+            "type": "integer"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional boundary geometry string (GeoJSON or WKT polygon)",
+            "title": "Geometry"
+          },
+          "insured": {
+            "default": 1,
+            "description": "PMFBY crop insurance coverage status (1=insured, 0=uninsured)",
+            "example": 1,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Insured",
+            "type": "integer"
+          },
+          "irrigation": {
+            "default": "tube_well",
+            "description": "Irrigation water source infrastructure",
+            "enum": [
+              "tube_well",
+              "canal",
+              "rainfed"
+            ],
+            "example": "tube_well",
+            "title": "Irrigation",
+            "type": "string"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 22.5645,
+            "description": "Representative latitude coordinate",
+            "example": 22.5645,
+            "title": "Lat"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 72.9289,
+            "description": "Representative longitude coordinate",
+            "example": 72.9289,
+            "title": "Lon"
+          },
+          "village": {
+            "default": "Boriavi",
+            "description": "Village name",
+            "example": "Boriavi",
+            "title": "Village",
+            "type": "string"
+          }
+        },
+        "required": [
+          "farmer_id",
+          "area_acre"
+        ],
+        "title": "PlotCreateRequest",
+        "type": "object"
+      },
+      "PlotListResponse": {
+        "description": "Paginated list envelope for plots.",
+        "properties": {
+          "items": {
+            "description": "List of plot records on the current page",
+            "items": {
+              "$ref": "#/components/schemas/PlotResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "limit": {
+            "description": "Page item limit",
+            "example": 10,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata"
+          },
+          "offset": {
+            "description": "Page offset index",
+            "example": 0,
+            "title": "Offset",
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total number of matching plots across all pages",
+            "example": 24,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "title": "PlotListResponse",
+        "type": "object"
+      },
+      "PlotMonitoringResponse": {
+        "description": "[DRAFT] In-season plot monitoring timeline and active stress alerts.\n\nTagged DRAFT: Will be refined in Task T-09.",
+        "properties": {
+          "active_alerts": {
+            "description": "List of currently active in-season alerts",
+            "items": {
+              "$ref": "#/components/schemas/AlertSummary"
+            },
+            "title": "Active Alerts",
+            "type": "array"
+          },
+          "data_gap_flag": {
+            "default": false,
+            "description": "Flag indicating whether cloud cover produced an active data gap banner",
+            "example": false,
+            "title": "Data Gap Flag",
+            "type": "boolean"
+          },
+          "data_gap_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explanatory text for data gap, if present",
+            "title": "Data Gap Note"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata container"
+          },
+          "plot_code": {
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
+          },
+          "plot_id": {
+            "description": "Plot identifier",
+            "example": 1,
+            "title": "Plot Id",
+            "type": "integer"
+          },
+          "season": {
+            "description": "Monitored cropping season",
+            "example": "2023-24",
+            "title": "Season",
+            "type": "string"
+          },
+          "timeline": {
+            "description": "Sequential time-series observations of crop health and rainfall",
+            "items": {
+              "$ref": "#/components/schemas/TimelinePoint"
+            },
+            "title": "Timeline",
+            "type": "array"
+          }
+        },
+        "required": [
+          "plot_id",
+          "plot_code",
+          "season"
+        ],
+        "title": "PlotMonitoringResponse",
+        "type": "object"
+      },
+      "PlotResponse": {
+        "description": "Standard plot details response representation.",
+        "properties": {
+          "area_acre": {
+            "example": 2.5,
+            "title": "Area Acre",
+            "type": "number"
+          },
+          "created_at": {
+            "example": "2026-11-13T10:00:00Z",
+            "title": "Created At",
+            "type": "string"
+          },
+          "crop": {
+            "example": "wheat",
+            "title": "Crop",
+            "type": "string"
+          },
+          "district": {
+            "example": "Anand",
+            "title": "District",
+            "type": "string"
+          },
+          "farmer_display_name": {
+            "description": "Synthetic non-PII farmer code",
+            "example": "Farmer-001",
+            "title": "Farmer Display Name",
+            "type": "string"
+          },
+          "farmer_id": {
+            "description": "Anonymized farmer ID",
+            "example": 1,
+            "title": "Farmer Id",
+            "type": "integer"
+          },
+          "id": {
+            "description": "Unique plot identifier",
+            "example": 1,
+            "title": "Id",
+            "type": "integer"
+          },
+          "insured": {
+            "example": 1,
+            "title": "Insured",
+            "type": "integer"
+          },
+          "irrigation": {
+            "example": "tube_well",
+            "title": "Irrigation",
+            "type": "string"
+          },
+          "lat": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "example": 22.5645,
+            "title": "Lat"
+          },
+          "lon": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "example": 72.9289,
+            "title": "Lon"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata"
+          },
+          "plot_code": {
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
+          },
+          "village": {
+            "example": "Boriavi",
+            "title": "Village",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "plot_code",
+          "farmer_id",
+          "farmer_display_name",
+          "district",
+          "village",
+          "crop",
+          "area_acre",
+          "irrigation",
+          "insured",
+          "created_at"
+        ],
+        "title": "PlotResponse",
+        "type": "object"
+      },
+      "ReasonItem": {
+        "description": "Structured plain-language reason attributed to a specific model feature.",
+        "properties": {
+          "feature_name": {
+            "description": "Name of the predictive feature driving this attribution",
+            "example": "ndvi_trend_pre_cutoff",
+            "title": "Feature Name",
+            "type": "string"
+          },
+          "text": {
+            "description": "Plain-language reason explanation for loan officers",
+            "example": "Vegetative canopy vigor expanded steadily through January.",
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature_name",
+          "text"
+        ],
+        "title": "ReasonItem",
+        "type": "object"
+      },
+      "ReliefReportResponse": {
+        "description": "[DRAFT] Crop calamity relief evidence report payload.\n\nTagged DRAFT: Will be refined in Task T-12.",
+        "properties": {
+          "baseline_ndvi_mean": {
+            "description": "Historical benchmark NDVI for plot in this calendar window",
+            "example": 0.68,
+            "title": "Baseline Ndvi Mean",
+            "type": "number"
+          },
+          "current_ndvi_mean": {
+            "description": "Recorded in-season NDVI mean",
+            "example": 0.42,
+            "title": "Current Ndvi Mean",
+            "type": "number"
+          },
+          "disclaimer": {
+            "default": "Official crop loss assessment and calamity declaration remain strictly with government and bank relief committees. This evidence report is for decision support only.",
+            "description": "Mandatory statutory relief disclaimer",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "estimated_loss_band": {
+            "description": "Categorical crop loss band estimate (e.g. 33% to 50%)",
+            "example": "33% to 50% loss",
+            "title": "Estimated Loss Band",
+            "type": "string"
+          },
+          "exceeds_rbi_33_threshold": {
+            "description": "Whether estimated crop loss meets or exceeds the RBI 33% threshold",
+            "example": true,
+            "title": "Exceeds Rbi 33 Threshold",
+            "type": "boolean"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata container"
+          },
+          "ndvi_drop_pct": {
+            "description": "Percentage drop below historical baseline",
+            "example": 38.2,
+            "title": "Ndvi Drop Pct",
+            "type": "number"
+          },
+          "plot_code": {
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
+          },
+          "plot_id": {
+            "description": "Target plot identifier",
+            "example": 1,
+            "title": "Plot Id",
+            "type": "integer"
+          },
+          "season": {
+            "description": "Affected cropping season",
+            "example": "2023-24",
+            "title": "Season",
+            "type": "string"
+          },
+          "supporting_evidence_summary": {
+            "description": "Summary of satellite vegetative decline and meteorological deficit",
+            "example": "Vegetative vigor fell 38.2% below historical baseline following winter dry spell.",
+            "title": "Supporting Evidence Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plot_id",
+          "plot_code",
+          "season",
+          "baseline_ndvi_mean",
+          "current_ndvi_mean",
+          "ndvi_drop_pct",
+          "estimated_loss_band",
+          "exceeds_rbi_33_threshold",
+          "supporting_evidence_summary"
+        ],
+        "title": "ReliefReportResponse",
+        "type": "object"
+      },
+      "ResponseMeta": {
+        "description": "Standard metadata container for API responses.",
+        "properties": {
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional context-specific metadata",
+            "title": "Extra"
+          },
+          "synthetic": {
+            "default": false,
+            "description": "Flag indicating whether response payload is synthetic mock data",
+            "example": true,
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "version": {
+            "default": "0.1.0",
+            "description": "API contract version",
+            "example": "0.1.0",
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "title": "ResponseMeta",
+        "type": "object"
+      },
+      "TimelinePoint": {
+        "description": "Observation point along the season timeline.",
+        "properties": {
+          "data_gap": {
+            "default": false,
+            "description": "Whether cloud cover or missing scene created a data gap",
+            "title": "Data Gap",
+            "type": "boolean"
+          },
+          "date": {
+            "description": "Observation date (YYYY-MM-DD)",
+            "example": "2023-12-15",
+            "title": "Date",
+            "type": "string"
+          },
+          "ndvi": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Clear-sky NDVI value",
+            "example": 0.52,
+            "title": "Ndvi"
+          },
+          "rainfall_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily/cumulative rainfall in mm",
+            "example": 4.5,
+            "title": "Rainfall Mm"
+          }
+        },
+        "required": [
+          "date"
+        ],
+        "title": "TimelinePoint",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "description": "Session authentication token response.",
+        "properties": {
+          "access_token": {
+            "description": "Bearer access token for API authorization",
+            "example": "mock-officer-token-xyz",
+            "title": "Access Token",
+            "type": "string"
+          },
+          "display_name": {
+            "default": "Officer Anand Branch",
+            "description": "Display name of the authenticated user",
+            "example": "Officer Anand Branch",
+            "title": "Display Name",
+            "type": "string"
+          },
+          "expires_in": {
+            "default": 3600,
+            "description": "Token lifetime in seconds",
+            "example": 3600,
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata container"
+          },
+          "role": {
+            "default": "officer",
+            "description": "Assigned system role",
+            "enum": [
+              "officer",
+              "admin"
+            ],
+            "example": "officer",
+            "title": "Role",
+            "type": "string"
+          },
+          "token_type": {
+            "default": "bearer",
+            "description": "Token type",
+            "example": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          },
+          "user_id": {
+            "description": "Internal user identifier",
+            "example": 1,
+            "title": "User Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "access_token",
+          "user_id"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WhatIfRequest": {
+        "description": "[DRAFT] Payload to project risk score changes under a controllable mitigation.",
+        "properties": {
+          "changed_input": {
+            "description": "Controllable intervention attribute to simulate",
+            "enum": [
+              "insured",
+              "irrigation",
+              "supplementary_irrigation"
+            ],
+            "example": "insured",
+            "title": "Changed Input",
+            "type": "string"
+          },
+          "new_value": {
+            "description": "Hypothetical value to apply (e.g. '1' or 'tube_well')",
+            "example": "1",
+            "title": "New Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "changed_input",
+          "new_value"
+        ],
+        "title": "WhatIfRequest",
+        "type": "object"
+      },
+      "WhatIfResponse": {
+        "description": "[DRAFT] Simulation projection result for loan officer review.\n\nTagged DRAFT: Will be refined in Task T-08.",
+        "properties": {
+          "assessment_id": {
+            "description": "Parent assessment ID",
+            "example": 1,
+            "title": "Assessment Id",
+            "type": "integer"
+          },
+          "causation_disclaimer": {
+            "default": "What-if simulations show model sensitivity under prospective mitigations; they do not prove causation or guarantee crop outcomes.",
+            "description": "Mandatory statistical disclaimer",
+            "title": "Causation Disclaimer",
+            "type": "string"
+          },
+          "changed_input": {
+            "description": "Intervention attribute evaluated",
+            "example": "insured",
+            "title": "Changed Input",
+            "type": "string"
+          },
+          "estimate_label": {
+            "const": "estimate",
+            "default": "estimate",
+            "description": "Mandatory label identifying output as a model estimate, not causation proof",
+            "example": "estimate",
+            "title": "Estimate Label",
+            "type": "string"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResponseMeta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Response metadata container"
+          },
+          "new_value": {
+            "description": "Simulated value after intervention",
+            "example": "1",
+            "title": "New Value",
+            "type": "string"
+          },
+          "old_value": {
+            "description": "Baseline value before intervention",
+            "example": "0",
+            "title": "Old Value",
+            "type": "string"
+          },
+          "original_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Baseline risk band",
+            "example": "medium",
+            "title": "Original Band"
+          },
+          "original_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Original baseline risk score",
+            "example": 55,
+            "title": "Original Score"
+          },
+          "plot_id": {
+            "description": "Plot identifier",
+            "example": 1,
+            "title": "Plot Id",
+            "type": "integer"
+          },
+          "score_delta": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Point change in risk score (negative indicates risk reduction)",
+            "example": -10,
+            "title": "Score Delta"
+          },
+          "simulated_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Projected risk band",
+            "example": "medium",
+            "title": "Simulated Band"
+          },
+          "simulated_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Projected risk score under the simulated mitigation",
+            "example": 45,
+            "title": "Simulated Score"
+          }
+        },
+        "required": [
+          "assessment_id",
+          "plot_id",
+          "changed_input",
+          "old_value",
+          "new_value",
+          "original_score",
+          "simulated_score",
+          "original_band",
+          "simulated_band",
+          "score_delta"
+        ],
+        "title": "WhatIfResponse",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "AI farm credit scoring and early-warning decision-support tool for bank loan officers",
+    "title": "SatBhoomi Score + Raksha",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/alerts/{id}/actions": {
+      "post": {
+        "description": "[DRAFT] Log a supportive loan officer action taken in response to an in-season alert.",
+        "operationId": "log_alert_action_api_v1_alerts__id__actions_post",
+        "parameters": [
+          {
+            "description": "Target alert identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Target alert identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AlertActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AlertActionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Alert not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Log Alert Action",
+        "tags": [
+          "Alerts"
+        ]
+      }
+    },
+    "/api/v1/assessments/{id}": {
+      "get": {
+        "description": "Retrieve an existing assessment result by ID.",
+        "operationId": "get_assessment_api_v1_assessments__id__get",
+        "parameters": [
+          {
+            "description": "Assessment identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Assessment identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Assessment not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Get Assessment",
+        "tags": [
+          "Assessments"
+        ]
+      }
+    },
+    "/api/v1/assessments/{id}/farmer-summary": {
+      "get": {
+        "description": "[DRAFT] Generate plain-language credit summary in Gujarati, Hindi, or English.",
+        "operationId": "get_farmer_summary_api_v1_assessments__id__farmer_summary_get",
+        "parameters": [
+          {
+            "description": "Target assessment identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Target assessment identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Language code: en, gu, or hi",
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "description": "Language code: en, gu, or hi",
+              "title": "Lang",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FarmerSummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unsupported language parameter"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Assessment not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Get Farmer Summary",
+        "tags": [
+          "Farmer Summary"
+        ]
+      }
+    },
+    "/api/v1/assessments/{id}/what-if": {
+      "post": {
+        "description": "[DRAFT] Simulate prospective risk score changes under a controllable mitigation.",
+        "operationId": "run_what_if_api_v1_assessments__id__what_if_post",
+        "parameters": [
+          {
+            "description": "Target assessment ID to simulate from",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Target assessment ID to simulate from",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WhatIfRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WhatIfResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error on input parameter"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Assessment not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Run What If",
+        "tags": [
+          "What-If"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "Authenticate officer and issue session token.",
+        "operationId": "login_api_v1_auth_login_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid credentials"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/api/v1/plots": {
+      "get": {
+        "description": "List agricultural plots with pagination and optional district filter.",
+        "operationId": "list_plots_api_v1_plots_get",
+        "parameters": [
+          {
+            "description": "Items per page",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "description": "Items per page",
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Pagination offset",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Pagination offset",
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Filter by district name",
+            "in": "query",
+            "name": "district",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by district name",
+              "title": "District"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlotListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "List Plots",
+        "tags": [
+          "Plots"
+        ]
+      },
+      "post": {
+        "description": "Create a new agricultural plot record for risk assessment.",
+        "operationId": "create_plot_api_v1_plots_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlotCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlotResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Create Plot",
+        "tags": [
+          "Plots"
+        ]
+      }
+    },
+    "/api/v1/plots/{id}/assessments": {
+      "post": {
+        "description": "Execute risk assessment for a plot and return deterministic score with reasons.",
+        "operationId": "create_assessment_api_v1_plots__id__assessments_post",
+        "parameters": [
+          {
+            "description": "Target plot identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Target plot identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/AssessmentCreateRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssessmentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Plot not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Create Assessment",
+        "tags": [
+          "Assessments"
+        ]
+      }
+    },
+    "/api/v1/plots/{id}/monitoring": {
+      "get": {
+        "description": "[DRAFT] Retrieve in-season crop health timeline, rainfall trajectory, and active alerts.",
+        "operationId": "get_plot_monitoring_api_v1_plots__id__monitoring_get",
+        "parameters": [
+          {
+            "description": "Target plot identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Target plot identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlotMonitoringResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Plot not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Get Plot Monitoring",
+        "tags": [
+          "Monitoring"
+        ]
+      }
+    },
+    "/api/v1/plots/{id}/relief-report": {
+      "get": {
+        "description": "[DRAFT] Generate evidence report supporting restructuring under RBI 33% relief rules.",
+        "operationId": "get_relief_report_api_v1_plots__id__relief_report_get",
+        "parameters": [
+          {
+            "description": "Target plot identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Target plot identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReliefReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Plot not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented (when MOCK_API=false)"
+          }
+        },
+        "summary": "Get Relief Report",
+        "tags": [
+          "Relief"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "description": "Health check endpoint to verify API operational readiness.",
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Health Check Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Check",
+        "tags": [
+          "System"
+        ]
+      }
+    }
+  }
+}

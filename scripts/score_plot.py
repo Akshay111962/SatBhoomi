@@ -80,7 +80,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.what_if_input:
         if args.what_if_val is None:
-            print("Error: --what-if-val must be provided when --what-if-input is set", file=sys.stderr)
+            print(
+                "Error: --what-if-val must be provided when --what-if-input is set", file=sys.stderr
+            )
             return 1
         try:
             crop = str(row.get("crop", "wheat"))

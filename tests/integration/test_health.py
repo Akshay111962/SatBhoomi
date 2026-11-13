@@ -15,7 +15,13 @@ def test_health_check_endpoint(test_client: TestClient) -> None:
     assert "environment" in data
 
 
-def test_only_health_endpoint_registered(test_client: TestClient) -> None:
-    """Verify that unexposed business routes return 404 in this foundation phase."""
-    response = test_client.get("/api/v1/plots")
+def test_unregistered_route_returns_404(test_client: TestClient) -> None:
+    """Verify that unregistered routes return 404 Not Found."""
+    response = test_client.get("/api/v1/unknown-route")
     assert response.status_code == 404
+
+
+def test_business_endpoints_return_501_in_default_mode(test_client: TestClient) -> None:
+    """Verify that registered business routes return 501 in default non-mock mode."""
+    response = test_client.get("/api/v1/plots")
+    assert response.status_code == 501
