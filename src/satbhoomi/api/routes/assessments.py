@@ -23,8 +23,6 @@ router = APIRouter(tags=["Assessments"])
     "/plots/{id}/assessments",
     response_model=AssessmentResponse,
     status_code=status.HTTP_201_CREATED,
-
-    
     responses={
         400: {"model": ErrorResponse, "description": "Validation error"},
         401: {"model": ErrorResponse, "description": "Unauthorized"},
