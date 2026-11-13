@@ -49,6 +49,19 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ---
 
+### RISK-04: In-Season Farm Stress Alerts Not Validated on Real Disaster Events
+- **Category**: Agronomic Sensing / Early Warning Validity / Credit Risk
+- **Description**: While satellite NDVI, NASA POWER precipitation, APMC mandi prices, and government yield statistics in `season_dataset.csv` are 100% empirical live data, **zero official disaster, drought, or flood declarations were recorded in Anand district during the sample seasons (2020-2025)**. Historical replay results are purely descriptive. The early-warning lead time and alert detection efficacy cannot be validated on historical data and were verified exclusively on a labelled **synthetic stress scenario** (TC-007).
+- **Severity**: Medium
+- **Likelihood**: High (no official calamity occurred in the historical sample window)
+- **Mitigation & Guardrails**:
+  1. **Zero Overclaiming**: The system explicitly disclaims early warning proof or calamity detection on historical data; docs and CLI reports clearly label historical replay as descriptive only.
+  2. **TC-007 Synthetic Stress Validation**: Early alert lead time (11.0 weeks before harvest vs. $\ge 6$-week requirement) is tested and passed strictly on a labelled synthetic scenario (`SYNTHETIC_STRESS_SCENARIO` with a simulated 30% vegetative drop).
+  3. **Strict Data Gap Separation**: Missing or sparse scene data ($\le 1$ prior season or $< 2$ clear scenes) is recorded as a `data_gap`, never raising an alert and never imputing or guessing values.
+  4. **Supportive-Only Playbooks**: Alerts trigger supportive actions for the bank loan officer (field moisture check, PMFBY insurance claim assistance, harvest-aligned repayment scheduling). They never trigger coercive recovery pressure or farmer blame.
+
+---
+
 ## Open Questions
 
 ### OPEN QUESTION-01: Pre-Sowing Loan Approval vs. In-Season (January 31) Assessment
