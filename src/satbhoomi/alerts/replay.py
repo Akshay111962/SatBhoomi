@@ -145,6 +145,7 @@ def replay_single_plot_season(
     full_df: pd.DataFrame,
     raw_satellite_dir: Path | None = None,
     synthetic_scenes: list[dict[str, Any]] | None = None,
+    synthetic_prior_scenes_map: dict[str, list[dict[str, Any]]] | None = None,
 ) -> list[EvaluationCheckpointResult]:
     """Execute chronological replay for a single plot in a given season."""
     row_match = plot_df[(plot_df["plot_code"] == plot_code) & (plot_df["season"] == season)]
@@ -168,9 +169,12 @@ def replay_single_plot_season(
     # Load scenes for prior seasons of this plot
     prior_scenes_map: dict[str, list[dict[str, Any]]] = {}
     for ps in prior_seasons:
-        ps_scenes = load_raw_scenes_cache(plot_code, ps, raw_satellite_dir)
-        if ps_scenes:
-            prior_scenes_map[ps] = ps_scenes
+        if synthetic_prior_scenes_map is not None and ps in synthetic_prior_scenes_map:
+            prior_scenes_map[ps] = synthetic_prior_scenes_map[ps]
+        else:
+            ps_scenes = load_raw_scenes_cache(plot_code, ps, raw_satellite_dir)
+            if ps_scenes:
+                prior_scenes_map[ps] = ps_scenes
 
     tracker = InSeasonAlertTracker(plot_code=plot_code, season=season)
     checkpoint_results: list[EvaluationCheckpointResult] = []
@@ -454,6 +458,22 @@ def generate_synthetic_stress_scenario(
             sc_copy["synthetic_stress_injected"] = True
         synthetic_scenes.append(sc_copy)
 
+    # Ensure prior seasons have baseline scenes if raw files are absent
+    synthetic_prior_map: dict[str, list[dict[str, Any]]] = {}
+    for ps in ["2020-21", "2021-22", "2022-23"]:
+        ps_scenes = load_raw_scenes_cache(plot_code, ps, raw_satellite_dir)
+        if ps_scenes:
+            synthetic_prior_map[ps] = ps_scenes
+        else:
+            ps_yr = int(ps.split("-")[0])
+            synthetic_prior_map[ps] = [
+                {"date": f"{ps_yr}-11-10", "ndvi": 0.32, "is_valid": True},
+                {"date": f"{ps_yr}-11-25", "ndvi": 0.40, "is_valid": True},
+                {"date": f"{ps_yr}-12-10", "ndvi": 0.52, "is_valid": True},
+                {"date": f"{ps_yr + 1}-01-10", "ndvi": 0.65, "is_valid": True},
+                {"date": f"{ps_yr + 1}-01-25", "ndvi": 0.72, "is_valid": True},
+            ]
+
     # Replay on synthetic scenes
     results = replay_single_plot_season(
         plot_code=plot_code,
@@ -462,6 +482,7 @@ def generate_synthetic_stress_scenario(
         full_df=dataset_df,
         raw_satellite_dir=raw_satellite_dir,
         synthetic_scenes=synthetic_scenes,
+        synthetic_prior_scenes_map=synthetic_prior_map,
     )
 
     first_alert_date: date | None = None

@@ -18,7 +18,6 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from satbhoomi.alerts.config import (
     ALLOWED_ALERT_TYPES,
@@ -276,47 +275,60 @@ def test_in_season_tracker_deduplication_and_escalation() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_replay_leakage_truncation_invariance(tmp_path: Path) -> None:
+def test_replay_leakage_truncation_invariance() -> None:
     """Replaying on a dataset truncated at the checkpoint produces identical alerts."""
-    dataset_path = Path("data/processed/season_dataset.csv")
-    if not dataset_path.is_file():
-        pytest.skip("Dataset file not available for leakage test.")
+    # Build a self-contained 2-season test dataset (independent of local disk cache)
+    df = pd.DataFrame(
+        [
+            {
+                "plot_code": "PLOT_LEAK_01",
+                "season": "2022-23",
+                "irrigation": "tube_well",
+                "rain_nov_mm": 5.0,
+                "rain_dec_mm": 10.0,
+                "rain_jan_mm": 8.0,
+                "price_dec": 2200.0,
+                "price_jan": 2250.0,
+            },
+            {
+                "plot_code": "PLOT_LEAK_01",
+                "season": "2023-24",
+                "irrigation": "tube_well",
+                "rain_nov_mm": 0.0,
+                "rain_dec_mm": 0.0,
+                "rain_jan_mm": 50.0,  # post-Dec high rain
+                "price_dec": 1600.0,  # price crash in Dec
+                "price_jan": 2400.0,  # post-Dec high price
+            },
+        ]
+    )
 
-    df = pd.read_csv(dataset_path)
-
-    # Replay on full dataset
+    # Full replay on untruncated dataset
     res_full = replay_single_plot_season(
-        plot_code="ANAND_WHEAT_01",
+        plot_code="PLOT_LEAK_01",
         season="2023-24",
         plot_df=df,
         full_df=df,
-        raw_satellite_dir=Path("data/raw/satellite"),
+        raw_satellite_dir=None,
     )
-
-    # Dec 15 checkpoint from full run
     cp_dec15_full = [r for r in res_full if r.checkpoint_label == "Dec 15"][0]
 
-    # Create truncated dataset removing subsequent months' weather and price data
+    # Truncated dataset removing subsequent months' weather and price data
     df_truncated = df.copy()
-    # Mask out post-Dec data for 2023-24
-    mask = (df_truncated["plot_code"] == "ANAND_WHEAT_01") & (df_truncated["season"] == "2023-24")
+    mask = (df_truncated["plot_code"] == "PLOT_LEAK_01") & (df_truncated["season"] == "2023-24")
     df_truncated.loc[mask, "rain_jan_mm"] = None
-    df_truncated.loc[mask, "rain_feb_mm"] = None
-    df_truncated.loc[mask, "rain_mar_mm"] = None
     df_truncated.loc[mask, "price_jan"] = None
-    df_truncated.loc[mask, "price_feb"] = None
-    df_truncated.loc[mask, "price_mar"] = None
 
     res_truncated = replay_single_plot_season(
-        plot_code="ANAND_WHEAT_01",
+        plot_code="PLOT_LEAK_01",
         season="2023-24",
         plot_df=df_truncated,
         full_df=df_truncated,
-        raw_satellite_dir=Path("data/raw/satellite"),
+        raw_satellite_dir=None,
     )
     cp_dec15_truncated = [r for r in res_truncated if r.checkpoint_label == "Dec 15"][0]
 
-    # Alerts emitted at Dec 15 must be identical
+    # Alerts emitted at Dec 15 must be identical regardless of post-Dec data
     assert len(cp_dec15_full.alerts) == len(cp_dec15_truncated.alerts)
     for a_full, a_trunc in zip(cp_dec15_full.alerts, cp_dec15_truncated.alerts, strict=True):
         assert a_full.type == a_trunc.type
@@ -334,7 +346,9 @@ def test_tc007_synthetic_stress_scenario() -> None:
     synth_result = generate_synthetic_stress_scenario(
         plot_code="ANAND_WHEAT_01",
         base_season="2023-24",
-        raw_satellite_dir=Path("data/raw/satellite"),
+        raw_satellite_dir=Path("data/raw/satellite")
+        if Path("data/raw/satellite").is_dir()
+        else None,
     )
 
     assert synth_result["scenario_type"] == "SYNTHETIC_STRESS_SCENARIO"
@@ -396,15 +410,14 @@ def test_alert_orm_compatibility() -> None:
 def test_rule_2_compliance_no_banned_wording_supportive_actions() -> None:
     """Alerts describe farm and repayment stress, never mental state or farmer blame."""
     dataset_path = Path("data/processed/season_dataset.csv")
-    if not dataset_path.is_file():
-        pytest.skip("Dataset file not available.")
+    if dataset_path.is_file() and Path("data/raw/satellite").is_dir():
+        df = pd.read_csv(dataset_path)
+        report = run_full_replay(df, raw_satellite_dir=Path("data/raw/satellite"))
+        assert report.total_plots > 0
 
-    df = pd.read_csv(dataset_path)
-    report = run_full_replay(df, raw_satellite_dir=Path("data/raw/satellite"))
-    assert report.total_plots > 0
-
-    # Also check synthetic scenario alerts
-    synth_res = generate_synthetic_stress_scenario(raw_satellite_dir=Path("data/raw/satellite"))
+    # Also check synthetic scenario alerts (always executes in all environments including CI)
+    raw_dir = Path("data/raw/satellite") if Path("data/raw/satellite").is_dir() else None
+    synth_res = generate_synthetic_stress_scenario(raw_satellite_dir=raw_dir)
 
     all_checkpoint_results = synth_res["checkpoint_results"]
     for res in all_checkpoint_results:
