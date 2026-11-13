@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from satbhoomi.risk.loan_suggestions import generate_loan_suggestion
 from satbhoomi.risk.scoring import score_plot_season
 
 
@@ -33,6 +34,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="data/processed/features.csv",
         help="Path to features CSV (default: data/processed/features.csv).",
     )
+    parser.add_argument(
+        "--suggest-loan",
+        action="store_true",
+        help="Output right-sized loan limit band and repayment schedule suggestion (T-07).",
+    )
+    parser.add_argument(
+        "--area-acre",
+        type=float,
+        default=2.5,
+        help="Operational farm area in acres for loan sizing (default: 2.5).",
+    )
     return parser.parse_args(argv)
 
 
@@ -53,8 +65,24 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    result = score_plot_season(matched.iloc[0])
-    print(result.model_dump_json(indent=2))
+    row = matched.iloc[0]
+    score_result = score_plot_season(row)
+
+    if args.suggest_loan:
+        irrigation = str(row.get("irrigation", "tube_well"))
+        insured = bool(row.get("insured", 0))
+        crop = str(row.get("crop", "wheat"))
+        suggestion = generate_loan_suggestion(
+            score_result,
+            area_acre=args.area_acre,
+            crop=crop,
+            irrigation=irrigation,
+            insured=insured,
+        )
+        print(suggestion.model_dump_json(indent=2))
+    else:
+        print(score_result.model_dump_json(indent=2))
+
     return 0
 
 
