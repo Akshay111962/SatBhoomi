@@ -1,10 +1,10 @@
 {
-  "model_version": "satbhoomi-risk-v1.0-logreg-feat1-opt1th15-f85e5949-20261105",
-  "artifact_path": "models\\satbhoomi-risk-v1.0-logreg-feat1-opt1th15-f85e5949-20261105.joblib",
-  "metadata_path": "models\\satbhoomi-risk-v1.0-logreg-feat1-opt1th15-f85e5949-20261105.meta.json",
-  "data_hash": "f85e59495ce70d18c05453e52d3d0fc26dca1371abb0f1eec4cbe2a7eee105a8",
-  "criteria_status": "CRITERIA_NOT_EVALUABLE_SINGLE_CLASS",
-  "narrative": "Held-out test season contains a single class (all healthy), preventing ROC-AUC calculation. Brier score was used for calibration assessment.",
+  "model_version": "satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112",
+  "artifact_path": "models\\satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112.joblib",
+  "metadata_path": "models\\satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112.meta.json",
+  "data_hash": "8bac5ab0f36888deeef2fa53882de82faaa7cd608e359140afd9bdb146908ade",
+  "criteria_status": "CRITERIA_NOT_MET",
+  "narrative": "Held-out AUC is below 0.70 or confidence interval spans 0.50. Model predictive signal is statistically unvalidated on small sample.",
   "forward_chaining": [
     {
       "fold": 1,
@@ -12,9 +12,9 @@
         "2021-22"
       ],
       "val_season": "2022-23",
-      "train_count": 12,
-      "val_count": 12,
-      "logreg_brier": 0.0
+      "train_count": 24,
+      "val_count": 24,
+      "logreg_brier": 0.5857662947128616
     },
     {
       "fold": 2,
@@ -23,28 +23,28 @@
         "2022-23"
       ],
       "val_season": "2023-24",
-      "train_count": 24,
-      "val_count": 12,
-      "logreg_brier": 0.0
+      "train_count": 48,
+      "val_count": 24,
+      "logreg_brier": 0.23288877396314564
     }
   ],
   "results": {
     "majority_class": {
       "metrics": {
-        "roc_auc": NaN,
-        "pr_auc": NaN,
-        "brier_score": 0.0,
-        "sample_count": 12,
-        "event_rate": 0.0
+        "roc_auc": 0.5,
+        "pr_auc": 0.4583333333333333,
+        "brier_score": 0.267554012345679,
+        "sample_count": 24,
+        "event_rate": 0.4583333333333333
       },
       "bootstrap_95_ci": {
         "roc_auc_95_ci": [
-          NaN,
-          NaN
+          0.5,
+          0.5
         ],
         "brier_score_95_ci": [
-          0.0,
-          0.0
+          0.22704475308641978,
+          0.30806327160493824
         ]
       },
       "calibration_table": [
@@ -52,17 +52,17 @@
           "bin_name": "Low Risk [0.00, 0.33)",
           "bin_lower": 0.0,
           "bin_upper": 0.33,
-          "count": 12,
-          "mean_predicted_prob": 0.0,
-          "observed_event_rate": 0.0
+          "count": 0,
+          "mean_predicted_prob": NaN,
+          "observed_event_rate": NaN
         },
         {
           "bin_name": "Medium Risk [0.33, 0.67)",
           "bin_lower": 0.33,
           "bin_upper": 0.67,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 24,
+          "mean_predicted_prob": 0.5972222222222222,
+          "observed_event_rate": 0.4583333333333333
         },
         {
           "bin_name": "High Risk [0.67, 1.00]",
@@ -76,46 +76,46 @@
       "subgroups": {
         "small_plots": {
           "group_name": "< 2.0 acres",
-          "count": 8,
+          "count": 17,
           "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 8,
-            "event_rate": 0.0
+            "roc_auc": 0.5,
+            "pr_auc": 0.35294117647058826,
+            "brier_score": 0.2880469317356572,
+            "sample_count": 17,
+            "event_rate": 0.35294117647058826
           }
         },
         "large_plots": {
           "group_name": ">= 2.0 acres",
-          "count": 4,
-          "statistically_underpowered": true,
+          "count": 7,
+          "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 4,
-            "event_rate": 0.0
+            "roc_auc": 0.5,
+            "pr_auc": 0.7142857142857143,
+            "brier_score": 0.21778549382716053,
+            "sample_count": 7,
+            "event_rate": 0.7142857142857143
           }
         }
       }
     },
     "persistence": {
       "metrics": {
-        "roc_auc": NaN,
-        "pr_auc": NaN,
-        "brier_score": 0.03999999999999999,
-        "sample_count": 12,
-        "event_rate": 0.0
+        "roc_auc": 0.5,
+        "pr_auc": 0.4583333333333333,
+        "brier_score": 0.36500000000000005,
+        "sample_count": 24,
+        "event_rate": 0.4583333333333333
       },
       "bootstrap_95_ci": {
         "roc_auc_95_ci": [
-          NaN,
-          NaN
+          0.5,
+          0.5
         ],
         "brier_score_95_ci": [
-          0.03999999999999999,
-          0.03999999999999999
+          0.24000000000000007,
+          0.49000000000000005
         ]
       },
       "calibration_table": [
@@ -123,9 +123,9 @@
           "bin_name": "Low Risk [0.00, 0.33)",
           "bin_lower": 0.0,
           "bin_upper": 0.33,
-          "count": 12,
-          "mean_predicted_prob": 0.20000000000000004,
-          "observed_event_rate": 0.0
+          "count": 0,
+          "mean_predicted_prob": NaN,
+          "observed_event_rate": NaN
         },
         {
           "bin_name": "Medium Risk [0.33, 0.67)",
@@ -139,54 +139,54 @@
           "bin_name": "High Risk [0.67, 1.00]",
           "bin_lower": 0.67,
           "bin_upper": 1.01,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 24,
+          "mean_predicted_prob": 0.8000000000000002,
+          "observed_event_rate": 0.4583333333333333
         }
       ],
       "subgroups": {
         "small_plots": {
           "group_name": "< 2.0 acres",
-          "count": 8,
+          "count": 17,
           "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.039999999999999994,
-            "sample_count": 8,
-            "event_rate": 0.0
+            "roc_auc": 0.5,
+            "pr_auc": 0.35294117647058826,
+            "brier_score": 0.42823529411764716,
+            "sample_count": 17,
+            "event_rate": 0.35294117647058826
           }
         },
         "large_plots": {
           "group_name": ">= 2.0 acres",
-          "count": 4,
-          "statistically_underpowered": true,
+          "count": 7,
+          "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.039999999999999994,
-            "sample_count": 4,
-            "event_rate": 0.0
+            "roc_auc": 0.5,
+            "pr_auc": 0.7142857142857143,
+            "brier_score": 0.21142857142857147,
+            "sample_count": 7,
+            "event_rate": 0.7142857142857143
           }
         }
       }
     },
     "rules_baseline": {
       "metrics": {
-        "roc_auc": NaN,
-        "pr_auc": NaN,
-        "brier_score": 0.2025,
-        "sample_count": 12,
-        "event_rate": 0.0
+        "roc_auc": 0.41258741258741266,
+        "pr_auc": 0.4238980716253443,
+        "brier_score": 0.35333333333333333,
+        "sample_count": 24,
+        "event_rate": 0.4583333333333333
       },
       "bootstrap_95_ci": {
         "roc_auc_95_ci": [
-          NaN,
-          NaN
+          0.21875,
+          0.6357936507936507
         ],
         "brier_score_95_ci": [
-          0.2025,
-          0.2025
+          0.2532916666666667,
+          0.45918749999999997
         ]
       },
       "calibration_table": [
@@ -202,62 +202,62 @@
           "bin_name": "Medium Risk [0.33, 0.67)",
           "bin_lower": 0.33,
           "bin_upper": 0.67,
-          "count": 12,
-          "mean_predicted_prob": 0.45,
-          "observed_event_rate": 0.0
+          "count": 13,
+          "mean_predicted_prob": 0.45000000000000007,
+          "observed_event_rate": 0.5384615384615384
         },
         {
           "bin_name": "High Risk [0.67, 1.00]",
           "bin_lower": 0.67,
           "bin_upper": 1.01,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 11,
+          "mean_predicted_prob": 0.85,
+          "observed_event_rate": 0.36363636363636365
         }
       ],
       "subgroups": {
         "small_plots": {
           "group_name": "< 2.0 acres",
-          "count": 8,
+          "count": 17,
           "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.20249999999999999,
-            "sample_count": 8,
-            "event_rate": 0.0
+            "roc_auc": 0.3939393939393939,
+            "pr_auc": 0.3186274509803922,
+            "brier_score": 0.3883823529411764,
+            "sample_count": 17,
+            "event_rate": 0.35294117647058826
           }
         },
         "large_plots": {
           "group_name": ">= 2.0 acres",
-          "count": 4,
-          "statistically_underpowered": true,
+          "count": 7,
+          "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.20249999999999999,
-            "sample_count": 4,
-            "event_rate": 0.0
+            "roc_auc": 0.44999999999999996,
+            "pr_auc": 0.6952380952380952,
+            "brier_score": 0.2682142857142857,
+            "sample_count": 7,
+            "event_rate": 0.7142857142857143
           }
         }
       }
     },
     "logistic_regression": {
       "metrics": {
-        "roc_auc": NaN,
-        "pr_auc": NaN,
-        "brier_score": 0.0,
-        "sample_count": 12,
-        "event_rate": 0.0
+        "roc_auc": 0.3356643356643357,
+        "pr_auc": 0.41143479140242434,
+        "brier_score": 0.43821778525250044,
+        "sample_count": 24,
+        "event_rate": 0.4583333333333333
       },
       "bootstrap_95_ci": {
         "roc_auc_95_ci": [
-          NaN,
-          NaN
+          0.09790209790209786,
+          0.600034965034965
         ],
         "brier_score_95_ci": [
-          0.0,
-          0.0
+          0.2818432474710921,
+          0.5955351828717351
         ]
       },
       "calibration_table": [
@@ -265,70 +265,70 @@
           "bin_name": "Low Risk [0.00, 0.33)",
           "bin_lower": 0.0,
           "bin_upper": 0.33,
-          "count": 12,
-          "mean_predicted_prob": 0.0,
+          "count": 1,
+          "mean_predicted_prob": 0.047611581537024286,
           "observed_event_rate": 0.0
         },
         {
           "bin_name": "Medium Risk [0.33, 0.67)",
           "bin_lower": 0.33,
           "bin_upper": 0.67,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 6,
+          "mean_predicted_prob": 0.5124238416399143,
+          "observed_event_rate": 0.6666666666666666
         },
         {
           "bin_name": "High Risk [0.67, 1.00]",
           "bin_lower": 0.67,
           "bin_upper": 1.01,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 17,
+          "mean_predicted_prob": 0.8985486639201281,
+          "observed_event_rate": 0.4117647058823529
         }
       ],
       "subgroups": {
         "small_plots": {
           "group_name": "< 2.0 acres",
-          "count": 8,
+          "count": 17,
           "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 8,
-            "event_rate": 0.0
+            "roc_auc": 0.3636363636363636,
+            "pr_auc": 0.34757094757094753,
+            "brier_score": 0.4803610054382061,
+            "sample_count": 17,
+            "event_rate": 0.35294117647058826
           }
         },
         "large_plots": {
           "group_name": ">= 2.0 acres",
-          "count": 4,
-          "statistically_underpowered": true,
+          "count": 7,
+          "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 4,
-            "event_rate": 0.0
+            "roc_auc": 0.1,
+            "pr_auc": 0.5961904761904762,
+            "brier_score": 0.33586996480150105,
+            "sample_count": 7,
+            "event_rate": 0.7142857142857143
           }
         }
       }
     },
     "random_forest": {
       "metrics": {
-        "roc_auc": NaN,
-        "pr_auc": NaN,
-        "brier_score": 0.0,
-        "sample_count": 12,
-        "event_rate": 0.0
+        "roc_auc": 0.42657342657342656,
+        "pr_auc": 0.434914520688178,
+        "brier_score": 0.3108343038938451,
+        "sample_count": 24,
+        "event_rate": 0.4583333333333333
       },
       "bootstrap_95_ci": {
         "roc_auc_95_ci": [
-          NaN,
-          NaN
+          0.20308159722222222,
+          0.6666666666666666
         ],
         "brier_score_95_ci": [
-          0.0,
-          0.0
+          0.23014963607584626,
+          0.38918508045972583
         ]
       },
       "calibration_table": [
@@ -336,70 +336,70 @@
           "bin_name": "Low Risk [0.00, 0.33)",
           "bin_lower": 0.0,
           "bin_upper": 0.33,
-          "count": 12,
-          "mean_predicted_prob": 0.0,
-          "observed_event_rate": 0.0
+          "count": 0,
+          "mean_predicted_prob": NaN,
+          "observed_event_rate": NaN
         },
         {
           "bin_name": "Medium Risk [0.33, 0.67)",
           "bin_lower": 0.33,
           "bin_upper": 0.67,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 9,
+          "mean_predicted_prob": 0.5771567806089697,
+          "observed_event_rate": 0.5555555555555556
         },
         {
           "bin_name": "High Risk [0.67, 1.00]",
           "bin_lower": 0.67,
           "bin_upper": 1.01,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 15,
+          "mean_predicted_prob": 0.7360809551095266,
+          "observed_event_rate": 0.4
         }
       ],
       "subgroups": {
         "small_plots": {
           "group_name": "< 2.0 acres",
-          "count": 8,
+          "count": 17,
           "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 8,
-            "event_rate": 0.0
+            "roc_auc": 0.4090909090909091,
+            "pr_auc": 0.3314393939393939,
+            "brier_score": 0.3415604443247004,
+            "sample_count": 17,
+            "event_rate": 0.35294117647058826
           }
         },
         "large_plots": {
           "group_name": ">= 2.0 acres",
-          "count": 4,
-          "statistically_underpowered": true,
+          "count": 7,
+          "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 4,
-            "event_rate": 0.0
+            "roc_auc": 0.2,
+            "pr_auc": 0.6961904761904762,
+            "brier_score": 0.23621367713319666,
+            "sample_count": 7,
+            "event_rate": 0.7142857142857143
           }
         }
       }
     },
     "xgboost": {
       "metrics": {
-        "roc_auc": NaN,
-        "pr_auc": NaN,
-        "brier_score": 0.0,
-        "sample_count": 12,
-        "event_rate": 0.0
+        "roc_auc": 0.5384615384615384,
+        "pr_auc": 0.4782608695652174,
+        "brier_score": 0.294761796718163,
+        "sample_count": 24,
+        "event_rate": 0.4583333333333333
       },
       "bootstrap_95_ci": {
         "roc_auc_95_ci": [
-          NaN,
-          NaN
+          0.5,
+          0.6252083333333331
         ],
         "brier_score_95_ci": [
-          0.0,
-          0.0
+          0.22312607746962007,
+          0.37256320202117915
         ]
       },
       "calibration_table": [
@@ -407,50 +407,50 @@
           "bin_name": "Low Risk [0.00, 0.33)",
           "bin_lower": 0.0,
           "bin_upper": 0.33,
-          "count": 12,
-          "mean_predicted_prob": 0.0,
-          "observed_event_rate": 0.0
+          "count": 0,
+          "mean_predicted_prob": NaN,
+          "observed_event_rate": NaN
         },
         {
           "bin_name": "Medium Risk [0.33, 0.67)",
           "bin_lower": 0.33,
           "bin_upper": 0.67,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 1,
+          "mean_predicted_prob": 0.48721927404403687,
+          "observed_event_rate": 0.0
         },
         {
           "bin_name": "High Risk [0.67, 1.00]",
           "bin_lower": 0.67,
           "bin_upper": 1.01,
-          "count": 0,
-          "mean_predicted_prob": NaN,
-          "observed_event_rate": NaN
+          "count": 23,
+          "mean_predicted_prob": 0.6967308521270752,
+          "observed_event_rate": 0.4782608695652174
         }
       ],
       "subgroups": {
         "small_plots": {
           "group_name": "< 2.0 acres",
-          "count": 8,
+          "count": 17,
           "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 8,
-            "event_rate": 0.0
+            "roc_auc": 0.5454545454545454,
+            "pr_auc": 0.375,
+            "brier_score": 0.33197379296274243,
+            "sample_count": 17,
+            "event_rate": 0.35294117647058826
           }
         },
         "large_plots": {
           "group_name": ">= 2.0 acres",
-          "count": 4,
-          "statistically_underpowered": true,
+          "count": 7,
+          "statistically_underpowered": false,
           "metrics": {
-            "roc_auc": NaN,
-            "pr_auc": NaN,
-            "brier_score": 0.0,
-            "sample_count": 4,
-            "event_rate": 0.0
+            "roc_auc": 0.5,
+            "pr_auc": 0.7142857142857143,
+            "brier_score": 0.20438980583847005,
+            "sample_count": 7,
+            "event_rate": 0.7142857142857143
           }
         }
       }
@@ -458,8 +458,23 @@
   },
   "permutation_test": {
     "n_permutations": 50,
-    "mean_permuted_auc": NaN,
+    "mean_permuted_auc": 0.4688111888111888,
     "passed": true
   },
-  "feature_importances": {}
+  "feature_importances": {
+    "num__ndvi_early": 0.04540718788814227,
+    "num__ndvi_pre_cutoff_mean": 0.026638101931374815,
+    "num__ndvi_pre_cutoff_std": 0.07187511363728862,
+    "num__ndvi_trend_pre_cutoff": 0.0628698494062799,
+    "num__rain_pre_cutoff_total_mm": 0.055992525212281215,
+    "num__rain_pre_cutoff_deficit_pct": 0.055993148232184584,
+    "num__mandi_pre_cutoff_volatility": 0.2822363473944269,
+    "num__past_stressed_seasons_count": 0.19879733276403885,
+    "num__prev_season_ndvi_peak": 0.09781680708576646,
+    "num__area_acre": 0.037285221050490806,
+    "num__insured": 0.01273183034715629,
+    "cat__irrigation_canal": 0.004281727954206679,
+    "cat__irrigation_rainfed": 0.026366958528647195,
+    "cat__irrigation_tube_well": 0.021707848567715383
+  }
 }

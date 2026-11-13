@@ -468,6 +468,7 @@ def test_build_dataset_preserves_all_ndvi_rows_and_propagates_gaps(tmp_path: Pat
         prices_path=prices_path,
         yield_path=yield_path,
         output_path=out_path,
+        allow_fixture=True,
     )
 
     assert ret == 0

@@ -114,6 +114,23 @@ We evaluate three candidate percentage drop thresholds ($\tau \in \{10\%, 15\%, 
 
 ---
 
+## 6. Dated Amendment: Live Data Ingestion & Sample Plot Expansion (November 2026)
+
+- **Date**: 2026-11-12  
+- **Context & Root Cause**: As documented in `docs/DATA_REVISIT.md`, the initial zero-stress finding in T-04 was caused by a metadata-only placeholder in `PlanetarySatelliteProvider` (`ndvi_val = 0.65`).
+- **Amendments Applied**:
+  1. **Real Satellite COG Extraction**: Implemented windowed pixel reads for Sentinel-2 $B04$, $B08$, and $SCL$ layers via Planetary Computer.
+  2. **Live Daily Precipitation**: Replaced fixture rainfall with live NASA POWER precipitation (`PRECTOTCORR`) across all plots and seasons.
+  3. **Sample Plot Expansion**: Expanded sample plots from 12 to 24 plots across 8 talukas in Anand district (`ANAND_WHEAT_01`–`02`, `13`–`14`; `BORSAD_WHEAT_03`–`04`, `15`–`16`; `PETLAD_WHEAT_05`–`06`, `17`–`18`; `SOJITRA_WHEAT_07`–`08`, `19`–`20`; `UMRETH_WHEAT_09`–`10`, `21`; `TARAPUR_WHEAT_11`, `22`; `KHAMBHAT_WHEAT_12`, `23`; `ANKLAV_WHEAT_24`).
+- **Resulting Real-Data Distribution (Option 1 Expanding Baseline, $\tau = 15\%$ drop, Jan 31 cut-off)**:
+  - **Total Rows**: 120 (24 plots $\times$ 5 seasons).
+  - **Unlabelled Historical Baseline Season (`2020-21`)**: 24 rows (`label_unavailable = True`).
+  - **Labelled Rows (`2021-22` to `2024-25`)**: **96 rows** (54 stressed [56.25%], 42 normal [43.75%]).
+  - **Held-Out Test Season (`2024-25`)**: **24 rows** (11 stressed [45.8%], 13 normal [54.2%]). Both classes are well-represented ($\ge 3$), making ROC-AUC and Brier score evaluation meaningful.
+  - **Data Provenance**: 100% live/real (`ndvi_source: planetary=120`, `rain_source: nasa_power=120`, `price_source: manual_csv=120`, `yield_source: Directorate of Agriculture Gujarat=120`). Zero fixture inputs.
+
+---
+
 ## 6. A5: Macro Sanity Check Against District Yield
 
 We compare the historical performance of Anand district wheat yield against regional seasons:

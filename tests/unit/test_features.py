@@ -391,7 +391,6 @@ def test_real_season_dataset_end_to_end_build() -> None:
 
     # Assert exact row count matches input
     assert len(feats) == len(df)
-    assert len(feats) == 60
 
     # Column separation
     for col in METADATA_COLUMNS:
@@ -403,9 +402,9 @@ def test_real_season_dataset_end_to_end_build() -> None:
 
     # Unlabelled count
     unlabelled = feats[feats["label_unavailable"]]
-    assert len(unlabelled) == 12  # All 12 plots in season 1 (2020-21)
+    assert len(unlabelled) == len(df[df["season"] == "2020-21"])  # All plots in season 1 (2020-21)
     assert set(unlabelled["season"].unique()) == {"2020-21"}
 
     # Labelled count
     labelled = feats[~feats["label_unavailable"]]
-    assert len(labelled) == 48
+    assert len(labelled) == len(df[df["season"] != "2020-21"])

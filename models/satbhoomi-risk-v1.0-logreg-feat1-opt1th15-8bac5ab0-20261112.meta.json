@@ -1,0 +1,53 @@
+{
+  "model_version": "satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112",
+  "algorithm": "logreg",
+  "created_at": "2026-11-12T22:44:10.461127",
+  "data_hash": "8bac5ab0f36888deeef2fa53882de82faaa7cd608e359140afd9bdb146908ade",
+  "feature_columns": [
+    "ndvi_early",
+    "ndvi_pre_cutoff_mean",
+    "ndvi_pre_cutoff_std",
+    "ndvi_trend_pre_cutoff",
+    "rain_pre_cutoff_total_mm",
+    "rain_pre_cutoff_deficit_pct",
+    "mandi_pre_cutoff_volatility",
+    "past_stressed_seasons_count",
+    "prev_season_ndvi_peak",
+    "area_acre",
+    "irrigation",
+    "insured"
+  ],
+  "test_season": "2024-25",
+  "criteria_status": "CRITERIA_NOT_MET",
+  "narrative": "Held-out AUC is below 0.70 or confidence interval spans 0.50. Model predictive signal is statistically unvalidated on small sample.",
+  "metrics_summary": {
+    "selected_model": {
+      "roc_auc": 0.3356643356643357,
+      "pr_auc": 0.41143479140242434,
+      "brier_score": 0.43821778525250044,
+      "sample_count": 24,
+      "event_rate": 0.4583333333333333
+    },
+    "rules_baseline": {
+      "roc_auc": 0.41258741258741266,
+      "pr_auc": 0.4238980716253443,
+      "brier_score": 0.35333333333333333,
+      "sample_count": 24,
+      "event_rate": 0.4583333333333333
+    },
+    "persistence": {
+      "roc_auc": 0.5,
+      "pr_auc": 0.4583333333333333,
+      "brier_score": 0.36500000000000005,
+      "sample_count": 24,
+      "event_rate": 0.4583333333333333
+    },
+    "majority_class": {
+      "roc_auc": 0.5,
+      "pr_auc": 0.4583333333333333,
+      "brier_score": 0.267554012345679,
+      "sample_count": 24,
+      "event_rate": 0.4583333333333333
+    }
+  }
+}

@@ -20,24 +20,24 @@ No modelling choices, thresholds, or feature selections may be altered based on 
 ### Primary Split: Strictly Time-Based Train / Held-Out Test
 To mirror real-world agricultural credit underwriting, where historical observations are used to evaluate upcoming loans, evaluation strictly enforces a temporal train-test partition:
 
-- **Historical Baseline Initialization Season**: `2020-21` (12 rows).  
+- **Historical Baseline Initialization Season**: `2020-21` (24 rows).  
   *Quarantined from training and testing* due to `label_unavailable = True` under the approved expanding baseline rule (Option 1 in `docs/LABEL_RULE.md`).
 - **Training Seasons ($t < \text{newest}$)**: `2021-22`, `2022-23`, `2023-24`.  
-  *Total Training Instances*: **36 labelled rows** (12 plots $\times$ 3 completed seasons).
+  *Total Training Instances*: **72 labelled rows** (24 plots $\times$ 3 completed seasons: 43 stressed, 29 normal).
 - **Held-Out Test Season ($t = \text{newest}$)**: `2024-25`.  
-  *Total Held-Out Test Instances*: **12 labelled rows** (12 plots $\times$ 1 season).
+  *Total Held-Out Test Instances*: **24 labelled rows** (24 plots $\times$ 1 season: 11 stressed, 13 normal).
 
 > **Strict Holdout Boundary**:  
 > The newest season (`2024-25`) is quarantined from all model exploration, feature selection, scaling transformations, and hyperparameter tuning. It is evaluated **exactly once** at the conclusion of model selection.
 
 ### Secondary Split: Multi-Season Forward-Chaining (Rolling Temporal CV)
-Because a single held-out season with 12 plots is small and subject to seasonal weather anomalies, we pre-register forward-chaining cross-validation inside the 48 labelled rows as a secondary, more stable cross-temporal generalization estimate:
+Because a single held-out season with 24 plots is subject to seasonal weather anomalies, we pre-register forward-chaining cross-validation inside the 96 labelled rows as a secondary, more stable cross-temporal generalization estimate:
 
 | Fold | Training Seasons | Training Rows | Test Season | Test Rows | Purpose |
 | :-: | :--- | :-: | :---: | :-: | :--- |
-| **Fold 1** | `2021-22` | 12 | `2022-23` | 12 | In-training model selection & hyperparameter tuning |
-| **Fold 2** | `2021-22`, `2022-23` | 24 | `2023-24` | 12 | In-training model selection & hyperparameter tuning |
-| **Fold 3** (Final) | `2021-22`, `2022-23`, `2023-24` | 36 | `2024-25` | 12 | **Final Held-Out Benchmark** (evaluated once) |
+| **Fold 1** | `2021-22` | 24 | `2022-23` | 24 | In-training model selection & hyperparameter tuning |
+| **Fold 2** | `2021-22`, `2022-23` | 48 | `2023-24` | 24 | In-training model selection & hyperparameter tuning |
+| **Fold 3** (Final) | `2021-22`, `2022-23`, `2023-24` | 72 | `2024-25` | 24 | **Final Held-Out Benchmark** (evaluated once) |
 
 ---
 
