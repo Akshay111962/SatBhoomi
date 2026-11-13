@@ -62,12 +62,20 @@ from satbhoomi.risk.train import (
     generate_model_version_string,
     train_and_evaluate_pipeline,
 )
+from satbhoomi.risk.what_if import (
+    ALLOWED_CONTROLLABLE_INPUTS,
+    DISCLAIMER_WHAT_IF,
+    WhatIfResult,
+    simulate_what_if,
+)
 
 __all__ = [
+    "ALLOWED_CONTROLLABLE_INPUTS",
     "BAND_LOW_MAX",
     "BAND_MEDIUM_MAX",
     "DEFAULT_ACTIVE_SCORER",
     "DISCLAIMER_LOAN_SUGGESTION",
+    "DISCLAIMER_WHAT_IF",
     "FIXED_INTERPRETATION",
     "FIXED_RELIABILITY_NOTE",
     "LIMIT_BAND_RATIOS",
@@ -88,6 +96,7 @@ __all__ = [
     "RepaymentSchedule",
     "RiskScoreResult",
     "SafeClassifierWrapper",
+    "WhatIfResult",
     "build_logistic_regression",
     "build_random_forest",
     "build_xgboost",
@@ -105,5 +114,6 @@ __all__ = [
     "render_feature_reason",
     "run_permutation_sanity_test",
     "score_plot_season",
+    "simulate_what_if",
     "train_and_evaluate_pipeline",
 ]

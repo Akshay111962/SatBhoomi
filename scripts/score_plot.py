@@ -12,6 +12,7 @@ import pandas as pd
 
 from satbhoomi.risk.loan_suggestions import generate_loan_suggestion
 from satbhoomi.risk.scoring import score_plot_season
+from satbhoomi.risk.what_if import simulate_what_if
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -45,6 +46,16 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=2.5,
         help="Operational farm area in acres for loan sizing (default: 2.5).",
     )
+    parser.add_argument(
+        "--what-if-input",
+        default=None,
+        help="Controllable variable to alter for what-if simulation ('insured', 'irrigation', 'supplementary_irrigation') (T-08).",
+    )
+    parser.add_argument(
+        "--what-if-val",
+        default=None,
+        help="New target value for the what-if simulation (e.g. '1', 'tube_well', 'applied').",
+    )
     return parser.parse_args(argv)
 
 
@@ -66,6 +77,26 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     row = matched.iloc[0]
+
+    if args.what_if_input:
+        if args.what_if_val is None:
+            print("Error: --what-if-val must be provided when --what-if-input is set", file=sys.stderr)
+            return 1
+        try:
+            crop = str(row.get("crop", "wheat"))
+            what_if_res = simulate_what_if(
+                row,
+                changed_input=args.what_if_input,
+                new_value=args.what_if_val,
+                area_acre=args.area_acre,
+                crop=crop,
+            )
+            print(what_if_res.model_dump_json(indent=2))
+            return 0
+        except ValueError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
+
     score_result = score_plot_season(row)
 
     if args.suggest_loan:
