@@ -30,6 +30,8 @@ from satbhoomi.connectors.satellite import (  # noqa: E402
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("fetch_ndvi")
 
+PROVIDER_LOGIC_VERSION = "v2_pb_offset_corrected"
+
 
 def serialize_observation(obs: RawObservation) -> dict[str, object]:
     """Serialize RawObservation to JSON-compatible dict."""
@@ -40,11 +42,27 @@ def serialize_observation(obs: RawObservation) -> dict[str, object]:
         "cloud_prob": obs.cloud_prob,
         "scl_class": obs.scl_class,
         "scene_id": obs.scene_id,
+        "processing_baseline": obs.processing_baseline,
+        "offset_applied": obs.offset_applied,
+        "offset_rule": obs.offset_rule,
+        "provider_logic_version": obs.provider_logic_version or PROVIDER_LOGIC_VERSION,
     }
 
 
-def deserialize_observation(data: dict[str, object]) -> RawObservation:
-    """Deserialize dict to RawObservation."""
+def deserialize_observation(data: dict[str, object], require_v2: bool = True) -> RawObservation:
+    """Deserialize dict to RawObservation, enforcing v2 cache schema when required."""
+    if require_v2:
+        for req_field in (
+            "processing_baseline",
+            "offset_applied",
+            "offset_rule",
+            "provider_logic_version",
+        ):
+            if req_field not in data:
+                raise ValueError(
+                    f"Cached observation missing required field '{req_field}' for version {PROVIDER_LOGIC_VERSION}"
+                )
+
     return RawObservation(
         date=date.fromisoformat(str(data["date"])),
         ndvi=float(data["ndvi"]) if data.get("ndvi") is not None else None,  # type: ignore[arg-type]
@@ -52,6 +70,10 @@ def deserialize_observation(data: dict[str, object]) -> RawObservation:
         cloud_prob=float(data["cloud_prob"]) if data.get("cloud_prob") is not None else None,  # type: ignore[arg-type]
         scl_class=int(data["scl_class"]) if data.get("scl_class") is not None else None,  # type: ignore[arg-type]
         scene_id=str(data["scene_id"]) if data.get("scene_id") is not None else None,
+        processing_baseline=str(data["processing_baseline"]) if data.get("processing_baseline") is not None else None,
+        offset_applied=float(data["offset_applied"]) if data.get("offset_applied") is not None else None,
+        offset_rule=str(data["offset_rule"]) if data.get("offset_rule") is not None else None,
+        provider_logic_version=str(data["provider_logic_version"]) if data.get("provider_logic_version") is not None else None,
     )
 
 
@@ -63,13 +85,13 @@ def fetch_with_cache(
 ) -> list[RawObservation]:
     """Fetch observations, reading from local JSON cache if present."""
     cache_dir.mkdir(parents=True, exist_ok=True)
-    cache_file = cache_dir / f"{plot.plot_code}_{window.season_name}.json"
+    cache_file = cache_dir / f"{plot.plot_code}_{window.season_name}_{PROVIDER_LOGIC_VERSION}.json"
 
     if cache_file.is_file():
-        logger.debug("Cache hit for %s %s", plot.plot_code, window.season_name)
+        logger.debug("Cache hit for %s %s (%s)", plot.plot_code, window.season_name, PROVIDER_LOGIC_VERSION)
         with cache_file.open("r", encoding="utf-8") as f:
             records = json.load(f)
-            return [deserialize_observation(r) for r in records]
+            return [deserialize_observation(r, require_v2=True) for r in records]
 
     # Fetch from provider
     fetch_method = provider.fetch_observations

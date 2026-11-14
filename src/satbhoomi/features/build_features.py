@@ -235,6 +235,7 @@ def build_feature_dataset(
             if raw_satellite_dir and raw_satellite_dir.is_dir():
                 # Check for cached JSON: {plot_code}_{season_name}.json or planetary_...
                 candidates = [
+                    raw_satellite_dir / f"{plot_code}_{season_name}_v2_pb_offset_corrected.json",
                     raw_satellite_dir / f"{plot_code}_{season_name}.json",
                     raw_satellite_dir / f"planetary_{plot_code}_{season_name}.json",
                 ]

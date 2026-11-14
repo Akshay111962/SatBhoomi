@@ -52,6 +52,10 @@ class RawObservation:
     cloud_prob: float | None = None
     scl_class: int | None = None
     scene_id: str | None = None
+    processing_baseline: str | None = None
+    offset_applied: float | None = None
+    offset_rule: str | None = None  # "metadata", "baseline", or "date_fallback"
+    provider_logic_version: str | None = None
 
 
 @dataclass(frozen=True)

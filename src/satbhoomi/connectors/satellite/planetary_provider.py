@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import math
+import re
 import threading
 import time
 from collections.abc import Callable
@@ -26,6 +27,8 @@ from satbhoomi.connectors.satellite.base import (
 )
 
 logger = logging.getLogger(__name__)
+
+PROVIDER_LOGIC_VERSION = "v2_pb_offset_corrected"
 
 # Planetary Computer STAC & SAS endpoints
 PLANETARY_STAC_SEARCH_URL = "https://planetarycomputer.microsoft.com/api/stac/v1/search"
@@ -184,12 +187,59 @@ class PlanetaryComputerProvider(NdviProvider):
                 time.sleep(self.backoff_sec * (2 ** (attempt - 1)))
         return {}
 
+    def _determine_processing_offset(
+        self,
+        feat: dict[str, Any],
+        obs_date: date,
+    ) -> tuple[float, str, str | None]:
+        """Determine the Sentinel-2 L2A BOA radiometric offset to apply.
+
+        Rules:
+        1. Check item/band metadata (raster:bands). If offset present, use it ("metadata").
+        2. Check s2:processing_baseline. If >= "04.00", offset is -1000.0, else 0.0 ("baseline").
+        3. Last-resort date fallback: if >= 2022-01-25, offset -1000.0, else 0.0 ("date_fallback").
+        """
+        props = feat.get("properties", {})
+        assets = feat.get("assets", {})
+        proc_baseline = props.get("s2:processing_baseline")
+        if proc_baseline is not None:
+            proc_baseline = str(proc_baseline).strip()
+
+        # 1. Metadata offset in raster:bands (asset B04, B08, or item properties)
+        for src_dict in (assets.get("B04", {}), assets.get("B08", {}), props):
+            bands = src_dict.get("raster:bands")
+            if isinstance(bands, list) and len(bands) > 0 and isinstance(bands[0], dict):
+                if "offset" in bands[0] and bands[0]["offset"] is not None:
+                    offset_val = float(bands[0]["offset"])
+                    return offset_val, "metadata", proc_baseline
+
+        # 2. Processing baseline string comparison (e.g. "04.00", "05.10", "02.14")
+        if proc_baseline:
+            numbers = [int(n) for n in re.findall(r"\d+", proc_baseline)]
+            if numbers:
+                major = numbers[0]
+                minor = numbers[1] if len(numbers) > 1 else 0
+                if major > 4 or (major == 4 and minor >= 0):
+                    return -1000.0, "baseline", proc_baseline
+                return 0.0, "baseline", proc_baseline
+
+        # 3. Last-resort date fallback (flagged in logs and observation record)
+        logger.warning(
+            "Scene %s (date %s) missing s2:processing_baseline; applying date_fallback",
+            feat.get("id", "UNKNOWN"),
+            obs_date,
+        )
+        if obs_date >= date(2022, 1, 25):
+            return -1000.0, "date_fallback", None
+        return 0.0, "date_fallback", None
+
     def _extract_scene_ndvi(
         self,
         b04_href: str,
         b08_href: str,
         scl_href: str,
         bbox: list[float],
+        offset: float = 0.0,
     ) -> tuple[float | None, bool, int]:
         """Read B04, B08, and SCL over bbox and compute cloud-masked mean NDVI."""
         env_opts = {
@@ -238,15 +288,24 @@ class PlanetaryComputerProvider(NdviProvider):
                 resampling=Resampling.nearest,
             ).astype(np.int32)
 
-        valid_mask = (
-            (~np.isin(scl, SCL_INVALID_CLASSES)) & (red > 0) & (nir > 0) & ((nir + red) > 0)
-        )
+        # 1. Apply nodata mask on RAW values BEFORE applying offset (raw DN == 0 is nodata)
+        raw_valid = (~np.isin(scl, SCL_INVALID_CLASSES)) & (red != 0) & (nir != 0)
+
+        # 2. Convert DN to Surface Reflectance using per-scene offset (do not clamp at 0)
+        red_refl = (red + offset) / 10000.0
+        nir_refl = (nir + offset) / 10000.0
+
+        # 3. Mask pixels where corrected NIR + red is not positive
+        valid_mask = raw_valid & ((nir_refl + red_refl) > 0)
+
         if not np.any(valid_mask):
             vals, counts = np.unique(scl, return_counts=True)
             dominant_scl = int(vals[int(np.argmax(counts))]) if len(vals) else 8
             return None, False, dominant_scl
 
-        ndvi_arr = (nir[valid_mask] - red[valid_mask]) / (nir[valid_mask] + red[valid_mask])
+        ndvi_arr = (nir_refl[valid_mask] - red_refl[valid_mask]) / (
+            nir_refl[valid_mask] + red_refl[valid_mask]
+        )
         ndvi_val = round(float(np.clip(np.mean(ndvi_arr), -1.0, 1.0)), 4)
         vals, counts = np.unique(scl[valid_mask], return_counts=True)
         dominant_scl = int(vals[int(np.argmax(counts))]) if len(vals) else 4
@@ -271,6 +330,8 @@ class PlanetaryComputerProvider(NdviProvider):
             logger.warning("Scene %s missing B04/B08/SCL assets; skipping", scene_id)
             return None
 
+        offset, offset_rule, proc_baseline = self._determine_processing_offset(feat, obs_date)
+
         for force_refresh in (False, True):
             try:
                 ndvi_val, is_valid, scl_class = self._extract_scene_ndvi(
@@ -278,6 +339,7 @@ class PlanetaryComputerProvider(NdviProvider):
                     self.sign_asset_href(str(b08_href), force_refresh=force_refresh),
                     self.sign_asset_href(str(scl_href), force_refresh=force_refresh),
                     bbox,
+                    offset=offset,
                 )
                 return RawObservation(
                     date=obs_date,
@@ -286,6 +348,10 @@ class PlanetaryComputerProvider(NdviProvider):
                     cloud_prob=cloud_cover,
                     scl_class=scl_class,
                     scene_id=scene_id,
+                    processing_baseline=proc_baseline,
+                    offset_applied=offset,
+                    offset_rule=offset_rule,
+                    provider_logic_version=PROVIDER_LOGIC_VERSION,
                 )
             except Exception as exc:
                 if not force_refresh and "403" in str(exc):

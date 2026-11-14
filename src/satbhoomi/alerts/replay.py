@@ -122,6 +122,7 @@ def load_raw_scenes_cache(
         return []
 
     candidates = [
+        raw_satellite_dir / f"{plot_code}_{season}_v2_pb_offset_corrected.json",
         raw_satellite_dir / f"{plot_code}_{season}.json",
         raw_satellite_dir / f"planetary_{plot_code}_{season}.json",
     ]
