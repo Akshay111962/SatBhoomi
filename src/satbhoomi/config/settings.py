@@ -77,10 +77,33 @@ class Settings(BaseSettings):
         env_val = os.environ.get("ENVIRONMENT") or self.environment or self.app_env or "development"
         return env_val.lower() == "production"
 
-    # Security
+    @property
+    def is_test(self) -> bool:
+        """Return True if running in test environment."""
+        env_val = os.environ.get("ENVIRONMENT") or self.environment or self.app_env or "development"
+        return env_val.lower() == "test"
+
+    # Security & Password Hashing (Argon2id)
     secret_key: str = Field(
         default="change-this-to-a-secure-random-secret-key-in-production",
         description="HMAC secret key used for session signing and tokens",
+    )
+    argon2_time_cost: int = Field(
+        default=3,
+        description="Argon2id time cost (iterations)",
+    )
+    argon2_memory_cost_kib: int = Field(
+        default=65536,
+        description="Argon2id memory cost in KiB",
+    )
+    argon2_parallelism: int = Field(
+        default=4,
+        description="Argon2id parallelism (lanes/threads)",
+    )
+    argon2_low_cost_for_test: bool = Field(
+        default=False,
+        alias="ARGON2_LOW_COST_FOR_TEST",
+        description="Lower-cost Argon2id parameters strictly allowed only when ENVIRONMENT=test",
     )
 
     # Database

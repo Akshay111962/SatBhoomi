@@ -33,6 +33,7 @@ dependencies = [
     "xgboost>=2.0.0,<3.0.0",
     "rasterio>=1.4.0,<2.0.0",
     "pyproj>=3.6.0,<4.0.0",
+    "argon2-cffi>=23.1.0",
 ]
 
 [project.optional-dependencies]

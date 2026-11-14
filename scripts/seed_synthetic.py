@@ -12,6 +12,8 @@ from datetime import UTC, datetime
 
 from sqlalchemy import select
 
+from satbhoomi.api.auth.passwords import hash_password
+from satbhoomi.config.settings import get_settings
 from satbhoomi.db.models import (
     ActionLog,
     Alert,
@@ -30,9 +32,14 @@ from satbhoomi.db.session import SessionLocal
 def seed_synthetic_data() -> tuple[int, int, int, int]:
     """Insert synthetic demo data idempotently.
 
+    Security Rule: System users with known/default passwords are NEVER created
+    outside ENVIRONMENT=test. In production/development, users must be provisioned
+    exclusively via scripts/create_user.py.
+
     Returns:
         Tuple of (users_added, farmers_added, plots_added, observations_added)
     """
+    settings = get_settings()
     session = SessionLocal()
     users_added = 0
     farmers_added = 0
@@ -40,38 +47,44 @@ def seed_synthetic_data() -> tuple[int, int, int, int]:
     obs_added = 0
 
     try:
-        # 1. Synthetic System Users (Bank Loan Officer and Branch Admin)
-        user_specs = [
-            {
-                "name": "Officer Demo (Synthetic)",
-                "role": "officer",
-                "password_hash": "$2b$12$synthetic_officer_demo_hash_not_for_prod",
-            },
-            {
-                "name": "Admin Demo (Synthetic)",
-                "role": "admin",
-                "password_hash": "$2b$12$synthetic_admin_demo_hash_not_for_prod",
-            },
-        ]
-
+        # 1. System Users (Created ONLY in test environment with test hashes)
         users: dict[str, User] = {}
-        for spec in user_specs:
-            existing_user = session.execute(
-                select(User).where(User.name == spec["name"])
-            ).scalar_one_or_none()
-            if existing_user is None:
-                user = User(
-                    name=spec["name"],
-                    role=spec["role"],
-                    password_hash=spec["password_hash"],
-                    created_at=datetime.now(UTC),
-                )
-                session.add(user)
-                session.flush()
-                users[spec["role"]] = user
-                users_added += 1
-            else:
-                users[spec["role"]] = existing_user
+        if settings.is_test:
+            user_specs = [
+                {
+                    "username": "synthetic_officer",
+                    "name": "Officer Demo (Synthetic)",
+                    "role": "officer",
+                    "password_hash": hash_password("synthetic_officer_pwd_test"),
+                },
+                {
+                    "username": "synthetic_admin",
+                    "name": "Admin Demo (Synthetic)",
+                    "role": "admin",
+                    "password_hash": hash_password("synthetic_admin_pwd_test"),
+                },
+            ]
+
+            for spec in user_specs:
+                existing_user = session.execute(
+                    select(User).where(User.username == spec["username"])
+                ).scalar_one_or_none()
+                if existing_user is None:
+                    user = User(
+                        username=spec["username"],
+                        name=spec["name"],
+                        role=spec["role"],
+                        password_hash=spec["password_hash"],
+                        is_active=True,
+                        failed_login_count=0,
+                        created_at=datetime.now(UTC),
+                    )
+                    session.add(user)
+                    session.flush()
+                    users[spec["role"]] = user
+                    users_added += 1
+                else:
+                    users[spec["role"]] = existing_user
 
         # 2. Synthetic Farmers (Only synthetic codes, no phone or ID numbers)
         farmer_specs = [

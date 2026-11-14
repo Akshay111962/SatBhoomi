@@ -115,14 +115,15 @@ This document records the architectural decisions made for **SatBhoomi Score + R
 
 ---
 
-## ADR-12: No Machine Learning Evaluation or Selection Claims Until the Feasibility Gate Passes
+## ADR-13: Password Hashing with Argon2id via argon2-cffi (Not Passlib)
 * **Status**: Accepted
 * **Date**: November 2026
-* **Context**: Following Sentinel-2 Level-2A radiometric processing-baseline offset correction (PB 04.00+) and Rule R1 non-crop plot exclusion (`docs/PLOT_SELECTION.md`), the active dataset comprises 21 plots and 84 labelled seasonal observations. Under the pre-registered 15% relative peak NDVI drop threshold, only 4 stress events are observed (4.76% prevalence), with exactly 1 positive instance in the held-out test season (2024-25). Evaluating high-capacity machine learning classifiers (Logistic Regression, Random Forest, XGBoost) on 4 positive instances across 84 rows produces trivial variance artifacts and invalid statistical inferences.
-* **Decision**: Establish a formal, pre-registered Feasibility Gate in Evaluation Protocol v2 (`docs/EVAL_PROTOCOL.md`) requiring $\ge 5$ positives and $\ge 5$ negatives in the held-out test set, and $\ge 10$ positives across pooled forward-chaining folds. Until this gate is met with verified ground truth or expanded sampling, machine learning model training and evaluation remain strictly frozen. The project operates exclusively with `AgronomicRulesBaseline` as the active risk scorer. All documents and code must strictly adhere to forbidden claims rules: no claims of "accurate", "validated", or "predicts default".
+* **Context**: User authentication and administrative access control require secure password storage. Legacy schemes (MD5, SHA1, plain bcrypt) and deprecated wrappers (e.g. `passlib`, which has been unmaintained since 2020 and emits deprecation warnings on modern Python 3.12/3.13) pose security and maintenance risks.
+* **Decision**: Adopt Argon2id (RFC 9106) exclusively, implemented via the official `argon2-cffi` package (version 25.1.0 with CFFI bindings). Passwords are never stored in cleartext. Default production parameters use OWASP/library recommendations (time_cost=3, memory_cost=65536 KiB / 64 MiB, parallelism=4). Lower-cost parameters (time_cost=1, memory_cost=1024 KiB, parallelism=1) are strictly gated and allowed exclusively when `ENVIRONMENT=test`, throwing an explicit runtime error if attempted in production or development.
 * **Consequences**:
-  * *Positive*: Prevents scientific overclaiming and false precision; guarantees radical honesty with banking and regulatory stakeholders; anchors loan risk scoring in transparent, explainable agronomic heuristics.
-  * *Negative*: Defers ML benchmarking until real outcome datasets (PMFBY insurance claims, CCE yield measurements, or anonymized KCC repayment records) are secured under `docs/OUTCOME_DATA_PLAN.md`.
+  * *Positive*: State-of-the-art cryptographic resilience against GPU/ASIC cracking; zero reliance on deprecated libraries; native compatibility with Python 3.11, 3.12, and 3.13; constant-time dummy verification protects against user enumeration.
+  * *Negative*: Memory-hard parameters require ~64 MiB RAM per concurrent hash operation in production (mitigated by rate limiting and account lockout after 5 consecutive failed attempts).
+
 
 
 
