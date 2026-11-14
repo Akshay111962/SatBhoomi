@@ -62,6 +62,18 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ---
 
+### RISK-05: Cutoff Date Temporal Ambiguity in Scoring Results
+- **Category**: Data Quality / API Contract / Temporal Ambiguity
+- **Description**: In `src/satbhoomi/risk/scoring.py`, `RiskScoreResult.cutoff_date` is hardcoded as a static string `CUTOFF_DATE_LABEL = "January 31"` without a calendar year. Across multi-season historical evaluations and API integrations (e.g. comparing season `2023-24` vs `2024-25`), a static month-day string is ambiguous and cannot be parsed as a standard ISO-8601 calendar date (`YYYY-MM-DD`).
+- **Severity**: Low
+- **Likelihood**: High (inherent in current `scoring.py` definition)
+- **Mitigation & Guardrails**:
+  1. **API Parity Preserved**: API contract v0.2.0 maintains exact parity with `RiskScoreResult.cutoff_date: str = "January 31"`, preventing uncoordinated breaking changes to underlying scoring logic.
+  2. **Audit & Log Tracking**: Persisted database records (`assessment.created_at`) store full timezone-aware ISO timestamps.
+  3. **Future Scoring Refactoring**: A future scoring refactoring task will derive a seasonal ISO calendar date (e.g. `2024-01-31`) directly from the evaluated `season` string.
+
+---
+
 ## Open Questions
 
 ### OPEN QUESTION-01: Pre-Sowing Loan Approval vs. In-Season (January 31) Assessment

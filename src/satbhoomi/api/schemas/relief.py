@@ -1,6 +1,6 @@
 """[DRAFT] Calamity relief evidence report schemas (blueprint section 8).
 
-Tagged DRAFT. Subject to expansion and refinement in Task T-12.
+Tagged DRAFT: Preliminary relief report structure. Will be finalised in Task T-12.
 Mandatory Disclaimer: Official crop loss assessment decides.
 """
 
@@ -14,7 +14,7 @@ from satbhoomi.api.schemas.common import ResponseMeta
 class ReliefReportResponse(BaseModel):
     """[DRAFT] Crop calamity relief evidence report payload.
 
-    Tagged DRAFT: Will be refined in Task T-12.
+    Tagged DRAFT: Will be finalised in Task T-12.
     """
 
     model_config = ConfigDict(frozen=True)

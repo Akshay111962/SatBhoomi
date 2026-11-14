@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from satbhoomi.api.routes import api_v1_router
 from satbhoomi.config.settings import get_settings
 
-API_CONTRACT_VERSION = "0.1.0"
+API_CONTRACT_VERSION = "0.2.0"
 
 
 @asynccontextmanager

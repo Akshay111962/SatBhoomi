@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from satbhoomi.api.schemas.assessments import (
     AssessmentResponse,
-    DraftLoanSuggestion,
+    LoanSuggestionResponse,
     ReasonItem,
 )
 from satbhoomi.api.schemas.common import ResponseMeta
@@ -16,6 +16,11 @@ from satbhoomi.api.schemas.farmer_summary import FarmerSummaryResponse
 from satbhoomi.api.schemas.monitoring import AlertSummary, PlotMonitoringResponse, TimelinePoint
 from satbhoomi.api.schemas.plots import PlotResponse
 from satbhoomi.api.schemas.relief import ReliefReportResponse
+from satbhoomi.risk.loan_suggestions import (
+    DISCLAIMER_LOAN_SUGGESTION,
+    LimitBand,
+    RepaymentSchedule,
+)
 from satbhoomi.risk.scoring import (
     FIXED_INTERPRETATION,
     FIXED_RELIABILITY_NOTE,
@@ -23,7 +28,7 @@ from satbhoomi.risk.scoring import (
 )
 
 FAKE_MOCK_TOKEN = "mock-officer-token-xyz"
-SYNTHETIC_META = ResponseMeta(synthetic=True, version="0.1.0")
+SYNTHETIC_META = ResponseMeta(synthetic=True, version="0.2.0")
 
 # ---------------------------------------------------------------------------
 # Synthetic Plots
@@ -53,7 +58,7 @@ MOCK_PLOTS: list[PlotResponse] = [
         district="Anand",
         village="Mogar",
         crop="wheat",
-        area_acre=4.0,
+        area_acre=7.0,  # Large plot exceeding collateral-free cap
         lat=22.5412,
         lon=72.9610,
         irrigation="canal",
@@ -146,13 +151,36 @@ MOCK_ASSESSMENTS: dict[int, AssessmentResponse] = {
         data_warnings=[],
         interpretation=FIXED_INTERPRETATION,
         reliability_note=FIXED_RELIABILITY_NOTE,
-        loan_suggestion=DraftLoanSuggestion(
+        loan_suggestion=LoanSuggestionResponse(
             status="ok",
-            suggested_limit_inr=80000.0,
-            repayment_month="May",
-            mandatory_crop_insurance=False,
-            scale_of_finance_applied_inr_per_acre=32000.0,
-            risk_haircut_pct=0.0,
+            plot_code="PLOT-001",
+            season="2024-25",
+            crop="wheat",
+            area_acre=2.5,
+            irrigation="tube_well",
+            risk_band="low",
+            risk_score=18,
+            limit_band=LimitBand(
+                min_amount_inr=72000,
+                max_amount_inr=80000,
+                scale_of_finance_per_acre_inr=32000,
+                gross_scale_limit_inr=80000,
+                collateral_free_cap_applied=False,
+                haircut_percentage_range="0%–10%",
+            ),
+            repayment_schedule=RepaymentSchedule(
+                repayment_month="May",
+                schedule_type="bullet_post_harvest",
+                harvest_window="March–April",
+                marketing_window="April–May",
+                rationale=(
+                    "Bullet repayment scheduled in May aligned with peak wheat mandi arrivals."
+                ),
+            ),
+            insurance_required=False,
+            insurance_note="Low risk: crop insurance optional under standard KCC guidelines.",
+            disclaimer=DISCLAIMER_LOAN_SUGGESTION,
+            notes=["Scale of finance ₹32,000/acre applied for irrigated wheat in Anand district."],
         ),
         created_at="2026-11-13T10:00:00Z",
         meta=SYNTHETIC_META,
@@ -186,13 +214,39 @@ MOCK_ASSESSMENTS: dict[int, AssessmentResponse] = {
         data_warnings=[],
         interpretation=FIXED_INTERPRETATION,
         reliability_note=FIXED_RELIABILITY_NOTE,
-        loan_suggestion=DraftLoanSuggestion(
+        loan_suggestion=LoanSuggestionResponse(
             status="ok",
-            suggested_limit_inr=83200.0,
-            repayment_month="May",
-            mandatory_crop_insurance=True,
-            scale_of_finance_applied_inr_per_acre=32000.0,
-            risk_haircut_pct=35.0,
+            plot_code="PLOT-002",
+            season="2024-25",
+            crop="wheat",
+            area_acre=7.0,
+            irrigation="canal",
+            risk_band="medium",
+            risk_score=45,
+            limit_band=LimitBand(
+                min_amount_inr=130000,
+                max_amount_inr=160000,
+                scale_of_finance_per_acre_inr=32000,
+                gross_scale_limit_inr=224000,  # 7.0 * 32,000 = 224,000 > 2,00,000
+                collateral_free_cap_applied=True,
+                haircut_percentage_range="20%–35%",
+            ),
+            repayment_schedule=RepaymentSchedule(
+                repayment_month="May",
+                schedule_type="bullet_post_harvest",
+                harvest_window="March–April",
+                marketing_window="April–May",
+                rationale=(
+                    "Bullet repayment scheduled in May aligned with post-harvest cash realization."
+                ),
+            ),
+            insurance_required=True,
+            insurance_note="Medium risk: PMFBY crop insurance mandatory to safeguard repayment.",
+            disclaimer=DISCLAIMER_LOAN_SUGGESTION,
+            notes=[
+                "Gross scale limit ₹2,24,000 capped at RBI ₹2,00,000 collateral-free threshold.",
+                "Haircut range 20%–35% applied for medium risk band.",
+            ],
         ),
         created_at="2026-11-13T10:15:00Z",
         meta=SYNTHETIC_META,
@@ -229,13 +283,37 @@ MOCK_ASSESSMENTS: dict[int, AssessmentResponse] = {
         data_warnings=[],
         interpretation=FIXED_INTERPRETATION,
         reliability_note=FIXED_RELIABILITY_NOTE,
-        loan_suggestion=DraftLoanSuggestion(
+        loan_suggestion=LoanSuggestionResponse(
             status="ok",
-            suggested_limit_inr=21780.0,
-            repayment_month="May",
-            mandatory_crop_insurance=True,
-            scale_of_finance_applied_inr_per_acre=22000.0,
-            risk_haircut_pct=45.0,
+            plot_code="PLOT-003",
+            season="2024-25",
+            crop="wheat",
+            area_acre=1.8,
+            irrigation="rainfed",
+            risk_band="high",
+            risk_score=85,
+            limit_band=LimitBand(
+                min_amount_inr=15840,
+                max_amount_inr=19800,
+                scale_of_finance_per_acre_inr=22000,
+                gross_scale_limit_inr=39600,
+                collateral_free_cap_applied=False,
+                haircut_percentage_range="50%–60%",
+            ),
+            repayment_schedule=RepaymentSchedule(
+                repayment_month="May",
+                schedule_type="bullet_post_harvest",
+                harvest_window="March–April",
+                marketing_window="April–May",
+                rationale="Bullet repayment scheduled in May aligned with wheat harvest window.",
+            ),
+            insurance_required=True,
+            insurance_note="High risk: PMFBY crop insurance mandatory for loan disbursement.",
+            disclaimer=DISCLAIMER_LOAN_SUGGESTION,
+            notes=[
+                "Scale of finance ₹22,000/acre applied for rainfed wheat.",
+                "Conservative 50%–60% haircut applied to prevent over-indebtedness.",
+            ],
         ),
         created_at="2026-11-13T10:30:00Z",
         meta=SYNTHETIC_META,
@@ -276,14 +354,23 @@ MOCK_ASSESSMENTS: dict[int, AssessmentResponse] = {
         ),
         interpretation=FIXED_INTERPRETATION,
         reliability_note=FIXED_RELIABILITY_NOTE,
-        loan_suggestion=DraftLoanSuggestion(
-            status="insufficient_data",
-            suggested_limit_inr=0.0,
-            repayment_month="May",
-            mandatory_crop_insurance=True,
-            scale_of_finance_applied_inr_per_acre=32000.0,
-            risk_haircut_pct=100.0,
-            disclaimer="Score not evaluable due to data gap. Manual physical appraisal required.",
+        loan_suggestion=LoanSuggestionResponse(
+            status="manual_appraisal_required",
+            plot_code="PLOT-004",
+            season="2024-25",
+            crop="wheat",
+            area_acre=3.2,
+            irrigation="tube_well",
+            risk_band=None,
+            risk_score=None,
+            limit_band=None,
+            repayment_schedule=None,
+            insurance_required=True,
+            insurance_note="Manual appraisal required: crop insurance enrollment must be verified.",
+            disclaimer=DISCLAIMER_LOAN_SUGGESTION,
+            notes=[
+                "Score not evaluable due to satellite data gap. Manual physical appraisal required."
+            ],
         ),
         created_at="2026-11-13T10:45:00Z",
         meta=SYNTHETIC_META,
@@ -317,13 +404,34 @@ MOCK_ASSESSMENTS: dict[int, AssessmentResponse] = {
         data_warnings=["Single scene cloud gap on Jan 10; clear scene recorded on Jan 15."],
         interpretation=FIXED_INTERPRETATION,
         reliability_note=FIXED_RELIABILITY_NOTE,
-        loan_suggestion=DraftLoanSuggestion(
+        loan_suggestion=LoanSuggestionResponse(
             status="ok",
-            suggested_limit_inr=64000.0,
-            repayment_month="May",
-            mandatory_crop_insurance=False,
-            scale_of_finance_applied_inr_per_acre=32000.0,
-            risk_haircut_pct=0.0,
+            plot_code="PLOT-005",
+            season="2024-25",
+            crop="wheat",
+            area_acre=2.0,
+            irrigation="tube_well",
+            risk_band="low",
+            risk_score=28,
+            limit_band=LimitBand(
+                min_amount_inr=57600,
+                max_amount_inr=64000,
+                scale_of_finance_per_acre_inr=32000,
+                gross_scale_limit_inr=64000,
+                collateral_free_cap_applied=False,
+                haircut_percentage_range="0%–10%",
+            ),
+            repayment_schedule=RepaymentSchedule(
+                repayment_month="May",
+                schedule_type="bullet_post_harvest",
+                harvest_window="March–April",
+                marketing_window="April–May",
+                rationale="Bullet repayment in May aligned with mandi sales.",
+            ),
+            insurance_required=False,
+            insurance_note="Low risk: crop insurance optional under standard guidelines.",
+            disclaimer=DISCLAIMER_LOAN_SUGGESTION,
+            notes=["Standard irrigated Scale of Finance applied."],
         ),
         created_at="2026-11-13T11:00:00Z",
         meta=SYNTHETIC_META,
@@ -338,8 +446,9 @@ MOCK_MONITORING: dict[int, PlotMonitoringResponse] = {
         plot_id=1,
         plot_code="PLOT-001",
         season="2024-25",
-        data_gap_flag=False,
-        data_gap_note=None,
+        status="ok",
+        checkpoint_label="January 31",
+        evaluation_date="2025-01-31",
         timeline=[
             TimelinePoint(date="2024-11-15", ndvi=0.28, rainfall_mm=0.0, data_gap=False),
             TimelinePoint(date="2024-12-01", ndvi=0.42, rainfall_mm=2.5, data_gap=False),
@@ -355,8 +464,9 @@ MOCK_MONITORING: dict[int, PlotMonitoringResponse] = {
         plot_id=3,
         plot_code="PLOT-003",
         season="2024-25",
-        data_gap_flag=False,
-        data_gap_note=None,
+        status="ok",
+        checkpoint_label="January 15",
+        evaluation_date="2025-01-15",
         timeline=[
             TimelinePoint(date="2024-11-15", ndvi=0.22, rainfall_mm=0.0, data_gap=False),
             TimelinePoint(date="2024-12-01", ndvi=0.30, rainfall_mm=0.0, data_gap=False),
@@ -368,10 +478,13 @@ MOCK_MONITORING: dict[int, PlotMonitoringResponse] = {
         active_alerts=[
             AlertSummary(
                 id=101,
+                plot_code="PLOT-003",
+                season="2024-25",
+                checkpoint_label="January 15",
+                detected_on="2025-01-15",
                 type="crop_health_drop",
                 severity="high",
                 status="open",
-                detected_on="2025-01-15",
                 headline="Vegetation vigor decline (38% drop below plot prior baseline)",
                 detail=(
                     "Rainfed plot recorded severe vegetative drag during jointing "
@@ -381,6 +494,7 @@ MOCK_MONITORING: dict[int, PlotMonitoringResponse] = {
                     "Schedule supportive field visit to inspect soil moisture and assist with "
                     "PMFBY insurance claim."
                 ),
+                data_gap_warning=None,
             )
         ],
         meta=SYNTHETIC_META,
@@ -389,10 +503,12 @@ MOCK_MONITORING: dict[int, PlotMonitoringResponse] = {
         plot_id=5,
         plot_code="PLOT-005",
         season="2024-25",
-        data_gap_flag=True,
-        data_gap_note=(
-            "High cloud cover detected between Jan 05 and Jan 12. Nearest clear observation used."
+        status="data_gap",
+        data_gap_reason=(
+            "Insufficient clear satellite scenes (< 2 observations) before Jan 15 checkpoint."
         ),
+        checkpoint_label="January 15",
+        evaluation_date="2025-01-15",
         timeline=[
             TimelinePoint(date="2024-11-15", ndvi=0.26, rainfall_mm=0.0, data_gap=False),
             TimelinePoint(date="2024-12-01", ndvi=0.39, rainfall_mm=1.0, data_gap=False),
@@ -401,7 +517,29 @@ MOCK_MONITORING: dict[int, PlotMonitoringResponse] = {
             TimelinePoint(date="2025-01-10", ndvi=None, rainfall_mm=0.0, data_gap=True),
             TimelinePoint(date="2025-01-15", ndvi=0.69, rainfall_mm=0.0, data_gap=False),
         ],
-        active_alerts=[],
+        active_alerts=[
+            AlertSummary(
+                id=102,
+                plot_code="PLOT-005",
+                season="2024-25",
+                checkpoint_label="January 15",
+                detected_on="2025-01-15",
+                type="crop_health_drop",
+                severity="medium",
+                status="open",
+                headline="Vegetation monitoring notice (temporary optical data gap)",
+                detail=(
+                    "Cloud cover obscured Jan 10 Sentinel-2 pass; nearest clear observation "
+                    "was evaluated."
+                ),
+                supportive_action=(
+                    "Verify field irrigation status during routine supportive branch contact."
+                ),
+                data_gap_warning=(
+                    "Baseline impacted by single cloud scene. Data gap recorded without guessing."
+                ),
+            )
+        ],
         meta=SYNTHETIC_META,
     ),
 }

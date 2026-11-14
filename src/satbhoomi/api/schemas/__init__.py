@@ -4,7 +4,7 @@ from satbhoomi.api.schemas.alerts import AlertActionRequest, AlertActionResponse
 from satbhoomi.api.schemas.assessments import (
     AssessmentCreateRequest,
     AssessmentResponse,
-    DraftLoanSuggestion,
+    LoanSuggestionResponse,
     ReasonItem,
 )
 from satbhoomi.api.schemas.auth import LoginRequest, TokenResponse
@@ -21,10 +21,10 @@ __all__ = [
     "AlertSummary",
     "AssessmentCreateRequest",
     "AssessmentResponse",
-    "DraftLoanSuggestion",
     "ErrorDetail",
     "ErrorResponse",
     "FarmerSummaryResponse",
+    "LoanSuggestionResponse",
     "LoginRequest",
     "PlotCreateRequest",
     "PlotListResponse",

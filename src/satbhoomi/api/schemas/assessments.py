@@ -11,6 +11,11 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from satbhoomi.api.schemas.common import ResponseMeta
+from satbhoomi.risk.loan_suggestions import (
+    DISCLAIMER_LOAN_SUGGESTION,
+    LimitBand,
+    RepaymentSchedule,
+)
 from satbhoomi.risk.scoring import (
     FIXED_INTERPRETATION,
     FIXED_RELIABILITY_NOTE,
@@ -35,51 +40,66 @@ class ReasonItem(BaseModel):
     )
 
 
-class DraftLoanSuggestion(BaseModel):
-    """[DRAFT] Preliminary loan suggestion structure.
+class LoanSuggestionResponse(BaseModel):
+    """[STABLE] Structured loan suggestion output mirroring LoanSuggestionResult (T-07).
 
-    Subject to expansion and rule refinement in Task T-07.
+    Indicative credit limit band for loan officer decision support only—not a credit
+    sanction or approval. The human loan officer makes the final credit decision.
+    Rule parameters derive from underwriting configuration and must be verified against
+    RBI Master Directions and bank internal credit policy.
     """
 
     model_config = ConfigDict(frozen=True)
 
-    status: Literal["ok", "insufficient_data"] = Field(
-        default="ok",
-        description="Loan suggestion determination status",
+    status: Literal["ok", "manual_appraisal_required"] = Field(
+        ...,
+        description="Eligibility status: 'ok' or 'manual_appraisal_required'",
         example="ok",
     )
-    suggested_limit_inr: float = Field(
-        ...,
-        ge=0.0,
-        description="Recommended maximum credit limit in INR",
-        example=80000.0,
+    plot_code: str = Field(..., description="Synthetic plot code", example="PLOT-001")
+    season: str = Field(..., description="Target cropping season", example="2024-25")
+    crop: str = Field(default="wheat", description="Cultivated crop name", example="wheat")
+    area_acre: float = Field(..., gt=0, description="Plot area in acres", example=2.5)
+    irrigation: str = Field(
+        default="tube_well",
+        description="Primary irrigation source",
+        example="tube_well",
     )
-    repayment_month: str = Field(
-        default="May",
-        description="Harvest-aligned bullet repayment month",
-        example="May",
+    risk_band: Literal["low", "medium", "high"] | None = Field(
+        default=None,
+        description="Assigned risk band influencing haircut",
+        example="low",
     )
-    mandatory_crop_insurance: bool = Field(
-        default=True,
+    risk_score: int | None = Field(
+        default=None,
+        description="Assessed risk score (0-100)",
+        example=18,
+    )
+    limit_band: LimitBand | None = Field(
+        default=None,
+        description="Indicative loan limit range in integer rupees based on DLTC Scale of Finance",
+    )
+    repayment_schedule: RepaymentSchedule | None = Field(
+        default=None,
+        description="Harvest-aligned repayment schedule specification",
+    )
+    insurance_required: bool = Field(
+        default=False,
         description="Whether PMFBY enrollment is mandatory for this risk profile",
-        example=True,
+        example=False,
     )
-    scale_of_finance_applied_inr_per_acre: float = Field(
-        default=32000.0,
-        description="District DLTC Scale of Finance benchmark per acre",
-        example=32000.0,
-    )
-    risk_haircut_pct: float = Field(
-        default=0.0,
-        description="Risk band adjustment haircut percentage applied to limit",
-        example=0.0,
+    insurance_note: str = Field(
+        ...,
+        description="Explanation of crop insurance requirement or verification",
+        example="Low risk: crop insurance recommended under standard KCC guidelines.",
     )
     disclaimer: str = Field(
-        default=(
-            "Loan limits are decision-support suggestions for bank loan officers only. "
-            "The human loan officer makes the final credit decision."
-        ),
-        description="Decision-support disclaimer",
+        default=DISCLAIMER_LOAN_SUGGESTION,
+        description="Statutory human-in-the-loop and decision-support disclaimer",
+    )
+    notes: list[str] = Field(
+        default_factory=list,
+        description="Auditable decision-support notes and Scale of Finance parameters",
     )
 
 
@@ -169,10 +189,12 @@ class AssessmentResponse(BaseModel):
         description="Mandatory validation status disclosure",
     )
 
-    # [DRAFT] preliminary loan suggestion component
-    loan_suggestion: DraftLoanSuggestion | None = Field(
+    # Indicative loan suggestion component matching LoanSuggestionResult (T-07)
+    loan_suggestion: LoanSuggestionResponse | None = Field(
         default=None,
-        description="[DRAFT] Preliminary loan suggestion structure. Subject to change in T-07.",
+        description=(
+            "[STABLE] Structured loan suggestion output mirroring LoanSuggestionResult (T-07)."
+        ),
     )
 
     created_at: str = Field(

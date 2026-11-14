@@ -1,4 +1,4 @@
-"""[DRAFT] In-season plot monitoring and timeline routes (blueprint section 8)."""
+"""[STABLE] In-season plot monitoring and timeline routes (blueprint section 8)."""
 
 from __future__ import annotations
 
@@ -58,8 +58,10 @@ def get_plot_monitoring(
         plot_id=id,
         plot_code=f"PLOT-{id:03d}",
         season="2024-25",
-        data_gap_flag=False,
-        data_gap_note=None,
+        status="ok",
+        data_gap_reason=None,
+        checkpoint_label="January 15",
+        evaluation_date="2025-01-15",
         timeline=[
             TimelinePoint(date="2024-12-01", ndvi=0.45, rainfall_mm=0.0, data_gap=False),
             TimelinePoint(date="2025-01-01", ndvi=0.65, rainfall_mm=1.0, data_gap=False),

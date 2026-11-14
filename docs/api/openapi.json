@@ -2,7 +2,7 @@
   "components": {
     "schemas": {
       "AlertActionRequest": {
-        "description": "[DRAFT] Request payload to record an officer intervention on an alert.",
+        "description": "[DRAFT] Request payload to record an officer intervention on an alert.\n\nTagged DRAFT: Will be finalised in Task T-12 (Playbooks).",
         "properties": {
           "action_type": {
             "description": "Category of supportive officer intervention",
@@ -33,7 +33,7 @@
         "type": "object"
       },
       "AlertActionResponse": {
-        "description": "[DRAFT] Audited confirmation of recorded officer intervention.\n\nTagged DRAFT: Will be refined in Task T-09 / T-12.",
+        "description": "[DRAFT] Audited confirmation of recorded officer intervention.\n\nTagged DRAFT: Will be finalised in Task T-12 (Playbooks).",
         "properties": {
           "action_id": {
             "description": "Unique action log entry ID",
@@ -99,34 +99,71 @@
         "type": "object"
       },
       "AlertSummary": {
-        "description": "In-season stress alert summary.",
+        "description": "[STABLE] In-season stress alert summary mirroring AlertItem (T-09) and Alert ORM.",
         "properties": {
+          "checkpoint_label": {
+            "description": "Seasonal monitoring checkpoint date",
+            "example": "January 15",
+            "title": "Checkpoint Label",
+            "type": "string"
+          },
+          "data_gap_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Diagnostic warning if cloud gap or missing prior baseline impacted detection",
+            "title": "Data Gap Warning"
+          },
           "detail": {
-            "description": "Detailed agronomic explanation",
-            "example": "At Dec 15, plot recorded vegetative drag indicating support needed.",
+            "description": "Detailed agronomic explanation of stress indicator",
+            "example": "At Jan 15, plot recorded vegetative drag indicating support needed.",
             "title": "Detail",
             "type": "string"
           },
           "detected_on": {
-            "description": "Date alert was detected",
-            "example": "2023-12-15",
+            "description": "Date alert condition was detected (YYYY-MM-DD)",
+            "example": "2024-01-15",
             "title": "Detected On",
             "type": "string"
           },
           "headline": {
-            "description": "Brief headline describing stress event",
+            "description": "Brief headline describing stress event with supportive framing",
             "example": "Vegetation vigor decline (18% drop below plot prior baseline)",
             "title": "Headline",
             "type": "string"
           },
           "id": {
-            "description": "Alert ID",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Database alert identifier if persisted",
             "example": 1,
-            "title": "Id",
-            "type": "integer"
+            "title": "Id"
+          },
+          "plot_code": {
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
+          },
+          "season": {
+            "description": "Cropping season of the alert",
+            "example": "2023-24",
+            "title": "Season",
+            "type": "string"
           },
           "severity": {
-            "description": "Severity level matching database constraint",
+            "description": "Severity level matching Alert ORM check constraint ('low', 'medium', 'high')",
             "enum": [
               "low",
               "medium",
@@ -138,7 +175,7 @@
           },
           "status": {
             "default": "open",
-            "description": "Alert workflow state",
+            "description": "Alert workflow state matching Alert ORM state constraints",
             "enum": [
               "open",
               "acknowledged",
@@ -168,10 +205,12 @@
           }
         },
         "required": [
-          "id",
+          "plot_code",
+          "season",
+          "checkpoint_label",
+          "detected_on",
           "type",
           "severity",
-          "detected_on",
           "headline",
           "detail",
           "supportive_action"
@@ -262,13 +301,13 @@
           "loan_suggestion": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/DraftLoanSuggestion"
+                "$ref": "#/components/schemas/LoanSuggestionResponse"
               },
               {
                 "type": "null"
               }
             ],
-            "description": "[DRAFT] Preliminary loan suggestion structure. Subject to change in T-07."
+            "description": "[STABLE] Structured loan suggestion output mirroring LoanSuggestionResult (T-07)."
           },
           "meta": {
             "anyOf": [
@@ -381,68 +420,6 @@
         "title": "AssessmentResponse",
         "type": "object"
       },
-      "DraftLoanSuggestion": {
-        "description": "[DRAFT] Preliminary loan suggestion structure.\n\nSubject to expansion and rule refinement in Task T-07.",
-        "properties": {
-          "disclaimer": {
-            "default": "Loan limits are decision-support suggestions for bank loan officers only. The human loan officer makes the final credit decision.",
-            "description": "Decision-support disclaimer",
-            "title": "Disclaimer",
-            "type": "string"
-          },
-          "mandatory_crop_insurance": {
-            "default": true,
-            "description": "Whether PMFBY enrollment is mandatory for this risk profile",
-            "example": true,
-            "title": "Mandatory Crop Insurance",
-            "type": "boolean"
-          },
-          "repayment_month": {
-            "default": "May",
-            "description": "Harvest-aligned bullet repayment month",
-            "example": "May",
-            "title": "Repayment Month",
-            "type": "string"
-          },
-          "risk_haircut_pct": {
-            "default": 0.0,
-            "description": "Risk band adjustment haircut percentage applied to limit",
-            "example": 0.0,
-            "title": "Risk Haircut Pct",
-            "type": "number"
-          },
-          "scale_of_finance_applied_inr_per_acre": {
-            "default": 32000.0,
-            "description": "District DLTC Scale of Finance benchmark per acre",
-            "example": 32000.0,
-            "title": "Scale Of Finance Applied Inr Per Acre",
-            "type": "number"
-          },
-          "status": {
-            "default": "ok",
-            "description": "Loan suggestion determination status",
-            "enum": [
-              "ok",
-              "insufficient_data"
-            ],
-            "example": "ok",
-            "title": "Status",
-            "type": "string"
-          },
-          "suggested_limit_inr": {
-            "description": "Recommended maximum credit limit in INR",
-            "example": 80000.0,
-            "minimum": 0.0,
-            "title": "Suggested Limit Inr",
-            "type": "number"
-          }
-        },
-        "required": [
-          "suggested_limit_inr"
-        ],
-        "title": "DraftLoanSuggestion",
-        "type": "object"
-      },
       "ErrorDetail": {
         "description": "Structured error object conforming to SatBhoomi blueprint section 8.",
         "properties": {
@@ -493,7 +470,7 @@
         "type": "object"
       },
       "FarmerSummaryResponse": {
-        "description": "[DRAFT] Vernacular plain-language credit summary for farmer communication.\n\nTagged DRAFT: Will be refined in Task T-12.",
+        "description": "[DRAFT] Vernacular plain-language credit summary for farmer communication.\n\nTagged DRAFT: Will be finalised in Task T-12.",
         "properties": {
           "assessment_id": {
             "description": "Parent assessment identifier",
@@ -580,6 +557,192 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LimitBand": {
+        "description": "Right-sized loan limit band based on Scale of Finance and risk assessment.",
+        "properties": {
+          "collateral_free_cap_applied": {
+            "description": "True if gross scale exceeded RBI collateral-free limit (\u20b92,00,000).",
+            "title": "Collateral Free Cap Applied",
+            "type": "boolean"
+          },
+          "gross_scale_limit_inr": {
+            "description": "Gross scale limit (area * SoF) before collateral cap.",
+            "minimum": 0.0,
+            "title": "Gross Scale Limit Inr",
+            "type": "integer"
+          },
+          "haircut_percentage_range": {
+            "description": "Human-readable haircut percentage range applied for risk band.",
+            "title": "Haircut Percentage Range",
+            "type": "string"
+          },
+          "max_amount_inr": {
+            "description": "Upper bound of suggested loan limit in INR.",
+            "minimum": 0.0,
+            "title": "Max Amount Inr",
+            "type": "integer"
+          },
+          "min_amount_inr": {
+            "description": "Lower bound of suggested loan limit in INR.",
+            "minimum": 0.0,
+            "title": "Min Amount Inr",
+            "type": "integer"
+          },
+          "scale_of_finance_per_acre_inr": {
+            "description": "DLTC Scale of Finance per acre applied in INR.",
+            "minimum": 0.0,
+            "title": "Scale Of Finance Per Acre Inr",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "min_amount_inr",
+          "max_amount_inr",
+          "scale_of_finance_per_acre_inr",
+          "gross_scale_limit_inr",
+          "collateral_free_cap_applied",
+          "haircut_percentage_range"
+        ],
+        "title": "LimitBand",
+        "type": "object"
+      },
+      "LoanSuggestionResponse": {
+        "description": "[STABLE] Structured loan suggestion output mirroring LoanSuggestionResult (T-07).\n\nIndicative credit limit band for loan officer decision support only\u2014not a credit\nsanction or approval. The human loan officer makes the final credit decision.\nRule parameters derive from underwriting configuration and must be verified against\nRBI Master Directions and bank internal credit policy.",
+        "properties": {
+          "area_acre": {
+            "description": "Plot area in acres",
+            "example": 2.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Area Acre",
+            "type": "number"
+          },
+          "crop": {
+            "default": "wheat",
+            "description": "Cultivated crop name",
+            "example": "wheat",
+            "title": "Crop",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "Decision-support suggestion only. SatBhoomi does not approve or reject loans. Final credit sanction, limit approval, and risk determination rest exclusively with the designated bank loan officer (Rule 1: Human-in-the-Loop).",
+            "description": "Statutory human-in-the-loop and decision-support disclaimer",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "insurance_note": {
+            "description": "Explanation of crop insurance requirement or verification",
+            "example": "Low risk: crop insurance recommended under standard KCC guidelines.",
+            "title": "Insurance Note",
+            "type": "string"
+          },
+          "insurance_required": {
+            "default": false,
+            "description": "Whether PMFBY enrollment is mandatory for this risk profile",
+            "example": false,
+            "title": "Insurance Required",
+            "type": "boolean"
+          },
+          "irrigation": {
+            "default": "tube_well",
+            "description": "Primary irrigation source",
+            "example": "tube_well",
+            "title": "Irrigation",
+            "type": "string"
+          },
+          "limit_band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LimitBand"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Indicative loan limit range in integer rupees based on DLTC Scale of Finance"
+          },
+          "notes": {
+            "description": "Auditable decision-support notes and Scale of Finance parameters",
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "plot_code": {
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
+          },
+          "repayment_schedule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RepaymentSchedule"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Harvest-aligned repayment schedule specification"
+          },
+          "risk_band": {
+            "anyOf": [
+              {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assigned risk band influencing haircut",
+            "example": "low",
+            "title": "Risk Band"
+          },
+          "risk_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assessed risk score (0-100)",
+            "example": 18,
+            "title": "Risk Score"
+          },
+          "season": {
+            "description": "Target cropping season",
+            "example": "2024-25",
+            "title": "Season",
+            "type": "string"
+          },
+          "status": {
+            "description": "Eligibility status: 'ok' or 'manual_appraisal_required'",
+            "enum": [
+              "ok",
+              "manual_appraisal_required"
+            ],
+            "example": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "plot_code",
+          "season",
+          "area_acre",
+          "insurance_note"
+        ],
+        "title": "LoanSuggestionResponse",
         "type": "object"
       },
       "LoginRequest": {
@@ -769,7 +932,7 @@
         "type": "object"
       },
       "PlotMonitoringResponse": {
-        "description": "[DRAFT] In-season plot monitoring timeline and active stress alerts.\n\nTagged DRAFT: Will be refined in Task T-09.",
+        "description": "[STABLE] In-season plot monitoring timeline and active stress alerts.\n\nMirrors EvaluationCheckpointResult (T-09). Action playbooks and resolution logs\nare finalised in Task T-12.",
         "properties": {
           "active_alerts": {
             "description": "List of currently active in-season alerts",
@@ -779,14 +942,20 @@
             "title": "Active Alerts",
             "type": "array"
           },
-          "data_gap_flag": {
-            "default": false,
-            "description": "Flag indicating whether cloud cover produced an active data gap banner",
-            "example": false,
-            "title": "Data Gap Flag",
-            "type": "boolean"
+          "checkpoint_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Active seasonal checkpoint label (e.g. 'January 15')",
+            "example": "January 15",
+            "title": "Checkpoint Label"
           },
-          "data_gap_note": {
+          "data_gap_reason": {
             "anyOf": [
               {
                 "type": "string"
@@ -796,7 +965,20 @@
               }
             ],
             "description": "Explanatory text for data gap, if present",
-            "title": "Data Gap Note"
+            "title": "Data Gap Reason"
+          },
+          "evaluation_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date of latest checkpoint evaluation (YYYY-MM-DD)",
+            "example": "2024-01-15",
+            "title": "Evaluation Date"
           },
           "meta": {
             "anyOf": [
@@ -808,6 +990,14 @@
               }
             ],
             "description": "Response metadata container"
+          },
+          "past_alerts": {
+            "description": "List of resolved or escalated historical alerts",
+            "items": {
+              "$ref": "#/components/schemas/AlertSummary"
+            },
+            "title": "Past Alerts",
+            "type": "array"
           },
           "plot_code": {
             "description": "Synthetic plot code",
@@ -825,6 +1015,17 @@
             "description": "Monitored cropping season",
             "example": "2023-24",
             "title": "Season",
+            "type": "string"
+          },
+          "status": {
+            "default": "ok",
+            "description": "Checkpoint evaluation status ('ok' or 'data_gap')",
+            "enum": [
+              "ok",
+              "data_gap"
+            ],
+            "example": "ok",
+            "title": "Status",
             "type": "string"
           },
           "timeline": {
@@ -982,7 +1183,7 @@
         "type": "object"
       },
       "ReliefReportResponse": {
-        "description": "[DRAFT] Crop calamity relief evidence report payload.\n\nTagged DRAFT: Will be refined in Task T-12.",
+        "description": "[DRAFT] Crop calamity relief evidence report payload.\n\nTagged DRAFT: Will be finalised in Task T-12.",
         "properties": {
           "baseline_ndvi_mean": {
             "description": "Historical benchmark NDVI for plot in this calendar window",
@@ -1068,6 +1269,45 @@
           "supporting_evidence_summary"
         ],
         "title": "ReliefReportResponse",
+        "type": "object"
+      },
+      "RepaymentSchedule": {
+        "description": "Harvest-aligned repayment schedule specification.",
+        "properties": {
+          "harvest_window": {
+            "default": "March\u2013April",
+            "description": "Typical crop harvesting window for the region.",
+            "title": "Harvest Window",
+            "type": "string"
+          },
+          "marketing_window": {
+            "default": "April\u2013May",
+            "description": "Peak marketing and mandi arrival window for crop sales.",
+            "title": "Marketing Window",
+            "type": "string"
+          },
+          "rationale": {
+            "description": "Plain-language economic explanation for the scheduled repayment timing.",
+            "title": "Rationale",
+            "type": "string"
+          },
+          "repayment_month": {
+            "description": "Recommended bullet repayment month (e.g. May for Rabi wheat).",
+            "title": "Repayment Month",
+            "type": "string"
+          },
+          "schedule_type": {
+            "default": "bullet_post_harvest",
+            "description": "Repayment structure (bullet post-harvest or installment).",
+            "title": "Schedule Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "repayment_month",
+          "rationale"
+        ],
+        "title": "RepaymentSchedule",
         "type": "object"
       },
       "ResponseMeta": {
@@ -1259,7 +1499,7 @@
         "type": "object"
       },
       "WhatIfRequest": {
-        "description": "[DRAFT] Payload to project risk score changes under a controllable mitigation.",
+        "description": "[STABLE] Payload to project risk score changes under a controllable mitigation.",
         "properties": {
           "changed_input": {
             "description": "Controllable intervention attribute to simulate",
@@ -1287,24 +1527,60 @@
         "type": "object"
       },
       "WhatIfResponse": {
-        "description": "[DRAFT] Simulation projection result for loan officer review.\n\nTagged DRAFT: Will be refined in Task T-08.",
+        "description": "[STABLE] Simulation projection result mirroring WhatIfResult (T-08).\n\nProvides comparative risk score, risk band, and indicative credit limit\nprojections under hypothetical farm management interventions.",
         "properties": {
           "assessment_id": {
-            "description": "Parent assessment ID",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Parent assessment identifier if linked to a persisted evaluation",
             "example": 1,
-            "title": "Assessment Id",
-            "type": "integer"
+            "title": "Assessment Id"
           },
-          "causation_disclaimer": {
-            "default": "What-if simulations show model sensitivity under prospective mitigations; they do not prove causation or guarantee crop outcomes.",
-            "description": "Mandatory statistical disclaimer",
-            "title": "Causation Disclaimer",
-            "type": "string"
+          "assumption": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Explicit agronomic or economic assumption applied if scenario_assumption",
+            "title": "Assumption"
           },
           "changed_input": {
             "description": "Intervention attribute evaluated",
+            "enum": [
+              "insured",
+              "irrigation",
+              "supplementary_irrigation"
+            ],
             "example": "insured",
             "title": "Changed Input",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "Model-based sensitivity estimate only, not proof of causation (Rule 6). What-if simulations project prospective score and limit changes under hypothetical interventions. Final credit terms and verification rest exclusively with the bank loan officer.",
+            "description": "Mandatory statistical sensitivity disclaimer",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "effect_basis": {
+            "default": "scorer_input",
+            "description": "Basis of the simulated effect: 'scorer_input' (direct feature change), 'scenario_assumption' (structural agronomic heuristic), or 'not_modelled' (input has zero effect on current active model)",
+            "enum": [
+              "scorer_input",
+              "scenario_assumption",
+              "not_modelled"
+            ],
+            "example": "scorer_input",
+            "title": "Effect Basis",
             "type": "string"
           },
           "estimate_label": {
@@ -1326,11 +1602,75 @@
             ],
             "description": "Response metadata container"
           },
+          "new_band": {
+            "description": "Projected risk band under mitigation",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "example": "medium",
+            "title": "New Band",
+            "type": "string"
+          },
+          "new_limit_band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LimitBand"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Indicative loan limit band after intervention"
+          },
+          "new_score": {
+            "description": "Projected risk score after simulated intervention",
+            "example": 45,
+            "title": "New Score",
+            "type": "integer"
+          },
           "new_value": {
             "description": "Simulated value after intervention",
             "example": "1",
             "title": "New Value",
             "type": "string"
+          },
+          "notes": {
+            "description": "Diagnostic simulation execution notes",
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "old_band": {
+            "description": "Baseline risk band",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "example": "medium",
+            "title": "Old Band",
+            "type": "string"
+          },
+          "old_limit_band": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LimitBand"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Indicative loan limit band before intervention"
+          },
+          "old_score": {
+            "description": "Baseline risk score before intervention",
+            "example": 55,
+            "title": "Old Score",
+            "type": "integer"
           },
           "old_value": {
             "description": "Baseline value before intervention",
@@ -1338,99 +1678,73 @@
             "title": "Old Value",
             "type": "string"
           },
-          "original_band": {
-            "anyOf": [
-              {
-                "enum": [
-                  "low",
-                  "medium",
-                  "high"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Baseline risk band",
-            "example": "medium",
-            "title": "Original Band"
-          },
-          "original_score": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Original baseline risk score",
-            "example": 55,
-            "title": "Original Score"
+          "plot_code": {
+            "default": "PLOT-001",
+            "description": "Synthetic plot code",
+            "example": "PLOT-001",
+            "title": "Plot Code",
+            "type": "string"
           },
           "plot_id": {
-            "description": "Plot identifier",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Plot reference identifier",
             "example": 1,
-            "title": "Plot Id",
-            "type": "integer"
+            "title": "Plot Id"
+          },
+          "rationale": {
+            "description": "Plain-language economic explanation of the simulation effect",
+            "example": "Crop insurance buffers financial loss; under rule policy, mandatory haircut is mitigated.",
+            "title": "Rationale",
+            "type": "string"
+          },
+          "reliability_note": {
+            "default": "Not validated: no stressed outcomes were available in the sample data, so this score has not been shown to predict crop stress.",
+            "description": "Mandatory validation status disclosure",
+            "title": "Reliability Note",
+            "type": "string"
           },
           "score_delta": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Point change in risk score (negative indicates risk reduction)",
+            "description": "Score difference (new_score - old_score; negative indicates lower risk)",
             "example": -10,
-            "title": "Score Delta"
+            "title": "Score Delta",
+            "type": "integer"
           },
-          "simulated_band": {
-            "anyOf": [
-              {
-                "enum": [
-                  "low",
-                  "medium",
-                  "high"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Projected risk band",
-            "example": "medium",
-            "title": "Simulated Band"
+          "season": {
+            "default": "2024-25",
+            "description": "Evaluated cropping season",
+            "example": "2024-25",
+            "title": "Season",
+            "type": "string"
           },
-          "simulated_score": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
+          "status": {
+            "default": "ok",
+            "description": "Simulation status: 'ok' or 'invalid_input'",
+            "enum": [
+              "ok",
+              "invalid_input"
             ],
-            "description": "Projected risk score under the simulated mitigation",
-            "example": 45,
-            "title": "Simulated Score"
+            "example": "ok",
+            "title": "Status",
+            "type": "string"
           }
         },
         "required": [
-          "assessment_id",
-          "plot_id",
           "changed_input",
           "old_value",
           "new_value",
-          "original_score",
-          "simulated_score",
-          "original_band",
-          "simulated_band",
-          "score_delta"
+          "old_score",
+          "new_score",
+          "score_delta",
+          "old_band",
+          "new_band",
+          "rationale"
         ],
         "title": "WhatIfResponse",
         "type": "object"
@@ -1440,7 +1754,7 @@
   "info": {
     "description": "AI farm credit scoring and early-warning decision-support tool for bank loan officers",
     "title": "SatBhoomi Score + Raksha",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1809,7 +2123,7 @@
     },
     "/api/v1/assessments/{id}/what-if": {
       "post": {
-        "description": "[DRAFT] Simulate prospective risk score changes under a controllable mitigation.",
+        "description": "[STABLE] Simulate prospective risk score changes under a controllable mitigation (T-08).",
         "operationId": "run_what_if_api_v1_assessments__id__what_if_post",
         "parameters": [
           {

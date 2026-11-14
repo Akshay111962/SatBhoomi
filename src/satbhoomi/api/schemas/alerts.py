@@ -1,6 +1,6 @@
 """[DRAFT] Alert action logging schemas (blueprint section 8).
 
-Tagged DRAFT. Subject to refinement and expansion in Task T-09 / T-12.
+Tagged DRAFT: Preliminary action log schema. Will be finalised in Task T-12 (Playbooks).
 Rule 2 Compliance: Log actions strictly reflect supportive interventions.
 """
 
@@ -14,7 +14,10 @@ from satbhoomi.api.schemas.common import ResponseMeta
 
 
 class AlertActionRequest(BaseModel):
-    """[DRAFT] Request payload to record an officer intervention on an alert."""
+    """[DRAFT] Request payload to record an officer intervention on an alert.
+
+    Tagged DRAFT: Will be finalised in Task T-12 (Playbooks).
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -43,7 +46,7 @@ class AlertActionRequest(BaseModel):
 class AlertActionResponse(BaseModel):
     """[DRAFT] Audited confirmation of recorded officer intervention.
 
-    Tagged DRAFT: Will be refined in Task T-09 / T-12.
+    Tagged DRAFT: Will be finalised in Task T-12 (Playbooks).
     """
 
     model_config = ConfigDict(frozen=True)

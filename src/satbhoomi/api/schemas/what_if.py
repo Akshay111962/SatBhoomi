@@ -1,6 +1,6 @@
-"""[DRAFT] What-if simulator request and response schemas (blueprint section 8).
+"""[STABLE] What-if simulator request and response schemas (blueprint section 8).
 
-Tagged DRAFT. Subject to refinement and expansion in Task T-08.
+Matches the real WhatIfResult from src/satbhoomi/risk/what_if.py (T-08).
 Rule 6 Compliance: Every simulation output must carry estimate_label='estimate'
 and the causation disclaimer.
 """
@@ -12,10 +12,13 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from satbhoomi.api.schemas.common import ResponseMeta
+from satbhoomi.risk.loan_suggestions import LimitBand
+from satbhoomi.risk.scoring import FIXED_RELIABILITY_NOTE
+from satbhoomi.risk.what_if import DISCLAIMER_WHAT_IF
 
 
 class WhatIfRequest(BaseModel):
-    """[DRAFT] Payload to project risk score changes under a controllable mitigation."""
+    """[STABLE] Payload to project risk score changes under a controllable mitigation."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -32,45 +35,80 @@ class WhatIfRequest(BaseModel):
 
 
 class WhatIfResponse(BaseModel):
-    """[DRAFT] Simulation projection result for loan officer review.
+    """[STABLE] Simulation projection result mirroring WhatIfResult (T-08).
 
-    Tagged DRAFT: Will be refined in Task T-08.
+    Provides comparative risk score, risk band, and indicative credit limit
+    projections under hypothetical farm management interventions.
     """
 
     model_config = ConfigDict(frozen=True)
 
-    assessment_id: int = Field(..., description="Parent assessment ID", example=1)
-    plot_id: int = Field(..., description="Plot identifier", example=1)
-    changed_input: str = Field(
-        ..., description="Intervention attribute evaluated", example="insured"
+    status: Literal["ok", "invalid_input"] = Field(
+        default="ok",
+        description="Simulation status: 'ok' or 'invalid_input'",
+        example="ok",
+    )
+    assessment_id: int | None = Field(
+        default=None,
+        description="Parent assessment identifier if linked to a persisted evaluation",
+        example=1,
+    )
+    plot_id: int | None = Field(
+        default=None,
+        description="Plot reference identifier",
+        example=1,
+    )
+    plot_code: str = Field(
+        default="PLOT-001",
+        description="Synthetic plot code",
+        example="PLOT-001",
+    )
+    season: str = Field(
+        default="2024-25",
+        description="Evaluated cropping season",
+        example="2024-25",
+    )
+    changed_input: Literal["insured", "irrigation", "supplementary_irrigation"] = Field(
+        ...,
+        description="Intervention attribute evaluated",
+        example="insured",
     )
     old_value: str = Field(..., description="Baseline value before intervention", example="0")
     new_value: str = Field(..., description="Simulated value after intervention", example="1")
 
-    original_score: int | None = Field(
+    old_score: int = Field(
         ...,
-        description="Original baseline risk score",
+        description="Baseline risk score before intervention",
         example=55,
     )
-    simulated_score: int | None = Field(
+    new_score: int = Field(
         ...,
-        description="Projected risk score under the simulated mitigation",
+        description="Projected risk score after simulated intervention",
         example=45,
     )
-    original_band: Literal["low", "medium", "high"] | None = Field(
+    score_delta: int = Field(
+        ...,
+        description="Score difference (new_score - old_score; negative indicates lower risk)",
+        example=-10,
+    )
+    old_band: Literal["low", "medium", "high"] = Field(
         ...,
         description="Baseline risk band",
         example="medium",
     )
-    simulated_band: Literal["low", "medium", "high"] | None = Field(
+    new_band: Literal["low", "medium", "high"] = Field(
         ...,
-        description="Projected risk band",
+        description="Projected risk band under mitigation",
         example="medium",
     )
-    score_delta: int | None = Field(
-        ...,
-        description="Point change in risk score (negative indicates risk reduction)",
-        example=-10,
+
+    old_limit_band: LimitBand | None = Field(
+        default=None,
+        description="Indicative loan limit band before intervention",
+    )
+    new_limit_band: LimitBand | None = Field(
+        default=None,
+        description="Indicative loan limit band after intervention",
     )
 
     # Mandatory Rule 6 Guardrails
@@ -79,12 +117,39 @@ class WhatIfResponse(BaseModel):
         description="Mandatory label identifying output as a model estimate, not causation proof",
         example="estimate",
     )
-    causation_disclaimer: str = Field(
-        default=(
-            "What-if simulations show model sensitivity under prospective mitigations; "
-            "they do not prove causation or guarantee crop outcomes."
+    effect_basis: Literal["scorer_input", "scenario_assumption", "not_modelled"] = Field(
+        default="scorer_input",
+        description=(
+            "Basis of the simulated effect: 'scorer_input' (direct feature change), "
+            "'scenario_assumption' (structural agronomic heuristic), or "
+            "'not_modelled' (input has zero effect on current active model)"
         ),
-        description="Mandatory statistical disclaimer",
+        example="scorer_input",
+    )
+    assumption: str | None = Field(
+        default=None,
+        description="Explicit agronomic or economic assumption applied if scenario_assumption",
+        example=None,
+    )
+    rationale: str = Field(
+        ...,
+        description="Plain-language economic explanation of the simulation effect",
+        example=(
+            "Crop insurance buffers financial loss; under rule policy, mandatory "
+            "haircut is mitigated."
+        ),
+    )
+    disclaimer: str = Field(
+        default=DISCLAIMER_WHAT_IF,
+        description="Mandatory statistical sensitivity disclaimer",
+    )
+    reliability_note: str = Field(
+        default=FIXED_RELIABILITY_NOTE,
+        description="Mandatory validation status disclosure",
+    )
+    notes: list[str] = Field(
+        default_factory=list,
+        description="Diagnostic simulation execution notes",
     )
     meta: ResponseMeta | None = Field(
         default=None,

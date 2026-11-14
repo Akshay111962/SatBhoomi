@@ -103,3 +103,14 @@ This document records the architectural decisions made for **SatBhoomi Score + R
   * *Positive*: Unblocks parallel frontend development immediately; guarantees both React and Streamlit frontends integrate against the identical typed schema; prevents premature or fake business logic from masquerading as real code; eliminates risk of mock data leaking into production.
   * *Negative*: Requires maintaining schema synchronicity between Pydantic API schemas and internal risk/feature calculation models as later tasks advance.
 
+---
+
+## ADR-11: API Domain Model Alignment via Explicit Adapters & Drift Enforcement
+* **Status**: Accepted
+* **Context**: Preliminary API schemas in early foundation drafts (v0.1.0) diverged from internal domain result objects produced by completed risk and alert tasks (`LoanSuggestionResult` from T-07, `WhatIfResult` from T-08, and `AlertItem` from T-09). Specifically, loan suggestions had collapsed into a flat draft structure missing `LimitBand` and `RepaymentSchedule`, what-if simulation results had differing field names (`original_score` vs `old_score`), and monitoring responses did not capture data gap states.
+* **Decision**: Enforce strict parity between verified backend domain objects and public API schemas starting with API contract v0.2.0. The API layer provides explicit, pure adapter functions (`src/satbhoomi/api/adapters.py`) converting domain models (`RiskScoreResult`, `LoanSuggestionResult`, `WhatIfResult`, `AlertItem`, `EvaluationCheckpointResult`) into API response schemas. Automated drift tests assert field-set equality (`set(DomainModel.model_fields.keys()) <= set(Schema.model_fields.keys())`) so any backend field additions or removals immediately break tests until reflected in the API contract.
+* **Consequences**:
+  * *Positive*: Prevents schema divergence between frontend contracts and backend calculations; guarantees frontend developers build against verified, production-aligned payload structures; eliminates duplicate translation logic.
+  * *Negative*: Breaking changes to internal domain result models require deliberate, versioned API contract bumps and updates to `docs/api/openapi.json`.
+
+

@@ -1,6 +1,6 @@
 """[DRAFT] Farmer-facing vernacular summary schemas (blueprint section 8).
 
-Tagged DRAFT. Subject to expansion and refinement in Task T-12.
+Tagged DRAFT: Preliminary vernacular summary structure. Will be finalised in Task T-12.
 Includes language enums and source provenance ('template' or 'reviewed').
 """
 
@@ -16,7 +16,7 @@ from satbhoomi.api.schemas.common import ResponseMeta
 class FarmerSummaryResponse(BaseModel):
     """[DRAFT] Vernacular plain-language credit summary for farmer communication.
 
-    Tagged DRAFT: Will be refined in Task T-12.
+    Tagged DRAFT: Will be finalised in Task T-12.
     """
 
     model_config = ConfigDict(frozen=True)

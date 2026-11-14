@@ -17,6 +17,36 @@ This document tracks all versioned changes to the **SatBhoomi Score + Raksha** R
 
 ## Releases
 
+### [0.2.0] - 2026-11-13 (Domain Result Parity & Adapter Layer)
+* **[BREAKING] Loan Suggestion Schema (`LoanSuggestionResponse`)**:
+  - Replaced preliminary `DraftLoanSuggestion` with structured `LoanSuggestionResponse` mirroring `LoanSuggestionResult` (T-07).
+  - Added full `LimitBand`: `min_amount_inr`, `max_amount_inr`, `scale_of_finance_per_acre_inr`, `gross_scale_limit_inr`, `collateral_free_cap_applied`, `haircut_percentage_range`. All rupee figures are strictly integer amounts.
+  - Added full `RepaymentSchedule`: `repayment_month`, `schedule_type`, `harvest_window`, `marketing_window`, `rationale`.
+  - Added explicit decision-support disclosures: figures are an indicative band for the officer to consider, not a sanction or approval; the officer makes the final decision; parameters come from config verifiable against RBI Master Directions.
+  - Marked **STABLE** (T-07 is DONE).
+* **[BREAKING] What-If Simulation Schema (`WhatIfResponse`)**:
+  - Replaced preliminary fields with exact domain names from `WhatIfResult` (T-08):
+    - `original_score` $\to$ `old_score`
+    - `simulated_score` $\to$ `new_score`
+    - `original_band` $\to$ `old_band`
+    - `simulated_band` $\to$ `new_band`
+    - `causation_disclaimer` $\to$ `disclaimer`
+  - Added `old_limit_band` and `new_limit_band` (`LimitBand | None`).
+  - Added `effect_basis` enum (`scorer_input`, `scenario_assumption`, `not_modelled`).
+  - Added `assumption` (`str | None`) and `reliability_note` (`str`).
+  - Marked **STABLE** (T-08 is DONE).
+* **Alerts and Monitoring Schema Parity (`PlotMonitoringResponse`, `AlertSummary`)**:
+  - `AlertSummary` rebuilt to mirror `AlertItem` (T-09) and database ORM check constraints:
+    - `severity`: enum (`low`, `medium`, `high`).
+    - `status`: enum (`open`, `acknowledged`, `resolved`, `dismissed`).
+    - Added `data_gap_warning`, `checkpoint_label`, `detected_on`.
+  - `PlotMonitoringResponse` updated to mirror `EvaluationCheckpointResult`:
+    - Added `status` (`ok`, `data_gap`), `data_gap_reason`, `checkpoint_label`, `evaluation_date`.
+  - Marked **STABLE** for monitoring time-series and alert detection (T-09 is DONE; action playbooks finalized in T-12).
+* **Explicit Adapter Layer**:
+  - Introduced `src/satbhoomi/api/adapters.py` providing pure conversion functions from domain result objects to API schemas.
+  - Added automated field-set equality tests asserting zero drift between domain objects and API schemas.
+
 ### [0.1.0] - 2026-11-13 (Initial Foundation & Mock Contract)
 * **Initial API Contract Release**:
   - Implemented blueprint section 8 specification across 10 core endpoints:

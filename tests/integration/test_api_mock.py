@@ -92,15 +92,33 @@ def test_mock_mode_every_endpoint_returns_200_or_201_and_validates(mock_client: 
     assert asm_create.plot_id == 1
     assert len(asm_create.reasons) == 3
 
-    # 5. GET /api/v1/assessments/1
+    # 5. GET /api/v1/assessments/1 (Low Risk with Loan Suggestion)
     resp = mock_client.get("/api/v1/assessments/1", headers=AUTH_HEADERS)
     assert resp.status_code == 200
     asm_get = AssessmentResponse.model_validate(resp.json())
     assert asm_get.score == 18
     assert asm_get.band == "low"
     assert len(asm_get.reasons) == 3
+    assert asm_get.loan_suggestion is not None
+    assert asm_get.loan_suggestion.limit_band is not None
+    assert asm_get.loan_suggestion.limit_band.collateral_free_cap_applied is False
 
-    # 6. POST /api/v1/assessments/1/what-if
+    # GET /api/v1/assessments/2 (Collateral-free cap applied = True)
+    resp_cap = mock_client.get("/api/v1/assessments/2", headers=AUTH_HEADERS)
+    assert resp_cap.status_code == 200
+    asm_cap = AssessmentResponse.model_validate(resp_cap.json())
+    assert asm_cap.loan_suggestion is not None
+    assert asm_cap.loan_suggestion.limit_band is not None
+    assert asm_cap.loan_suggestion.limit_band.collateral_free_cap_applied is True
+
+    # GET /api/v1/assessments/4 (Insufficient Data Assessment)
+    resp_insuf = mock_client.get("/api/v1/assessments/4", headers=AUTH_HEADERS)
+    assert resp_insuf.status_code == 200
+    asm_insuf = AssessmentResponse.model_validate(resp_insuf.json())
+    assert asm_insuf.status == "insufficient_data"
+    assert asm_insuf.score is None
+
+    # 6. POST /api/v1/assessments/1/what-if (Direct Scorer Input)
     resp = mock_client.post(
         "/api/v1/assessments/1/what-if",
         json={"changed_input": "insured", "new_value": "1"},
@@ -109,13 +127,44 @@ def test_mock_mode_every_endpoint_returns_200_or_201_and_validates(mock_client: 
     assert resp.status_code == 200
     what_if = WhatIfResponse.model_validate(resp.json())
     assert what_if.estimate_label == "estimate"
-    assert "causation" in what_if.causation_disclaimer.lower()
+    assert what_if.effect_basis == "scorer_input"
+    assert "causation" in what_if.disclaimer.lower()
 
-    # 7. GET /api/v1/plots/1/monitoring
+    # POST what-if with Scenario Assumption (supplementary_irrigation)
+    resp_scen = mock_client.post(
+        "/api/v1/assessments/1/what-if",
+        json={"changed_input": "supplementary_irrigation", "new_value": "1"},
+        headers=AUTH_HEADERS,
+    )
+    assert resp_scen.status_code == 200
+    what_if_scen = WhatIfResponse.model_validate(resp_scen.json())
+    assert what_if_scen.effect_basis == "scenario_assumption"
+    assert what_if_scen.assumption is not None
+
+    # POST what-if with Zero Delta / Not Modelled
+    resp_zero = mock_client.post(
+        "/api/v1/assessments/1/what-if",
+        json={"changed_input": "supplementary_irrigation", "new_value": "0"},
+        headers=AUTH_HEADERS,
+    )
+    assert resp_zero.status_code == 200
+    what_if_zero = WhatIfResponse.model_validate(resp_zero.json())
+    assert what_if_zero.score_delta == 0
+    assert what_if_zero.effect_basis == "not_modelled"
+
+    # 7. GET /api/v1/plots/1/monitoring & Data Gap Monitoring on Plot 5
     resp = mock_client.get("/api/v1/plots/1/monitoring", headers=AUTH_HEADERS)
     assert resp.status_code == 200
     monitoring = PlotMonitoringResponse.model_validate(resp.json())
     assert len(monitoring.timeline) > 0
+
+    resp_gap = mock_client.get("/api/v1/plots/5/monitoring", headers=AUTH_HEADERS)
+    assert resp_gap.status_code == 200
+    monitoring_gap = PlotMonitoringResponse.model_validate(resp_gap.json())
+    assert monitoring_gap.status == "data_gap"
+    assert monitoring_gap.data_gap_reason is not None
+    assert len(monitoring_gap.active_alerts) == 1
+    assert monitoring_gap.active_alerts[0].data_gap_warning is not None
 
     # 8. POST /api/v1/alerts/101/actions
     resp = mock_client.post(
