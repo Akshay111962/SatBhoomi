@@ -154,30 +154,40 @@ def generate_label_counts(
             {
                 "threshold_drop_pct": 10.0,
                 "stressed_count": tau_10_count,
-                "share_pct": round(tau_10_count / total_labelled * 100.0, 2),
+                "share_pct": round(tau_10_count / total_labelled * 100.0, 2)
+                if total_labelled > 0
+                else 0.0,
             },
             {
                 "threshold_drop_pct": 15.0,
                 "stressed_count": tau_15_count,
-                "share_pct": round(tau_15_count / total_labelled * 100.0, 2),
+                "share_pct": round(tau_15_count / total_labelled * 100.0, 2)
+                if total_labelled > 0
+                else 0.0,
             },
             {
                 "threshold_drop_pct": 20.0,
                 "stressed_count": tau_20_count,
-                "share_pct": round(tau_20_count / total_labelled * 100.0, 2),
+                "share_pct": round(tau_20_count / total_labelled * 100.0, 2)
+                if total_labelled > 0
+                else 0.0,
             },
         ],
         "depth_at_least_2_seasons": {
             "seasons_included": seasons_depth_ge_2,
             "total_labelled": len(depth_ge_2_df),
             "stressed_count": depth_ge_2_pos,
-            "stressed_rate_pct": round(depth_ge_2_pos / len(depth_ge_2_df) * 100.0, 2),
+            "stressed_rate_pct": round(depth_ge_2_pos / len(depth_ge_2_df) * 100.0, 2)
+            if len(depth_ge_2_df) > 0
+            else 0.0,
         },
         "excluding_borderline_plots": {
             "borderline_plots_excluded": borderline_plots,
             "total_labelled": len(clear_plots_df),
             "stressed_count": clear_plots_pos,
-            "stressed_rate_pct": round(clear_plots_pos / len(clear_plots_df) * 100.0, 2),
+            "stressed_rate_pct": round(clear_plots_pos / len(clear_plots_df) * 100.0, 2)
+            if len(clear_plots_df) > 0
+            else 0.0,
         },
     }
 
