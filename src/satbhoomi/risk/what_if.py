@@ -17,6 +17,7 @@ from typing import Any, Final, Literal
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
+from satbhoomi.risk.config import DISCLAIMER_WHAT_IF
 from satbhoomi.risk.loan_suggestions import LimitBand, generate_loan_suggestion
 from satbhoomi.risk.scoring import (
     RiskScoreResult,
@@ -41,13 +42,6 @@ ALLOWED_IRRIGATION_VALUES: Final[set[str]] = {
     "drip",
     "sprinkler",
 }
-
-DISCLAIMER_WHAT_IF: Final[str] = (
-    "Model-based sensitivity estimate only, not proof of causation (Rule 6). "
-    "What-if simulations project prospective score and limit changes under "
-    "hypothetical interventions. Final credit terms and verification rest "
-    "exclusively with the bank loan officer."
-)
 
 
 # ---------------------------------------------------------------------------
@@ -80,6 +74,18 @@ class WhatIfResult(BaseModel):
     estimate_label: Literal["estimate"] = Field(
         default="estimate",
         description="Mandatory label explicitly marking output as an estimate per Rule 6.",
+    )
+    effect_basis: Literal["scorer_input", "scenario_assumption", "not_modelled"] = Field(
+        default="scorer_input",
+        description=(
+            "Basis of the simulated effect: 'scorer_input' (direct feature change), "
+            "'scenario_assumption' (structural agronomic heuristic), or "
+            "'not_modelled' (input has zero effect on current active model)"
+        ),
+    )
+    assumption: str | None = Field(
+        default=None,
+        description="Explicit agronomic or policy assumption applied if scenario_assumption",
     )
     rationale: str
     disclaimer: str = DISCLAIMER_WHAT_IF
@@ -283,6 +289,28 @@ def simulate_what_if(
     )
     new_limit_band = new_loan_res.limit_band
 
+    effect_basis: Literal["scorer_input", "scenario_assumption", "not_modelled"]
+    assumption: str | None = None
+
+    if norm_input == "insured":
+        effect_basis = "scenario_assumption"
+        assumption = (
+            "Enrolling in PMFBY crop insurance provides financial indemnification, "
+            "applying a 10-point protective reduction in repayment risk score."
+        )
+    elif norm_input == "irrigation":
+        effect_basis = "scorer_input"
+        assumption = (
+            "Upgrading irrigation source directly changes operational feature inputs."
+            if old_val_str != new_val_str
+            else None
+        )
+    elif norm_input == "supplementary_irrigation":
+        effect_basis = "scenario_assumption"
+        assumption = "Protective irrigation buffers winter moisture deficit to 0.0% departure."
+    else:
+        effect_basis = "not_modelled"
+
     notes: list[str] = [
         f"Simulated parameter: {changed_input} ({old_val_str} -> {new_val_str})",
         (
@@ -290,6 +318,14 @@ def simulate_what_if(
             f"{new_score} ({new_band}) [delta: {score_delta:+d}]"
         ),
     ]
+
+    if score_delta == 0 and old_val_str == new_val_str:
+        effect_basis = "not_modelled"
+        notes.append("Zero delta: intervention value equals baseline value.")
+    elif score_delta == 0:
+        notes.append(
+            "Zero delta: intervention produced no net change in risk score under active rules."
+        )
 
     if new_band != old_band:
         notes.append(f"Risk tier shifted from {old_band.upper()} to {new_band.upper()}.")
@@ -318,6 +354,8 @@ def simulate_what_if(
         old_limit_band=old_limit_band,
         new_limit_band=new_limit_band,
         estimate_label="estimate",
+        effect_basis=effect_basis,
+        assumption=assumption,
         rationale=" ".join(rationale_parts),
         notes=notes,
     )

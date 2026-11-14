@@ -80,6 +80,8 @@ def healthy_row() -> dict:
         "area_acre": 2.15,
         "irrigation": "tube_well",
         "insured": 1,
+        "ndvi_pre_cutoff_baseline": 0.55,
+        "prior_seasons_count": 2,
     }
 
 
@@ -100,6 +102,8 @@ def stressed_row() -> dict:
         "area_acre": 1.45,
         "irrigation": "canal",
         "insured": 0,
+        "ndvi_pre_cutoff_baseline": 0.50,
+        "prior_seasons_count": 2,
     }
 
 
@@ -136,9 +140,9 @@ def test_exactly_three_grounded_reasons_and_direction(stressed_row: dict) -> Non
     assert len(res.reasons) == 3
 
     combined = " ".join(res.reasons).lower()
-    # Grounded numbers from stressed_row: ndvi_early=0.28, deficit=-60.0, slope=-0.0120
+    # Grounded numbers from stressed_row: ndvi_pre_cutoff_mean=0.34, ndvi_early=0.28, slope=-0.0120
+    assert "0.34" in combined
     assert "0.28" in combined
-    assert "-60.0%" in combined
     assert "-0.0120" in combined
     # Direction check: low NDVI explained as low, never as healthy/high
     assert "low" in combined
@@ -152,8 +156,9 @@ def test_rules_baseline_additivity(healthy_row: dict, stressed_row: dict) -> Non
         reconstructed = exp.base_value + sum(exp.contributions.values())
         assert reconstructed == pytest.approx(exp.model_output_value, abs=1e-9)
 
-    # Partial stress (only rainfall deficit)
+    # Partial stress (only rainfall deficit on rainfed plot)
     partial_row = dict(healthy_row)
+    partial_row["irrigation"] = "rainfed"
     partial_row["rain_pre_cutoff_deficit_pct"] = -35.0
     exp_partial = explain_rules_baseline(partial_row)
     assert exp_partial.predicted_probability == pytest.approx(0.45, abs=1e-9)

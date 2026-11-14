@@ -1,0 +1,119 @@
+{
+  "metadata": {
+    "title": "Raksha Alert Engine Historical Replay and Synthetic Scenario Report",
+    "dataset_csv": "data\\processed\\season_dataset.csv",
+    "dataset_csv_sha256": "74bea55571511f91b8e78ffba36cdf5488c2d95d15fcabeec1d4fc79bb06bd15",
+    "total_plots": 21,
+    "seasons_replayed": [
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25"
+    ],
+    "unflagged_false_alert_rate": 0.3429,
+    "tc007_passed": true
+  },
+  "historical_replay_summary": {
+    "total_plots": 21,
+    "seasons_replayed": [
+      "2020-21",
+      "2021-22",
+      "2022-23",
+      "2023-24",
+      "2024-25"
+    ],
+    "alert_counts_by_season": {
+      "2020-21": 0,
+      "2021-22": 6,
+      "2022-23": 12,
+      "2023-24": 5,
+      "2024-25": 23
+    },
+    "alert_counts_by_type": {
+      "crop_health_drop": 34,
+      "rainfall_deficit": 12,
+      "price_crash": 0
+    },
+    "alert_counts_by_severity": {
+      "low": 0,
+      "medium": 26,
+      "high": 20
+    },
+    "false_alert_rate_unflagged": 0.3429,
+    "synthetic_stress_scenario_tested": true,
+    "tc007_passed": true,
+    "notes": [
+      "Descriptive replay only: 0 official disaster events confirmed in Anand rabi wheat 2020-2025.",
+      "TC-007 early warning detection passes strictly on the labelled synthetic stress scenario.",
+      "No claim of early warning validation on real historical data."
+    ]
+  },
+  "tc007_synthetic_stress_scenario": {
+    "scenario_type": "SYNTHETIC_STRESS_SCENARIO",
+    "plot_code": "ANAND_WHEAT_01",
+    "base_season": "2023-24",
+    "first_alert_date": "2024-01-15",
+    "harvest_start_date": "2024-04-01",
+    "lead_time_weeks": 11.0,
+    "tc007_passed": true,
+    "checkpoint_results": [
+      {
+        "plot_code": "ANAND_WHEAT_01",
+        "season": "2023-24",
+        "checkpoint_label": "Dec 15",
+        "evaluation_date": "2023-12-15",
+        "status": "ok",
+        "data_gap_reason": null,
+        "alerts": []
+      },
+      {
+        "plot_code": "ANAND_WHEAT_01",
+        "season": "2023-24",
+        "checkpoint_label": "Jan 15",
+        "evaluation_date": "2024-01-15",
+        "status": "ok",
+        "data_gap_reason": null,
+        "alerts": [
+          {
+            "type": "crop_health_drop",
+            "severity": "high",
+            "status": "open",
+            "detected_on": "2024-01-15",
+            "checkpoint_label": "Jan 15",
+            "plot_code": "ANAND_WHEAT_01",
+            "season": "2023-24",
+            "headline": "Early-season vegetation vigor decline (39.8% drop below plot prior baseline)",
+            "detail": "At Jan 15, plot ANAND_WHEAT_01 recorded NDVI 0.421, falling 39.8% below its own historical baseline (0.700) on this calendar date, indicating in-season vegetative drag and support needed.",
+            "supportive_action": "Schedule supportive field visit to verify plot moisture and canopy vigor; check whether PMFBY crop insurance claim assistance or irrigation support is needed.",
+            "data_gap_warning": null
+          }
+        ]
+      },
+      {
+        "plot_code": "ANAND_WHEAT_01",
+        "season": "2023-24",
+        "checkpoint_label": "Jan 31",
+        "evaluation_date": "2024-01-31",
+        "status": "ok",
+        "data_gap_reason": null,
+        "alerts": [
+          {
+            "type": "crop_health_drop",
+            "severity": "high",
+            "status": "open",
+            "detected_on": "2024-01-15",
+            "checkpoint_label": "Jan 15",
+            "plot_code": "ANAND_WHEAT_01",
+            "season": "2023-24",
+            "headline": "Early-season vegetation vigor decline (39.8% drop below plot prior baseline)",
+            "detail": "At Jan 15, plot ANAND_WHEAT_01 recorded NDVI 0.421, falling 39.8% below its own historical baseline (0.700) on this calendar date, indicating in-season vegetative drag and support needed.",
+            "supportive_action": "Schedule supportive field visit to verify plot moisture and canopy vigor; check whether PMFBY crop insurance claim assistance or irrigation support is needed.",
+            "data_gap_warning": null
+          }
+        ]
+      }
+    ],
+    "alerts_count": 2
+  }
+}

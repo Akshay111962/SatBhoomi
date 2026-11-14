@@ -241,6 +241,8 @@ def test_score_plot_cli_with_suggest_loan_flag(tmp_path: Path, monkeypatch) -> N
         "past_stressed_seasons_count": 0,
         "prev_season_ndvi_peak": 0.65,
         "area_acre": 3.0,
+        "ndvi_pre_cutoff_baseline": 0.55,
+        "prior_seasons_count": 2,
     }
     pd.DataFrame([dummy_row]).to_csv(csv_path, index=False)
 

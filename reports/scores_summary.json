@@ -1,0 +1,433 @@
+{
+  "metadata": {
+    "title": "SatBhoomi v2.0 Relative Rules Downstream Recomputation Report",
+    "model_version": "satbhoomi-rules-v2.0-relative-20261114",
+    "features_csv_path": "data\\processed\\features.csv",
+    "features_csv_sha256": "f4e110660c5d7dba395cfd5275d5c0e81300888fec989f602d947c9bf414dc78",
+    "total_active_plots": 21,
+    "total_plot_seasons": 105,
+    "evaluation_note": "Descriptive recomputation only. ML training remains frozen under Feasibility Gate."
+  },
+  "thresholds": {
+    "ndvi_drop_moderate_pct": 15.0,
+    "ndvi_drop_acute_pct": 25.0,
+    "rain_deficit_moderate_pct": -25.0,
+    "band_low_max": 34,
+    "band_medium_max": 69,
+    "band_high_min": 70
+  },
+  "band_distribution_by_season": {
+    "2020-21": {
+      "low": 0,
+      "medium": 0,
+      "high": 0,
+      "insufficient_data": 21
+    },
+    "2021-22": {
+      "low": 15,
+      "medium": 5,
+      "high": 1,
+      "insufficient_data": 0
+    },
+    "2022-23": {
+      "low": 20,
+      "medium": 1,
+      "high": 0,
+      "insufficient_data": 0
+    },
+    "2023-24": {
+      "low": 21,
+      "medium": 0,
+      "high": 0,
+      "insufficient_data": 0
+    },
+    "2024-25": {
+      "low": 17,
+      "medium": 3,
+      "high": 1,
+      "insufficient_data": 0
+    }
+  },
+  "overall_band_totals": {
+    "insufficient_data": 21,
+    "low": 73,
+    "medium": 9,
+    "high": 2,
+    "total_evaluable_plot_seasons": 84
+  },
+  "plot_flag_persistence": {
+    "flagged_0_seasons": 11,
+    "flagged_1_season": 9,
+    "flagged_2_seasons": 1,
+    "flagged_3_seasons": 0,
+    "flagged_4_seasons": 0
+  },
+  "census_of_flagged_plot_seasons": [
+    {
+      "plot_code": "ANAND_WHEAT_02",
+      "season": "2022-23",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.29), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.24, prior peak 0.47) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope 0.0018 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "ANAND_WHEAT_13",
+      "season": "2021-22",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.28), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.29, prior peak 0.38) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope -0.0005 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "ANKLAV_WHEAT_24",
+      "season": "2021-22",
+      "status": "ok",
+      "score": 85,
+      "band": "high",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.32), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.34, prior peak 0.67) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope -0.0004 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "BORSAD_WHEAT_16",
+      "season": "2024-25",
+      "status": "ok",
+      "score": 85,
+      "band": "high",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.49), pointing to farm stress.",
+        "Pre-cutoff rainfall departure is -99.3% from normal, indicating moisture deficit and potential farm stress.",
+        "Early-season vegetation greenness (NDVI 0.29, prior peak 0.85) shows steady initial crop establishment."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "KHAMBHAT_WHEAT_23",
+      "season": "2021-22",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.42), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.33, prior peak 0.80) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope 0.0038 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "PETLAD_WHEAT_06",
+      "season": "2021-22",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.51), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.34, prior peak 0.80) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope 0.0068 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "PETLAD_WHEAT_18",
+      "season": "2021-22",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.39), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.28, prior peak 0.72) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope 0.0039 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "PETLAD_WHEAT_18",
+      "season": "2024-25",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Pre-cutoff rainfall departure is -99.3% from normal, indicating moisture deficit and potential farm stress.",
+        "Early-season vegetation greenness (NDVI 0.37, prior peak 0.77) shows steady initial crop establishment.",
+        "Average vegetation greenness up to the cut-off date is 0.45 (NDVI)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "SOJITRA_WHEAT_07",
+      "season": "2021-22",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.30), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.32, prior peak 0.51) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope -0.0007 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "SOJITRA_WHEAT_20",
+      "season": "2024-25",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Average vegetation greenness up to the cut-off date is low (NDVI 0.34), pointing to farm stress.",
+        "Early-season vegetation greenness (NDVI 0.32, prior peak 0.68) shows steady initial crop establishment.",
+        "Crop canopy growth trend up to the cut-off date is positive (NDVI slope 0.0010 per day)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    },
+    {
+      "plot_code": "TARAPUR_WHEAT_22",
+      "season": "2024-25",
+      "status": "ok",
+      "score": 45,
+      "band": "medium",
+      "reasons": [
+        "Pre-cutoff rainfall departure is -99.8% from normal, indicating moisture deficit and potential farm stress.",
+        "Early-season vegetation greenness (NDVI 0.42, prior peak 0.76) shows steady initial crop establishment.",
+        "Average vegetation greenness up to the cut-off date is 0.47 (NDVI)."
+      ],
+      "protective_factor": null,
+      "insufficient_data_reason": null,
+      "data_warnings": []
+    }
+  ],
+  "sample_loan_suggestions": {
+    "low_risk_example": {
+      "status": "ok",
+      "plot_code": "ANAND_WHEAT_01",
+      "season": "2024-25",
+      "crop": "wheat",
+      "area_acre": 1.94,
+      "irrigation": "tube_well",
+      "risk_band": "low",
+      "risk_score": 10,
+      "limit_band": {
+        "min_amount_inr": 56000,
+        "max_amount_inr": 62000,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 62080,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "90%\u2013100% of applicable scale"
+      },
+      "repayment_schedule": {
+        "repayment_month": "May",
+        "schedule_type": "bullet_post_harvest",
+        "harvest_window": "March\u2013April",
+        "marketing_window": "April\u2013May",
+        "rationale": "Wheat harvesting in March\u2013April is followed by peak APMC mandi arrivals in April\u2013May. Scheduling bullet repayment in May aligns debt service with peak crop liquidation, eliminating mid-season distress sales."
+      },
+      "insurance_required": false,
+      "insurance_note": "Plot is already verified as covered by crop insurance (PMFBY / commercial policy).",
+      "disclaimer": "Decision-support suggestion only. SatBhoomi does not approve or reject loans. Final credit sanction, limit approval, and risk determination rest exclusively with the designated bank loan officer (Rule 1: Human-in-the-Loop).",
+      "notes": []
+    },
+    "insufficient_data_season1_example": {
+      "status": "manual_appraisal_required",
+      "plot_code": "ANAND_WHEAT_01",
+      "season": "2020-21",
+      "crop": "wheat",
+      "area_acre": 1.94,
+      "irrigation": "tube_well",
+      "risk_band": null,
+      "risk_score": null,
+      "limit_band": null,
+      "repayment_schedule": null,
+      "insurance_required": true,
+      "insurance_note": "Mandatory PMFBY crop insurance enrollment and field inspection required prior to loan appraisal due to missing satellite or weather data.",
+      "disclaimer": "Decision-support suggestion only. SatBhoomi does not approve or reject loans. Final credit sanction, limit approval, and risk determination rest exclusively with the designated bank loan officer (Rule 1: Human-in-the-Loop).",
+      "notes": [
+        "Automated loan sizing suspended: insufficient data to establish farm risk score.",
+        "No historical prior seasons available to establish plot baseline"
+      ]
+    },
+    "elevated_risk_example": {
+      "status": "ok",
+      "plot_code": "ANAND_WHEAT_02",
+      "season": "2022-23",
+      "crop": "wheat",
+      "area_acre": 2.79,
+      "irrigation": "canal",
+      "risk_band": "medium",
+      "risk_score": 45,
+      "limit_band": {
+        "min_amount_inr": 58000,
+        "max_amount_inr": 71500,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 89280,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "65%\u201380% of applicable scale"
+      },
+      "repayment_schedule": {
+        "repayment_month": "May",
+        "schedule_type": "bullet_post_harvest",
+        "harvest_window": "March\u2013April",
+        "marketing_window": "April\u2013May",
+        "rationale": "Wheat harvesting in March\u2013April is followed by peak APMC mandi arrivals in April\u2013May. Scheduling bullet repayment in May aligns debt service with peak crop liquidation, eliminating mid-season distress sales."
+      },
+      "insurance_required": false,
+      "insurance_note": "Plot is already verified as covered by crop insurance (PMFBY / commercial policy).",
+      "disclaimer": "Decision-support suggestion only. SatBhoomi does not approve or reject loans. Final credit sanction, limit approval, and risk determination rest exclusively with the designated bank loan officer (Rule 1: Human-in-the-Loop).",
+      "notes": []
+    }
+  },
+  "sample_what_if_simulations": [
+    {
+      "status": "ok",
+      "assessment_id": null,
+      "plot_code": "ANAND_WHEAT_02",
+      "season": "2022-23",
+      "changed_input": "insured",
+      "old_value": "1",
+      "new_value": "1",
+      "old_score": 45,
+      "new_score": 45,
+      "score_delta": 0,
+      "old_band": "medium",
+      "new_band": "medium",
+      "old_limit_band": {
+        "min_amount_inr": 52000,
+        "max_amount_inr": 64000,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 80000,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "65%\u201380% of applicable scale"
+      },
+      "new_limit_band": {
+        "min_amount_inr": 52000,
+        "max_amount_inr": 64000,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 80000,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "65%\u201380% of applicable scale"
+      },
+      "estimate_label": "estimate",
+      "effect_basis": "not_modelled",
+      "assumption": "Enrolling in PMFBY crop insurance provides financial indemnification, applying a 10-point protective reduction in repayment risk score.",
+      "rationale": "Insurance status unchanged (1).",
+      "disclaimer": "Model-based sensitivity estimate only, not proof of causation (Rule 6). What-if simulations project prospective score and limit changes under hypothetical interventions. Final credit terms and verification rest exclusively with the bank loan officer.",
+      "notes": [
+        "Simulated parameter: insured (1 -> 1)",
+        "Prospective score transition: 45 (medium) -> 45 (medium) [delta: +0]",
+        "Zero delta: intervention value equals baseline value."
+      ]
+    },
+    {
+      "status": "ok",
+      "assessment_id": null,
+      "plot_code": "ANAND_WHEAT_02",
+      "season": "2022-23",
+      "changed_input": "irrigation",
+      "old_value": "canal",
+      "new_value": "drip",
+      "old_score": 45,
+      "new_score": 45,
+      "score_delta": 0,
+      "old_band": "medium",
+      "new_band": "medium",
+      "old_limit_band": {
+        "min_amount_inr": 52000,
+        "max_amount_inr": 64000,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 80000,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "65%\u201380% of applicable scale"
+      },
+      "new_limit_band": {
+        "min_amount_inr": 52000,
+        "max_amount_inr": 64000,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 80000,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "65%\u201380% of applicable scale"
+      },
+      "estimate_label": "estimate",
+      "effect_basis": "scorer_input",
+      "assumption": "Upgrading irrigation source directly changes operational feature inputs.",
+      "rationale": "Transitioning irrigation from canal to drip.",
+      "disclaimer": "Model-based sensitivity estimate only, not proof of causation (Rule 6). What-if simulations project prospective score and limit changes under hypothetical interventions. Final credit terms and verification rest exclusively with the bank loan officer.",
+      "notes": [
+        "Simulated parameter: irrigation (canal -> drip)",
+        "Prospective score transition: 45 (medium) -> 45 (medium) [delta: +0]",
+        "Zero delta: intervention produced no net change in risk score under active rules."
+      ]
+    },
+    {
+      "status": "ok",
+      "assessment_id": null,
+      "plot_code": "ANAND_WHEAT_01",
+      "season": "2024-25",
+      "changed_input": "supplementary_irrigation",
+      "old_value": "1026.7% deficit",
+      "new_value": "applied",
+      "old_score": 10,
+      "new_score": 10,
+      "score_delta": 0,
+      "old_band": "low",
+      "new_band": "low",
+      "old_limit_band": {
+        "min_amount_inr": 72000,
+        "max_amount_inr": 80000,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 80000,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "90%\u2013100% of applicable scale"
+      },
+      "new_limit_band": {
+        "min_amount_inr": 72000,
+        "max_amount_inr": 80000,
+        "scale_of_finance_per_acre_inr": 32000,
+        "gross_scale_limit_inr": 80000,
+        "collateral_free_cap_applied": false,
+        "haircut_percentage_range": "90%\u2013100% of applicable scale"
+      },
+      "estimate_label": "estimate",
+      "effect_basis": "scenario_assumption",
+      "assumption": "Protective irrigation buffers winter moisture deficit to 0.0% departure.",
+      "rationale": "Applying 1\u20132 supplementary protective irrigations during dry winter periods buffers moisture deficit (from 1026.7% to 0.0%), mitigating vegetative drag.",
+      "disclaimer": "Model-based sensitivity estimate only, not proof of causation (Rule 6). What-if simulations project prospective score and limit changes under hypothetical interventions. Final credit terms and verification rest exclusively with the bank loan officer.",
+      "notes": [
+        "Simulated parameter: supplementary_irrigation (1026.7% deficit -> applied)",
+        "Prospective score transition: 10 (low) -> 10 (low) [delta: +0]",
+        "Zero delta: intervention produced no net change in risk score under active rules."
+      ]
+    }
+  ]
+}

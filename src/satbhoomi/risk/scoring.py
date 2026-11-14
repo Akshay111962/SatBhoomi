@@ -12,18 +12,26 @@ Per user decision for T-06:
 """
 
 from collections.abc import Mapping
-from datetime import date
-from typing import Any, Final, Literal
+from typing import Any, Literal
 
 import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field
 
 from satbhoomi.features.config import (
-    DEFAULT_CUTOFF_DAY,
-    DEFAULT_CUTOFF_MONTH,
     FEATURE_COLUMNS,
 )
 from satbhoomi.risk.baseline import AgronomicRulesBaseline
+from satbhoomi.risk.config import (
+    BAND_LOW_MAX,
+    BAND_MEDIUM_MAX,
+    CORE_INSEASON_FEATURES,
+    CUTOFF_DATE_LABEL,
+    DEFAULT_ACTIVE_SCORER,
+    FIXED_INTERPRETATION,
+    FIXED_RELIABILITY_NOTE,
+    MAX_MISSING_FEATURES_ALLOWED,
+    RULES_BASELINE_VERSION,
+)
 from satbhoomi.risk.explain import (
     explain_logistic_regression,
     explain_rules_baseline,
@@ -31,51 +39,25 @@ from satbhoomi.risk.explain import (
 )
 from satbhoomi.risk.models import SafeClassifierWrapper
 
-# ---------------------------------------------------------------------------
-# Single-Source Scoring & Band Configuration
-# ---------------------------------------------------------------------------
+# Module-level cached baseline model fitted on features dataset if available
+_CACHED_BASELINE_MODEL: AgronomicRulesBaseline | None = None
 
-DEFAULT_ACTIVE_SCORER: Final[Literal["rules_baseline", "logreg"]] = "rules_baseline"
-RULES_BASELINE_VERSION: Final[str] = "satbhoomi-rules-v1.0-agronomic-jan31"
 
-# Band thresholds derived strictly from agronomic reasoning and the
-# pre-registered AgronomicRulesBaseline probability tiers (0.10, 0.45, 0.85)
-# and EVAL_PROTOCOL.md 3-tier buckets:
-#   - Low    [0, 34]  : Normal growth (baseline p=0.10 -> score=10)
-#   - Medium [35, 69] : Partial stress (one rule condition p=0.45 -> score=45)
-#   - High   [70, 100]: Compound stress (both conditions p=0.85 -> score=85)
-BAND_LOW_MAX: Final[int] = 34
-BAND_MEDIUM_MAX: Final[int] = 69
+def get_default_rules_baseline() -> AgronomicRulesBaseline:
+    """Return default singleton AgronomicRulesBaseline fitted on historical dataset if present."""
+    global _CACHED_BASELINE_MODEL
+    if _CACHED_BASELINE_MODEL is None:
+        _CACHED_BASELINE_MODEL = AgronomicRulesBaseline()
+        from pathlib import Path
 
-# Missing-feature tolerance rule:
-# Up to 2 missing features (out of 12) are allowed (e.g. Season 1 missing
-# prev_season_ndvi_peak and early cloud cover missing ndvi_early).
-# More than 2 missing features—or all core in-season signals missing—triggers
-# `insufficient_data` with no score returned.
-MAX_MISSING_FEATURES_ALLOWED: Final[int] = 2
-CORE_INSEASON_FEATURES: Final[tuple[str, ...]] = (
-    "ndvi_early",
-    "ndvi_pre_cutoff_mean",
-    "ndvi_trend_pre_cutoff",
-    "rain_pre_cutoff_total_mm",
-    "rain_pre_cutoff_deficit_pct",
-)
-
-CUTOFF_DATE_LABEL: Final[str] = date(2000, DEFAULT_CUTOFF_MONTH, DEFAULT_CUTOFF_DAY).strftime(
-    "%B %d"
-)
-
-FIXED_INTERPRETATION: Final[str] = (
-    "In-season farm stress risk estimate as of the January 31 cut-off date. "
-    "This score is a model/heuristic estimate of crop stress for loan officer "
-    "decision support only—not a measured probability of loan default, not a "
-    "pre-sowing loan approval score, and never an automated loan decision."
-)
-
-FIXED_RELIABILITY_NOTE: Final[str] = (
-    "Not validated: no stressed outcomes were available in the sample data, "
-    "so this score has not been shown to predict crop stress."
-)
+        feat_csv = Path("data/processed/features.csv")
+        if feat_csv.is_file():
+            try:
+                df = pd.read_csv(feat_csv)
+                _CACHED_BASELINE_MODEL.fit(df)
+            except Exception:
+                pass
+    return _CACHED_BASELINE_MODEL
 
 
 class RiskScoreResult(BaseModel):
@@ -173,8 +155,45 @@ def score_plot_season(
             insufficient_data_reason=reason_msg,
         )
 
+    # Historical prior baseline check for relative rules baseline (docs/SCORER_REVIEW.md Section A4)
     if scorer == "rules_baseline":
-        rules_model = model if isinstance(model, AgronomicRulesBaseline) else None
+        rules_model = (
+            model if isinstance(model, AgronomicRulesBaseline) else get_default_rules_baseline()
+        )
+        key = (plot_code, season)
+
+        has_explicit_baseline = (
+            "ndvi_pre_cutoff_baseline" in row_dict
+            and not is_value_missing(row_dict["ndvi_pre_cutoff_baseline"])
+        ) or (
+            "prior_ndvi_pre_cutoff_mean" in row_dict
+            and not is_value_missing(row_dict["prior_ndvi_pre_cutoff_mean"])
+        )
+        prior_count = row_dict.get("prior_seasons_count")
+        if prior_count is None and key in rules_model.prior_seasons_count_:
+            prior_count = rules_model.prior_seasons_count_[key]
+
+        # Season 1 (2020-21) or 0 prior seasons strictly returns insufficient_data
+        if (
+            season == "2020-21"
+            or prior_count == 0
+            or (not has_explicit_baseline and key not in rules_model.baseline_history_)
+        ):
+            return RiskScoreResult(
+                status="insufficient_data",
+                plot_code=plot_code,
+                season=season,
+                scorer=scorer,
+                model_version=resolved_version,
+                score=None,
+                band=None,
+                reasons=[],
+                protective_factor=None,
+                data_warnings=data_warnings,
+                insufficient_data_reason=(
+                    "No historical prior seasons available to establish plot baseline"
+                ),
+            )
         explanation = explain_rules_baseline(row_dict, model=rules_model)
     elif scorer == "logreg":
         if not isinstance(model, SafeClassifierWrapper):

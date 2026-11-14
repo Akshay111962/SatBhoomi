@@ -1,64 +1,105 @@
 # SatBhoomi In-Season Risk Scoring and Explanation Specification (T-06)
 
-**Status**: IMPLEMENTED  
-**Date**: November 2026  
-**Active Scorer**: `rules_baseline` (`satbhoomi-rules-v1.0-agronomic-jan31`)  
-**Cut-Off Date**: January 31 (in-season interim review)
+**Status**: CURRENT  
+**Date**: 2026-11-14  
+**Active Scorer**: `rules_baseline` (`satbhoomi-rules-v2.0-relative-20261114`)  
+**Configuration**: Single Source of Truth in [`src/satbhoomi/risk/config.py`](file:///d:/SatBhoomi/src/satbhoomi/risk/config.py)  
+**Governing Document**: [`docs/SCORER_REVIEW.md`](file:///d:/SatBhoomi/docs/SCORER_REVIEW.md) (Approved 2026-11-14)  
+**Reference Report**: `reports/scores_summary.json`  
+**Cut-Off Date**: January 31 (in-season interim review, strictly unshifted)
 
 ---
 
-## 1. Plain Statement of Empirical Finding (T-05 / T-06)
+## 1. Governance & Protocol Context
 
-> **Critical Validation Limitation**:  
-> All available training seasons (`2021-22`, `2022-23`, `2023-24`) and the held-out test season (`2024-25`) in `data/processed/features.csv` contained **zero stressed labels** (`0` stressed out of `48` labelled rows, because `ndvi_peak = 0.65` across all plots in the cached T-02 satellite file). Consequently, **ROC-AUC was not evaluable**, and **the ML models (`logreg`, `random_forest`, `xgboost`) could not be validated**.
->
-> Per Architecture Decision ADR-2 (*Rules baseline first, ML second*) and project governance, the **active scorer for T-06 is `rules_baseline` (`AgronomicRulesBaseline`)**. The saved Logistic Regression artifact (`satbhoomi-risk-v1.0-logreg-feat1-opt1th15-f85e5949-20261105.joblib`) is **not** used for live scoring; its linear-contribution explainer was built and verified exclusively on synthetic multi-class fixtures.
->
-> Every `RiskScoreResult` includes the fixed `reliability_note`:  
-> *"Not validated: no stressed outcomes were available in the sample data, so this score has not been shown to predict crop stress."*
+In accordance with Architecture Decision ADR-2 (*Rules baseline first, ML second*) and the approved review (`docs/SCORER_REVIEW.md`), the **active scorer is `rules_baseline` (`AgronomicRulesBaseline` v2.0)**. 
+
+Under Evaluation Protocol v2 (`docs/EVAL_PROTOCOL.md`), the Feasibility Gate fails ($n = 4$ pooled positives vs 10 required) $\implies$ machine learning model training remains strictly frozen. The rules baseline operates as a transparent, deterministic decision-support tool.
+
+Every `RiskScoreResult` includes the fixed `reliability_note`:  
+*"Descriptive heuristic rules baseline evaluated on Sentinel-2 offset-corrected data. Under Evaluation Protocol v2, machine learning evaluation remains frozen under the Feasibility Gate (feasibility gate failed; status: NOT EVALUABLE)."*
 
 ---
 
-## 2. Score Definition
+## 2. Score Definition & Rules Baseline v2.0 Logic
 
 - **Formula**: $\text{score} = \text{round}(\hat{p} \times 100)$, clamped to $[0, 100]$.
-- **Meaning**: An **in-season farm stress risk estimate as of the January 31 cut-off date**, computed from pre-cutoff satellite NDVI, rainfall, mandi price volatility, prior-season history, and officer-recorded plot attributes.
-- **Not a Default Probability or Loan Decision**: The score is a model/heuristic estimate of proxy crop stress—not a measured probability of loan default, not a pre-sowing loan approval score, and never an automated approval or rejection. Every result includes the fixed `interpretation` field stating this explicitly.
+- **Meaning**: An **in-season farm stress risk estimate as of the January 31 cut-off date**, evaluated against the plot's own strictly prior historical baseline.
+- **Principles Implemented (ADR-12)**:
+  1. **Relative Vegetative Anomaly**: Evaluates current `ndvi_pre_cutoff_mean` against the plot's historical expanding baseline from strictly prior completed seasons:
+     $$\text{drop\_pct} = \frac{\text{baseline} - \text{current}}{\text{baseline}} \times 100.0$$
+     - Moderate drop: $\ge 15.0\%$ ($\approx 2.0 \times \text{MAD}$ natural variability)
+     - Acute drop: $\ge 25.0\%$ ($> 3.0 \times \text{MAD}$, canopy collapse)
+  2. **Differentiated Rainfall Treatment**: Normal winter rainfall in Anand is only 10.5 mm and wheat is $>85\%$ irrigated. Winter rainfall deficits are buffered on irrigated tracts and act as a stress driver only on rainfed plots (`irrigation == 'rainfed'`).
+  3. **Strict Baseline Depth Gate**: Season 1 (`2020-21`) or plots with 0 prior seasons strictly return `status = "insufficient_data"`. No scores or loan limits are ever invented.
 
 ---
 
-## 3. Risk Band Thresholds (Single-Source Configuration)
+## 3. Risk Band Thresholds & Recomputed Distribution
 
-Defined in one place in [`src/satbhoomi/risk/scoring.py`](file:///D:/SatBhoomi/src/satbhoomi/risk/scoring.py):
+Single-source thresholds defined in [`src/satbhoomi/risk/config.py`](file:///d:/SatBhoomi/src/satbhoomi/risk/config.py):
 
-| Band | Score Range | Agronomic & Protocol Justification |
-| :--- | :---: | :--- |
-| **`low`** | `0 – 34` | Normal vegetative progression and adequate pre-cutoff moisture (`AgronomicRulesBaseline` normal tier $\hat{p} = 0.10 \rightarrow \text{score} = 10$; aligns with `EVAL_PROTOCOL.md` low-risk bucket `[0.00, 0.33)`). |
-| **`medium`** | `35 – 69` | Partial stress—either vegetative lag (`ndvi_early <= 0.35` or `ndvi_trend_pre_cutoff <= 0.0`) OR pre-cutoff rainfall deficit (`<= -20.0%`) ($\hat{p} = 0.45 \rightarrow \text{score} = 45$; aligns with `[0.33, 0.67)`). |
-| **`high`** | `70 – 100` | Compound stress—both vegetative lag AND pre-cutoff rainfall deficit ($\hat{p} = 0.85 \rightarrow \text{score} = 85$; aligns with `[0.67, 1.00]`). |
+| Band | Score Range | Assigned Probability $\hat{p}$ | Agronomic Definition |
+| :--- | :---: | :---: | :--- |
+| **`low`** | `0 – 34` | $0.10 \rightarrow \text{score } 10$ | Normal vegetative progression (drop $< 15.0\%$) and no unbuffered moisture deficit. |
+| **`medium`** | `35 – 69` | $0.45 \rightarrow \text{score } 45$ | Moderate vegetative lag ($15.0\% \le \text{drop} < 25.0\%$) OR severe rain deficit on rainfed plots ($\le -25.0\%$). |
+| **`high`** | `70 – 100` | $0.85 \rightarrow \text{score } 85$ | Acute vegetative collapse ($\ge 25.0\%$) OR compound distress (moderate lag + rainfed moisture failure). |
 
-### Descriptive Distribution on Existing Dataset (`data/processed/features.csv`)
-Scoring all **60** plot-seasons in `data/processed/features.csv` with the active `rules_baseline` scorer yields:
-- **`low` (`0–34`)**: `0` rows
-- **`medium` (`35–69`)**: `60` rows (all 60 rows score `45` because `ndvi_trend_pre_cutoff = 0.0` from constant cached NDVI `0.65`, triggering Condition 1)
-- **`high` (`70–100`)**: `0` rows
-- **`insufficient_data`**: `0` rows
+### Current Empirical Distribution (`reports/scores_summary.json`)
 
-*(Thresholds were fixed from agronomic reasoning prior to scoring and were not adjusted based on this distribution.)*
+Scoring all **105** active plot-seasons (21 active plots across 5 seasons) on corrected Sentinel-2 data yields:
+
+- **Total Active Plot-Seasons**: 105
+- **`insufficient_data` (Season 1 `2020-21`)**: 21 rows (100% of Season 1 cleanly gated)
+- **Total Evaluable Plot-Seasons (Seasons 2–5)**: 84 rows
+  - **`low` (`0–34`, score 10)**: 73 rows (86.9%)
+  - **`medium` (`35–69`, score 45)**: 9 rows (10.7%)
+  - **`high` (`70–100`, score 85)**: 2 rows (2.4%)
+
+#### Season-by-Season Census:
+
+| Season | Insufficient Data | Low (Score 10) | Medium (Score 45) | High (Score 85) | Total |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| **2020-21** | 21 | 0 | 0 | 0 | 21 |
+| **2021-22** | 0 | 15 | 5 | 1 | 21 |
+| **2022-23** | 0 | 20 | 1 | 0 | 21 |
+| **2023-24** | 0 | 21 | 0 | 0 | 21 |
+| **2024-25** | 0 | 17 | 3 | 1 | 21 |
+| **Total** | **21** | **73** | **9** | **2** | **105** |
+
+#### Resolution of Permanent Flagging:
+Under the pre-correction absolute rule (`ndvi_early <= 0.35`), 6 plots were flagged in 5/5 seasons. Under the relative rule:
+- Flagged in 4 seasons: **0 plots**
+- Flagged in 3 seasons: **0 plots**
+- Flagged in 2 seasons: **1 plot** (`ANAND_WHEAT_05`)
+- Flagged in 1 season: **9 plots**
+- Flagged in 0 seasons: **11 plots**
+
+---
+
+### SUPERSEDED: Pre-Correction Distribution (Historical Reference Only)
+> [!NOTE]
+> The earlier distribution below was evaluated against uncorrected satellite data and is **SUPERSEDED**:
+> - Low: 0 rows
+> - Medium: 60 rows (all scored 45 due to constant cached NDVI)
+> - High: 0 rows
 
 ---
 
 ## 4. Explanation Method (Exact Additive Contributions)
 
 No external `shap` dependency is required:
-1. **Active Scorer (`rules_baseline`)**: Exact additive decomposition in **probability space** (`base_value = 0.10`):
+1. **Active Scorer (`rules_baseline` v2.0)**: Exact additive decomposition in **probability space** (`base_value = 0.10`):
    - Normal growth: `0.10 + 0.0 = 0.10`
-   - Single condition (vegetative OR rainfall): `0.10 + 0.35 = 0.45`
-   - Compound stress (both conditions): `0.10 + 0.375 + 0.375 = 0.85`
-   - If both `ndvi_early <= 0.35` and `ndvi_trend_pre_cutoff <= 0.0` trigger Condition 1, the vegetative uplift is split equally between them.
-2. **Logistic Regression (`logreg`, synthetic multi-class test path only)**: Exact linear contributions $\text{coef}_j \cdot x_{\text{scaled}, j}$ in **log-odds space**, with `intercept_` as `base_value` (one-hot `irrigation` columns summed into a single `irrigation` attribution).
+   - Moderate vegetative lag: `0.10 + 0.35 = 0.45`
+   - Rainfed moisture deficit: `0.10 + 0.35 = 0.45`
+   - Acute vegetative collapse: `0.10 + 0.75 = 0.85`
+   - Compound distress (moderate lag + rainfed deficit): `0.10 + 0.375 + 0.375 = 0.85`
+   - In every case: $\text{base\_value} + \sum \text{contributions} == \hat{p}$ (exact mathematical additivity verified by automated unit tests).
 
-In both modes, missing features are skipped from reasons, the top 3 risk-increasing contributors are selected deterministically (padded with observed contextual features when fewer than 3 terms are positive), and the top protective factor is reported separately when present.
+2. **Logistic Regression (`logreg`, synthetic multi-class test path only)**: Exact linear contributions $\text{coef}_j \cdot x_{\text{scaled}, j}$ in **log-odds space**.
+
+In both modes, missing features are skipped, the top 3 risk-increasing contributors are selected deterministically, and the top protective factor is reported separately when present. Zero blame language is strictly enforced.
 
 ---
 

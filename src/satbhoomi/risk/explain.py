@@ -16,6 +16,7 @@ import pandas as pd
 
 from satbhoomi.features.config import FEATURE_COLUMNS
 from satbhoomi.risk.baseline import AgronomicRulesBaseline
+from satbhoomi.risk.config import RAINFED_TYPES
 from satbhoomi.risk.models import SafeClassifierWrapper
 from satbhoomi.risk.reason_templates import render_feature_reason
 
@@ -123,56 +124,87 @@ def explain_rules_baseline(
     row: dict[str, Any],
     model: AgronomicRulesBaseline | None = None,
 ) -> ExplanationResult:
-    """Compute exact additive probability contributions for AgronomicRulesBaseline."""
+    """Compute exact additive probability contributions for AgronomicRulesBaseline (v2.0)."""
     scorer_model = model or AgronomicRulesBaseline()
     missing_features = {f for f in FEATURE_COLUMNS if is_value_missing(row.get(f))}
 
-    cond1_early = (
-        "ndvi_early" not in missing_features
-        and float(row["ndvi_early"]) <= scorer_model.ndvi_early_threshold
-    )
-    cond1_trend = (
-        "ndvi_trend_pre_cutoff" not in missing_features
-        and float(row["ndvi_trend_pre_cutoff"]) <= scorer_model.ndvi_trend_threshold
-    )
-    cond1 = cond1_early or cond1_trend
+    plot_code = str(row.get("plot_code", ""))
+    season = str(row.get("season", ""))
+    key = (plot_code, season)
 
-    cond2 = (
-        "rain_pre_cutoff_deficit_pct" not in missing_features
-        and float(row["rain_pre_cutoff_deficit_pct"]) <= scorer_model.rain_deficit_threshold_pct
+    # 1. Establish prior baseline and relative drop
+    baseline = None
+    n_prior = 0
+    if "ndvi_pre_cutoff_baseline" in row and not is_value_missing(row["ndvi_pre_cutoff_baseline"]):
+        baseline = float(row["ndvi_pre_cutoff_baseline"])
+        n_prior = int(row.get("prior_seasons_count", 1))
+    elif "prior_ndvi_pre_cutoff_mean" in row and not is_value_missing(
+        row["prior_ndvi_pre_cutoff_mean"]
+    ):
+        baseline = float(row["prior_ndvi_pre_cutoff_mean"])
+        n_prior = int(row.get("prior_seasons_count", 1))
+    elif key in scorer_model.baseline_history_:
+        baseline = scorer_model.baseline_history_[key]
+        n_prior = scorer_model.prior_seasons_count_.get(key, 0)
+
+    curr_ndvi = row.get("ndvi_pre_cutoff_mean")
+    drop_pct = 0.0
+    if (
+        baseline is not None
+        and baseline > 0.05
+        and curr_ndvi is not None
+        and not is_value_missing(curr_ndvi)
+        and n_prior >= 1
+    ):
+        drop_pct = (baseline - float(curr_ndvi)) / baseline * 100.0
+
+    is_acute_veg = (
+        "ndvi_pre_cutoff_mean" not in missing_features
+        and drop_pct >= scorer_model.ndvi_drop_acute_pct
+    )
+    is_mod_veg = (
+        "ndvi_pre_cutoff_mean" not in missing_features
+        and drop_pct >= scorer_model.ndvi_drop_moderate_pct
     )
 
-    base_value = 0.10
+    # 2. Differentiated rainfall deficit check (rainfed only)
+    irr = str(row.get("irrigation", "tube_well")).strip().lower()
+    is_rainfed = irr in RAINFED_TYPES
+    rain_def = row.get("rain_pre_cutoff_deficit_pct")
+    is_rain_stress = (
+        is_rainfed
+        and "rain_pre_cutoff_deficit_pct" not in missing_features
+        and rain_def is not None
+        and not is_value_missing(rain_def)
+        and float(rain_def) <= scorer_model.rain_deficit_moderate_pct
+    )
+
+    # 3. Exact additive probability contributions
+    base_value = scorer_model.prob_low
     contributions: dict[str, float] = {f: 0.0 for f in FEATURE_COLUMNS if f not in missing_features}
 
-    if cond1 and cond2:
-        veg_uplift = 0.375
-        rain_uplift = 0.375
-    elif cond1:
-        veg_uplift = 0.35
-        rain_uplift = 0.0
-    elif cond2:
-        veg_uplift = 0.0
-        rain_uplift = 0.35
+    if is_acute_veg and is_rain_stress:
+        pred_prob = scorer_model.prob_high
+        contributions["ndvi_pre_cutoff_mean"] = 0.375
+        contributions["rain_pre_cutoff_deficit_pct"] = 0.375
+    elif is_acute_veg:
+        pred_prob = scorer_model.prob_high
+        contributions["ndvi_pre_cutoff_mean"] = 0.75
+    elif is_mod_veg and is_rain_stress:
+        pred_prob = scorer_model.prob_high
+        contributions["ndvi_pre_cutoff_mean"] = 0.375
+        contributions["rain_pre_cutoff_deficit_pct"] = 0.375
+    elif is_mod_veg:
+        pred_prob = scorer_model.prob_medium
+        contributions["ndvi_pre_cutoff_mean"] = 0.35
+    elif is_rain_stress:
+        pred_prob = scorer_model.prob_medium
+        contributions["rain_pre_cutoff_deficit_pct"] = 0.35
     else:
-        veg_uplift = 0.0
-        rain_uplift = 0.0
+        pred_prob = scorer_model.prob_low
 
-    if cond1_early and cond1_trend:
-        contributions["ndvi_early"] = veg_uplift / 2.0
-        contributions["ndvi_trend_pre_cutoff"] = veg_uplift / 2.0
-    elif cond1_early:
-        contributions["ndvi_early"] = veg_uplift
-    elif cond1_trend:
-        contributions["ndvi_trend_pre_cutoff"] = veg_uplift
-
-    if cond2:
-        contributions["rain_pre_cutoff_deficit_pct"] = rain_uplift
-
-    df_row = pd.DataFrame([{f: row.get(f, np.nan) for f in FEATURE_COLUMNS}])
-    pred_prob = float(scorer_model.predict_proba(df_row)[0, 1])
-
-    reasons, protective = _select_reasons_and_protective(row, contributions, missing_features)
+    ctx = dict(row, rel_drop_pct=drop_pct, baseline_ndvi=baseline)
+    reasons, protective = _select_reasons_and_protective(ctx, contributions, missing_features)
 
     return ExplanationResult(
         scorer="rules_baseline",

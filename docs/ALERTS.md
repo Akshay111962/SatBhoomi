@@ -61,24 +61,35 @@ Managed by `InSeasonAlertTracker`:
 * **Historical Calamity Status**: As documented in [`docs/DATA_REVISIT.md`](file:///d:/SatBhoomi/docs/DATA_REVISIT.md), no adverse events were reported to us; not checked against official records.
 * **Descriptive Reporting Only**: Historical replay is strictly descriptive. We do **not** claim that the alert engine "detects real stressed seasons" or "proves early warning" on historical data.
 
-### 5.2 Full Historical Replay Metrics (2020–2025, 24 Plots)
-Run via `python scripts/replay_alerts.py`:
-* **Total Plots**: 24
-* **Total Seasons**: 5 (2020-21 through 2024-25, 120 plot-seasons)
-* **Alerts by Season**:
+### 5.2 Full Historical Replay Metrics
+
+#### Recomputed Replay on Corrected Active Set (CURRENT: 2026-11-14)
+Source: [`reports/replay_alerts.json`](file:///d:/SatBhoomi/reports/replay_alerts.json) generated via `python scripts/analysis/generate_alert_reports.py` on 21 active plots with Sentinel-2 PB 04.00+ offset correction.
+* **Total Plots**: 21 active agricultural plots (3 non-crop plots excluded under R1)
+* **Total Seasons**: 5 (2020-21 through 2024-25, 105 plot-seasons)
+* **Alerts by Season** (Total = 46 alerts):
   * `2020-21`: 0 alerts (Baseline season; 0 prior seasons available $\to$ recorded as `data_gap`)
-  * `2021-22`: 26 alerts
-  * `2022-23`: 31 alerts
-  * `2023-24`: 20 alerts
-  * `2024-25`: 39 alerts
+  * `2021-22`: 6 alerts
+  * `2022-23`: 12 alerts
+  * `2023-24`: 5 alerts
+  * `2024-25`: 23 alerts
 * **Alerts by Rule Type**:
-  * `crop_health_drop`: 104 alerts
+  * `crop_health_drop`: 34 alerts
   * `rainfall_deficit`: 12 alerts
-  * `price_crash`: 0 alerts (mandi prices remained stable/increasing from ₹2004/qtl to ₹2450/qtl)
+  * `price_crash`: 0 alerts (APMC Anand modal wheat prices remained stable/increasing from ₹2004/qtl to ₹2450/qtl)
 * **Alerts by Severity**:
-  * `high`: 81 alerts
-  * `medium`: 35 alerts
+  * `high`: 20 alerts
+  * `medium`: 26 alerts
   * `low`: 0 alerts
+* **Unflagged False Alert Rate**: 34.29% (descriptive only: 0 official disaster events confirmed in Anand rabi wheat 2020–2025; see disclosure below)
+
+#### Historical Replay Pre-Correction (SUPERSEDED)
+*Generated prior to Sentinel-2 processing baseline offset correction and non-crop plot exclusions (24 plots, uncorrected NDVI)*:
+* *Total Plots*: 24 (included excluded non-crop plots `ANAND_WHEAT_07`, `ANAND_WHEAT_09`, `THASRA_WHEAT_04`)
+* *Total Alerts*: 116 alerts (2020-21: 0, 2021-22: 26, 2022-23: 31, 2023-24: 20, 2024-25: 39)
+* *Alerts by Type*: `crop_health_drop`: 104; `rainfall_deficit`: 12; `price_crash`: 0
+* *Alerts by Severity*: `high`: 81; `medium`: 35; `low`: 0
+* *Status*: **SUPERSEDED** (contains artificial downward shifts from PB 04.00 transition and non-crop plot noise).
 
 ---
 

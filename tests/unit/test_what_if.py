@@ -34,6 +34,8 @@ def sample_feature_row() -> dict:
         "past_stressed_seasons_count": 0,
         "prev_season_ndvi_peak": 0.60,
         "area_acre": 3.0,
+        "ndvi_pre_cutoff_baseline": 0.50,
+        "prior_seasons_count": 2,
     }
 
 
@@ -204,3 +206,26 @@ def test_score_plot_cli_what_if_options(
     assert parsed["changed_input"] == "insured"
     assert parsed["estimate_label"] == "estimate"
     assert parsed["disclaimer"] == DISCLAIMER_WHAT_IF
+
+
+def test_what_if_effect_basis_and_zero_delta(sample_feature_row: dict) -> None:
+    """What-if engine categorizes effect_basis and documents zero-delta behavior."""
+    # 1. Scenario assumption: insured=1 on uninsured plot
+    res_ins = simulate_what_if(sample_feature_row, changed_input="insured", new_value=1)
+    assert res_ins.effect_basis == "scenario_assumption"
+    assert res_ins.assumption is not None
+    assert res_ins.score_delta == -10
+
+    # 2. Scorer input: irrigation upgrade from rainfed to tube_well
+    res_irr = simulate_what_if(
+        sample_feature_row, changed_input="irrigation", new_value="tube_well"
+    )
+    assert res_irr.effect_basis == "scorer_input"
+
+    # 3. Zero-delta identical intervention: insured=0 on uninsured plot
+    res_same = simulate_what_if(sample_feature_row, changed_input="insured", new_value=0)
+    assert res_same.score_delta == 0
+    assert res_same.effect_basis == "not_modelled"
+    assert any(
+        "Zero delta: intervention value equals baseline value." in note for note in res_same.notes
+    )

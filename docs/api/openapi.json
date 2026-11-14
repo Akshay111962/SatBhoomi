@@ -321,9 +321,9 @@
             "description": "Response metadata container"
           },
           "model_version": {
-            "default": "satbhoomi-rules-v1.0-agronomic-jan31",
+            "default": "satbhoomi-rules-v2.0-relative-20261114",
             "description": "Exact model or baseline version identifier",
-            "example": "satbhoomi-rules-v1.0-agronomic-jan31",
+            "example": "satbhoomi-rules-v2.0-relative-20261114",
             "title": "Model Version",
             "type": "string"
           },
@@ -361,7 +361,7 @@
             "type": "array"
           },
           "reliability_note": {
-            "default": "Not validated: no stressed outcomes were available in the sample data, so this score has not been shown to predict crop stress.",
+            "default": "Descriptive heuristic rules baseline evaluated on Sentinel-2 offset-corrected data. Under Evaluation Protocol v2, machine learning evaluation remains frozen under the Feasibility Gate (feasibility gate failed; status: NOT EVALUABLE).",
             "description": "Mandatory validation status disclosure",
             "title": "Reliability Note",
             "type": "string"
@@ -1705,7 +1705,7 @@
             "type": "string"
           },
           "reliability_note": {
-            "default": "Not validated: no stressed outcomes were available in the sample data, so this score has not been shown to predict crop stress.",
+            "default": "Descriptive heuristic rules baseline evaluated on Sentinel-2 offset-corrected data. Under Evaluation Protocol v2, machine learning evaluation remains frozen under the Feasibility Gate (feasibility gate failed; status: NOT EVALUABLE).",
             "description": "Mandatory validation status disclosure",
             "title": "Reliability Note",
             "type": "string"

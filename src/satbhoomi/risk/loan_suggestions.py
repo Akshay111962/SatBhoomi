@@ -11,38 +11,21 @@ recommendations for human bank officers.
 
 from __future__ import annotations
 
-from typing import Final, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from satbhoomi.risk.config import (
+    DISCLAIMER_LOAN_SUGGESTION,
+    HARVEST_WINDOW_LABEL,
+    LIMIT_BAND_RATIOS,
+    MARKETING_WINDOW_LABEL,
+    RBI_COLLATERAL_FREE_LIMIT_INR,
+    REPAYMENT_MONTH_RABI_WHEAT,
+    SCALE_OF_FINANCE_WHEAT_IRRIGATED,
+    SCALE_OF_FINANCE_WHEAT_RAINFED,
+)
 from satbhoomi.risk.scoring import RiskScoreResult
-
-# ---------------------------------------------------------------------------
-# Constants: Scale of Finance & RBI Guidelines
-# ---------------------------------------------------------------------------
-
-SCALE_OF_FINANCE_WHEAT_IRRIGATED: Final[int] = 32_000  # INR per acre (Gujarat DLTC irrigated wheat)
-SCALE_OF_FINANCE_WHEAT_RAINFED: Final[int] = 22_000  # INR per acre (Gujarat DLTC rainfed wheat)
-RBI_COLLATERAL_FREE_LIMIT_INR: Final[int] = 200_000  # INR (RBI KCC collateral-free ceiling)
-
-# Risk-based haircut multipliers for right-sizing limits [min_pct, max_pct]
-LIMIT_BAND_RATIOS: Final[dict[str, tuple[float, float]]] = {
-    "low": (0.90, 1.00),  # 90% - 100% of maximum scale limit
-    "medium": (0.65, 0.80),  # 65% - 80% haircut to prevent over-indebtedness
-    "high": (0.40, 0.50),  # 40% - 50% conservative cap for elevated risk
-}
-
-REPAYMENT_MONTH_RABI_WHEAT: Final[str] = "May"
-REPAYMENT_WINDOW_LABEL: Final[str] = (
-    "April–May (aligned with post-harvest APMC mandi arrivals and marketing window)"
-)
-
-DISCLAIMER_LOAN_SUGGESTION: Final[str] = (
-    "Decision-support suggestion only. SatBhoomi does not approve or reject loans. "
-    "Final credit sanction, limit approval, and risk determination rest exclusively "
-    "with the designated bank loan officer (Rule 1: Human-in-the-Loop)."
-)
-
 
 # ---------------------------------------------------------------------------
 # Data Models
@@ -83,11 +66,11 @@ class RepaymentSchedule(BaseModel):
         description="Repayment structure (bullet post-harvest or installment).",
     )
     harvest_window: str = Field(
-        default="March–April",
+        default=HARVEST_WINDOW_LABEL,
         description="Typical crop harvesting window for the region.",
     )
     marketing_window: str = Field(
-        default="April–May",
+        default=MARKETING_WINDOW_LABEL,
         description="Peak marketing and mandi arrival window for crop sales.",
     )
     rationale: str = Field(

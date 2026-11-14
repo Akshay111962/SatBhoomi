@@ -1,0 +1,447 @@
+{
+  "metadata": {
+    "generated_at_utc": "2026-11-14T15:11:26.284476+00:00",
+    "generator_command": "python scripts/analysis/scorer_review.py",
+    "rule": "Rule 10 (Strict Numerical Traceability) & Label Blindness",
+    "data_hashes": {
+      "features_csv_sha256": "f4e110660c5d7dba395cfd5275d5c0e81300888fec989f602d947c9bf414dc78",
+      "plots_csv_sha256": "e63316e10e2d0c1c8910d14210dd8d1af12f0e0f639588da8bf9643262e42348"
+    },
+    "active_plots_count": 21,
+    "total_plot_seasons": 105,
+    "label_blindness_verified": true,
+    "dropped_columns": [
+      "stressed",
+      "label_unavailable",
+      "peak_drop_pct",
+      "historical_baseline_ndvi",
+      "ndvi_peak"
+    ]
+  },
+  "input_distributions": {
+    "numeric": {
+      "ndvi_early": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 0.3959,
+        "std": 0.1019,
+        "min": 0.1828,
+        "p10": 0.2557,
+        "p25": 0.3302,
+        "median": 0.4008,
+        "p75": 0.4736,
+        "p90": 0.5231,
+        "max": 0.6169
+      },
+      "ndvi_pre_cutoff_mean": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 0.4452,
+        "std": 0.1249,
+        "min": 0.1843,
+        "p10": 0.2697,
+        "p25": 0.3544,
+        "median": 0.4708,
+        "p75": 0.5405,
+        "p90": 0.5941,
+        "max": 0.7327
+      },
+      "ndvi_pre_cutoff_std": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 0.106,
+        "std": 0.0529,
+        "min": 0.0165,
+        "p10": 0.0359,
+        "p25": 0.067,
+        "median": 0.1054,
+        "p75": 0.1447,
+        "p90": 0.1809,
+        "max": 0.2314
+      },
+      "ndvi_trend_pre_cutoff": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 0.0019,
+        "std": 0.0026,
+        "min": -0.0031,
+        "p10": -0.0013,
+        "p25": -0.0004,
+        "median": 0.0018,
+        "p75": 0.004,
+        "p90": 0.0053,
+        "max": 0.0077
+      },
+      "rain_pre_cutoff_total_mm": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 41.6849,
+        "std": 35.1829,
+        "min": 0.02,
+        "p10": 0.07,
+        "p25": 12.41,
+        "median": 34.75,
+        "p75": 72.1,
+        "p90": 92.62,
+        "max": 123.4
+      },
+      "rain_pre_cutoff_deficit_pct": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 296.9991,
+        "std": 335.0757,
+        "min": -99.81,
+        "p10": -99.33,
+        "p25": 18.19,
+        "median": 230.95,
+        "p75": 586.67,
+        "p90": 782.096,
+        "max": 1075.24
+      },
+      "mandi_pre_cutoff_volatility": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 0.0054,
+        "std": 0.0004,
+        "min": 0.0049,
+        "p10": 0.0049,
+        "p25": 0.0051,
+        "median": 0.0054,
+        "p75": 0.0057,
+        "p90": 0.0061,
+        "max": 0.0061
+      },
+      "past_stressed_seasons_count": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 0.0571,
+        "std": 0.2332,
+        "min": 0.0,
+        "p10": 0.0,
+        "p25": 0.0,
+        "median": 0.0,
+        "p75": 0.0,
+        "p90": 0.0,
+        "max": 1.0
+      },
+      "prev_season_ndvi_peak": {
+        "count": 84,
+        "missing_count": 21,
+        "mean": 0.627,
+        "std": 0.1769,
+        "min": 0.21,
+        "p10": 0.3541,
+        "p25": 0.5222,
+        "median": 0.686,
+        "p75": 0.757,
+        "p90": 0.8111,
+        "max": 0.882
+      },
+      "area_acre": {
+        "count": 105,
+        "missing_count": 0,
+        "mean": 2.2867,
+        "std": 0.7027,
+        "min": 1.94,
+        "p10": 1.94,
+        "p25": 1.94,
+        "median": 1.94,
+        "p75": 2.79,
+        "p90": 2.79,
+        "max": 4.97
+      }
+    },
+    "categorical": {
+      "irrigation": {
+        "tube_well": 50,
+        "canal": 40,
+        "rainfed": 15
+      },
+      "insured": {
+        "1": 70,
+        "0": 35
+      }
+    }
+  },
+  "current_rules_flags": {
+    "overall_summary": {
+      "total_plot_seasons": 105,
+      "cond1a_ndvi_early_le_035": {
+        "flagged_count": 34,
+        "flagged_pct": 32.38
+      },
+      "cond1b_ndvi_trend_le_0": {
+        "flagged_count": 37,
+        "flagged_pct": 35.24
+      },
+      "cond1_vegetative_lag_combined": {
+        "flagged_count": 55,
+        "flagged_pct": 52.38
+      },
+      "cond2_rain_deficit_le_minus20": {
+        "flagged_count": 12,
+        "flagged_pct": 11.43
+      },
+      "compound_stress_high_band": {
+        "flagged_count": 5,
+        "flagged_pct": 4.76
+      },
+      "partial_stress_medium_band": {
+        "flagged_count": 57,
+        "flagged_pct": 54.29
+      },
+      "normal_growth_low_band": {
+        "flagged_count": 43,
+        "flagged_pct": 40.95
+      }
+    },
+    "by_season": [
+      {
+        "season": "2020-21",
+        "n_rows": 21,
+        "cond1a_flagged": 7,
+        "cond1b_flagged": 8,
+        "cond1_flagged": 13,
+        "cond2_flagged": 0,
+        "band_high": 0,
+        "band_medium": 13,
+        "band_low": 8
+      },
+      {
+        "season": "2021-22",
+        "n_rows": 21,
+        "cond1a_flagged": 11,
+        "cond1b_flagged": 9,
+        "cond1_flagged": 14,
+        "cond2_flagged": 0,
+        "band_high": 0,
+        "band_medium": 14,
+        "band_low": 7
+      },
+      {
+        "season": "2022-23",
+        "n_rows": 21,
+        "cond1a_flagged": 5,
+        "cond1b_flagged": 7,
+        "cond1_flagged": 9,
+        "cond2_flagged": 0,
+        "band_high": 0,
+        "band_medium": 9,
+        "band_low": 12
+      },
+      {
+        "season": "2023-24",
+        "n_rows": 21,
+        "cond1a_flagged": 4,
+        "cond1b_flagged": 8,
+        "cond1_flagged": 10,
+        "cond2_flagged": 0,
+        "band_high": 0,
+        "band_medium": 10,
+        "band_low": 11
+      },
+      {
+        "season": "2024-25",
+        "n_rows": 21,
+        "cond1a_flagged": 7,
+        "cond1b_flagged": 5,
+        "cond1_flagged": 9,
+        "cond2_flagged": 12,
+        "band_high": 5,
+        "band_medium": 11,
+        "band_low": 5
+      }
+    ]
+  },
+  "permanent_flags": {
+    "n_active_plots": 21,
+    "total_seasons": 5,
+    "plots_flagged_every_season_cond1a": [
+      "ANAND_WHEAT_14",
+      "TARAPUR_WHEAT_11"
+    ],
+    "plots_flagged_every_season_cond1b": [
+      "ANAND_WHEAT_13",
+      "BORSAD_WHEAT_03",
+      "TARAPUR_WHEAT_11"
+    ],
+    "plots_flagged_every_season_cond1_vegetative": [
+      "ANAND_WHEAT_02",
+      "ANAND_WHEAT_13",
+      "ANAND_WHEAT_14",
+      "BORSAD_WHEAT_03",
+      "SOJITRA_WHEAT_19",
+      "TARAPUR_WHEAT_11"
+    ],
+    "plots_flagged_every_season_cond2_rainfall": [],
+    "plots_flagged_every_season_non_low_band": [
+      "ANAND_WHEAT_02",
+      "ANAND_WHEAT_13",
+      "ANAND_WHEAT_14",
+      "BORSAD_WHEAT_03",
+      "SOJITRA_WHEAT_19",
+      "TARAPUR_WHEAT_11"
+    ]
+  },
+  "same_date_natural_variability": {
+    "window_15_31_jan": {
+      "metric": "ndvi_15_31_jan",
+      "n_evaluations": 84,
+      "overall": {
+        "n_transitions": 84,
+        "min": -37.18,
+        "p10": -19.92,
+        "p25": -7.21,
+        "median": 1.0,
+        "p75": 7.24,
+        "p90": 21.26,
+        "max": 46.24,
+        "mad": 7.24
+      },
+      "by_prior_season_count": {
+        "prior_seasons_1": {
+          "n_transitions": 21,
+          "min": -37.18,
+          "p10": -23.04,
+          "median": -6.81,
+          "p90": 3.51,
+          "max": 14.78,
+          "mad": 4.43
+        },
+        "prior_seasons_2": {
+          "n_transitions": 21,
+          "min": -25.6,
+          "p10": -16.31,
+          "median": 3.89,
+          "p90": 17.16,
+          "max": 24.54,
+          "mad": 6.05
+        },
+        "prior_seasons_3": {
+          "n_transitions": 21,
+          "min": -29.18,
+          "p10": -25.2,
+          "median": 3.28,
+          "p90": 28.63,
+          "max": 46.24,
+          "mad": 7.72
+        },
+        "prior_seasons_4": {
+          "n_transitions": 21,
+          "min": -31.28,
+          "p10": -12.94,
+          "median": 4.47,
+          "p90": 26.53,
+          "max": 41.51,
+          "mad": 5.21
+        }
+      }
+    },
+    "pre_cutoff_mean": {
+      "metric": "ndvi_pre_cutoff",
+      "n_evaluations": 84,
+      "overall": {
+        "n_transitions": 84,
+        "min": -49.71,
+        "p10": -17.47,
+        "p25": -9.51,
+        "median": 2.79,
+        "p75": 8.51,
+        "p90": 24.08,
+        "max": 53.84,
+        "mad": 9.78
+      },
+      "by_prior_season_count": {
+        "prior_seasons_1": {
+          "n_transitions": 21,
+          "min": -49.71,
+          "p10": -23.22,
+          "median": -6.52,
+          "p90": 7.92,
+          "max": 25.92,
+          "mad": 7.34
+        },
+        "prior_seasons_2": {
+          "n_transitions": 21,
+          "min": -12.99,
+          "p10": -9.87,
+          "median": 3.6,
+          "p90": 20.07,
+          "max": 42.74,
+          "mad": 9.2
+        },
+        "prior_seasons_3": {
+          "n_transitions": 21,
+          "min": -29.22,
+          "p10": -21.61,
+          "median": 0.01,
+          "p90": 24.96,
+          "max": 53.84,
+          "mad": 12.69
+        },
+        "prior_seasons_4": {
+          "n_transitions": 21,
+          "min": -31.75,
+          "p10": -12.86,
+          "median": 4.57,
+          "p90": 26.67,
+          "max": 45.35,
+          "mad": 3.93
+        }
+      }
+    },
+    "ndvi_early": {
+      "metric": "ndvi_early",
+      "n_evaluations": 84,
+      "overall": {
+        "n_transitions": 84,
+        "min": -38.51,
+        "p10": -19.67,
+        "p25": -9.71,
+        "median": 0.36,
+        "p75": 12.36,
+        "p90": 29.21,
+        "max": 53.57,
+        "mad": 10.9
+      },
+      "by_prior_season_count": {
+        "prior_seasons_1": {
+          "n_transitions": 21,
+          "min": -30.92,
+          "p10": -27.59,
+          "median": -11.85,
+          "p90": 4.25,
+          "max": 53.57,
+          "mad": 6.42
+        },
+        "prior_seasons_2": {
+          "n_transitions": 21,
+          "min": -26.14,
+          "p10": -9.18,
+          "median": 12.05,
+          "p90": 32.13,
+          "max": 50.1,
+          "mad": 8.16
+        },
+        "prior_seasons_3": {
+          "n_transitions": 21,
+          "min": -20.13,
+          "p10": -2.98,
+          "median": 5.2,
+          "p90": 35.62,
+          "max": 43.41,
+          "mad": 7.89
+        },
+        "prior_seasons_4": {
+          "n_transitions": 21,
+          "min": -38.51,
+          "p10": -20.14,
+          "median": -2.62,
+          "p90": 17.36,
+          "max": 53.07,
+          "mad": 8.48
+        }
+      }
+    }
+  }
+}
