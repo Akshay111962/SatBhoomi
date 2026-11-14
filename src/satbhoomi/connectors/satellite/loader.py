@@ -39,18 +39,23 @@ def validate_plot_record(plot: PlotLocation) -> None:
         )
 
 
-def load_sample_plots(csv_path: str | Path) -> list[PlotLocation]:
+def load_sample_plots(
+    csv_path: str | Path,
+    active_only: bool = True,
+) -> list[PlotLocation]:
     """Read and validate sample plot centroid records from CSV.
 
     Args:
         csv_path: Path to sample_plots.csv.
+        active_only: If True (default), filter out plots with status != 'active'.
 
     Returns:
         List of validated PlotLocation instances.
 
     Raises:
         FileNotFoundError: If the file is missing.
-        ValueError: If headers are missing, coordinates invalid, or duplicate plot codes found.
+        ValueError: If headers are missing, coordinates invalid, status invalid,
+            or duplicate/reused plot codes found.
     """
     path = Path(csv_path)
     if not path.is_file():
@@ -75,7 +80,9 @@ def load_sample_plots(csv_path: str | Path) -> list[PlotLocation]:
                 raise ValueError(f"Row {row_num}: missing plot_code")
 
             if code in seen_codes:
-                raise ValueError(f"Duplicate plot_code detected at row {row_num}: '{code}'")
+                raise ValueError(
+                    f"Duplicate plot_code detected (cannot be reused) at row {row_num}: '{code}'"
+                )
             seen_codes.add(code)
 
             try:
@@ -90,6 +97,21 @@ def load_sample_plots(csv_path: str | Path) -> list[PlotLocation]:
             insured_raw = row.get("insured", "0")
             insured = 1 if str(insured_raw).strip() in {"1", "true", "True"} else 0
 
+            status = (row.get("status") or "active").strip().lower()
+            if status not in {"active", "excluded"}:
+                raise ValueError(
+                    f"Row {row_num} ('{code}'): invalid status '{status}', "
+                    "must be 'active' or 'excluded'"
+                )
+
+            exclusion_reason = row.get("exclusion_reason")
+            if exclusion_reason is not None:
+                exclusion_reason = exclusion_reason.strip() or None
+
+            exclusion_date = row.get("exclusion_date")
+            if exclusion_date is not None:
+                exclusion_date = exclusion_date.strip() or None
+
             plot = PlotLocation(
                 plot_code=code,
                 lat=lat,
@@ -99,11 +121,17 @@ def load_sample_plots(csv_path: str | Path) -> list[PlotLocation]:
                 irrigation=(row.get("irrigation") or None),
                 insured=insured,
                 district=(row.get("district") or "Anand").strip(),
+                status=status,
+                exclusion_reason=exclusion_reason,
+                exclusion_date=exclusion_date,
             )
             validate_plot_record(plot)
+            if active_only and status != "active":
+                continue
             plots.append(plot)
 
     if not plots:
-        raise ValueError(f"No plot records found in {path}")
+        desc = "active " if active_only else ""
+        raise ValueError(f"No {desc}plot records found in {path}")
 
     return plots

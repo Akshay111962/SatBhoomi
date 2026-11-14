@@ -161,9 +161,13 @@ def build_dataset(
             raise ValueError(f"Duplicate primary key ({plot_code}, {season}) in NDVI skeleton.")
         seen_keys.add(pk)
 
+        # Skip plots that are not in the active sample plots (e.g. excluded plots)
+        if plot_code not in plots_by_code:
+            continue
+
         # Plot metadata
-        plot_meta = plots_by_code.get(plot_code)
-        district = plot_meta.district if plot_meta else "Anand"
+        plot_meta = plots_by_code[plot_code]
+        district = plot_meta.district
         district_key = district.lower()
 
         # NDVI features & gap

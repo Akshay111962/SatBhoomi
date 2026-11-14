@@ -40,6 +40,9 @@ class PlotLocation:
     irrigation: str | None = None
     insured: int = 0
     district: str = "Anand"
+    status: str = "active"
+    exclusion_reason: str | None = None
+    exclusion_date: str | None = None
 
 
 @dataclass(frozen=True)

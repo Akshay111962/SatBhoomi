@@ -1,67 +1,67 @@
 {
   "metadata": {
-    "generated_at_utc": "2026-11-14T10:54:34.442020+00:00",
+    "generated_at_utc": "2026-11-14T13:14:01.207287+00:00",
     "generator_command": "python scripts/analysis/ndvi_summary.py",
     "rule": "Rule 10 (Strict Numerical Traceability)",
     "data_hashes": {
-      "season_dataset_csv_sha256": "3741804ff81b72f3cd49e0005c24ad2df34fbb77d8fddc7dc7fe548efab47596",
-      "features_csv_sha256": "a286ec2eb2bc7bdeaf35811cc60dabb519d8034457d618800321f7309df028e0",
-      "plots_csv_sha256": "580289b5c4ce57620b95f6a126d4b95066a1fdffe641f119c84032175dd95b9a"
+      "season_dataset_csv_sha256": "74bea55571511f91b8e78ffba36cdf5488c2d95d15fcabeec1d4fc79bb06bd15",
+      "features_csv_sha256": "f4e110660c5d7dba395cfd5275d5c0e81300888fec989f602d947c9bf414dc78",
+      "plots_csv_sha256": "e63316e10e2d0c1c8910d14210dd8d1af12f0e0f639588da8bf9643262e42348"
     },
-    "sample_plot_count": 24,
+    "sample_plot_count": 21,
     "season_count": 5
   },
   "peak_ndvi_comparison": {
     "by_season": [
       {
         "season": "2020-21",
-        "pre_correction_mean_peak_ndvi": 0.5589,
-        "post_correction_mean_peak_ndvi": 0.5589,
-        "absolute_change": 0.0,
-        "relative_change_pct": 0.0
+        "pre_correction_mean_peak_ndvi": 0.6172,
+        "post_correction_mean_peak_ndvi": 0.6172,
+        "absolute_change": -0.0,
+        "relative_change_pct": -0.0
       },
       {
         "season": "2021-22",
-        "pre_correction_mean_peak_ndvi": 0.5013,
-        "post_correction_mean_peak_ndvi": 0.5596,
-        "absolute_change": 0.0583,
-        "relative_change_pct": 11.63
+        "pre_correction_mean_peak_ndvi": 0.5497,
+        "post_correction_mean_peak_ndvi": 0.6164,
+        "absolute_change": 0.0666,
+        "relative_change_pct": 12.12
       },
       {
         "season": "2022-23",
-        "pre_correction_mean_peak_ndvi": 0.3821,
-        "post_correction_mean_peak_ndvi": 0.5784,
-        "absolute_change": 0.1964,
-        "relative_change_pct": 51.39
+        "pre_correction_mean_peak_ndvi": 0.4209,
+        "post_correction_mean_peak_ndvi": 0.6362,
+        "absolute_change": 0.2153,
+        "relative_change_pct": 51.15
       },
       {
         "season": "2023-24",
-        "pre_correction_mean_peak_ndvi": 0.3843,
-        "post_correction_mean_peak_ndvi": 0.5806,
-        "absolute_change": 0.1962,
-        "relative_change_pct": 51.05
+        "pre_correction_mean_peak_ndvi": 0.4235,
+        "post_correction_mean_peak_ndvi": 0.6383,
+        "absolute_change": 0.2147,
+        "relative_change_pct": 50.7
       },
       {
         "season": "2024-25",
-        "pre_correction_mean_peak_ndvi": 0.3874,
-        "post_correction_mean_peak_ndvi": 0.575,
-        "absolute_change": 0.1876,
-        "relative_change_pct": 48.42
+        "pre_correction_mean_peak_ndvi": 0.4298,
+        "post_correction_mean_peak_ndvi": 0.6372,
+        "absolute_change": 0.2075,
+        "relative_change_pct": 48.28
       }
     ],
     "overall": {
-      "pre_correction_mean_peak_ndvi": 0.4428,
-      "post_correction_mean_peak_ndvi": 0.5705,
-      "absolute_change": 0.1277,
-      "relative_change_pct": 28.84
+      "pre_correction_mean_peak_ndvi": 0.4882,
+      "post_correction_mean_peak_ndvi": 0.6291,
+      "absolute_change": 0.1408,
+      "relative_change_pct": 28.85
     }
   },
   "offset_rules_by_season": [
     {
       "season": "2020-21",
-      "total_observations": 767,
+      "total_observations": 671,
       "counts": {
-        "baseline": 767,
+        "baseline": 671,
         "metadata": 0,
         "date_fallback": 0
       },
@@ -73,9 +73,9 @@
     },
     {
       "season": "2021-22",
-      "total_observations": 744,
+      "total_observations": 651,
       "counts": {
-        "baseline": 744,
+        "baseline": 651,
         "metadata": 0,
         "date_fallback": 0
       },
@@ -87,9 +87,9 @@
     },
     {
       "season": "2022-23",
-      "total_observations": 792,
+      "total_observations": 693,
       "counts": {
-        "baseline": 792,
+        "baseline": 693,
         "metadata": 0,
         "date_fallback": 0
       },
@@ -101,9 +101,9 @@
     },
     {
       "season": "2023-24",
-      "total_observations": 756,
+      "total_observations": 663,
       "counts": {
-        "baseline": 756,
+        "baseline": 663,
         "metadata": 0,
         "date_fallback": 0
       },
@@ -115,9 +115,9 @@
     },
     {
       "season": "2024-25",
-      "total_observations": 831,
+      "total_observations": 728,
       "counts": {
-        "baseline": 831,
+        "baseline": 728,
         "metadata": 0,
         "date_fallback": 0
       },
@@ -131,61 +131,61 @@
   "processing_baselines_by_season": [
     {
       "season": "2020-21",
-      "total_observations": 767,
+      "total_observations": 671,
       "counts": {
-        "02.12": 751,
-        "03.00": 16
+        "02.12": 656,
+        "03.00": 15
       },
       "shares_pct": {
-        "02.12": 97.91,
-        "03.00": 2.09
+        "02.12": 97.76,
+        "03.00": 2.24
       }
     },
     {
       "season": "2021-22",
-      "total_observations": 744,
+      "total_observations": 651,
       "counts": {
-        "04.00": 358,
-        "03.00": 313,
-        "05.10": 73
+        "04.00": 312,
+        "03.00": 274,
+        "05.10": 65
       },
       "shares_pct": {
-        "04.00": 48.12,
-        "03.00": 42.07,
-        "05.10": 9.81
+        "04.00": 47.93,
+        "03.00": 42.09,
+        "05.10": 9.98
       }
     },
     {
       "season": "2022-23",
-      "total_observations": 792,
+      "total_observations": 693,
       "counts": {
-        "04.00": 453,
-        "05.10": 255,
-        "05.09": 84
+        "04.00": 394,
+        "05.10": 226,
+        "05.09": 73
       },
       "shares_pct": {
-        "04.00": 57.2,
-        "05.10": 32.2,
-        "05.09": 10.61
+        "04.00": 56.85,
+        "05.10": 32.61,
+        "05.09": 10.53
       }
     },
     {
       "season": "2023-24",
-      "total_observations": 756,
+      "total_observations": 663,
       "counts": {
-        "05.10": 624,
-        "05.09": 132
+        "05.10": 548,
+        "05.09": 115
       },
       "shares_pct": {
-        "05.10": 82.54,
-        "05.09": 17.46
+        "05.10": 82.65,
+        "05.09": 17.35
       }
     },
     {
       "season": "2024-25",
-      "total_observations": 831,
+      "total_observations": 728,
       "counts": {
-        "05.11": 831
+        "05.11": 728
       },
       "shares_pct": {
         "05.11": 100.0
@@ -284,16 +284,6 @@
       "borderline_mean_below_040": false
     },
     {
-      "plot_code": "KHAMBHAT_WHEAT_12",
-      "min_peak": 0.0677,
-      "mean_peak": 0.091,
-      "max_peak": 0.1316,
-      "max_peak_category": "below_0.30",
-      "non_crop_suspect": true,
-      "has_any_peak_below_030": true,
-      "borderline_mean_below_040": true
-    },
-    {
       "plot_code": "KHAMBHAT_WHEAT_23",
       "min_peak": 0.7999,
       "mean_peak": 0.8226,
@@ -302,16 +292,6 @@
       "non_crop_suspect": false,
       "has_any_peak_below_030": false,
       "borderline_mean_below_040": false
-    },
-    {
-      "plot_code": "PETLAD_WHEAT_05",
-      "min_peak": 0.2155,
-      "mean_peak": 0.2393,
-      "max_peak": 0.2618,
-      "max_peak_category": "below_0.30",
-      "non_crop_suspect": true,
-      "has_any_peak_below_030": true,
-      "borderline_mean_below_040": true
     },
     {
       "plot_code": "PETLAD_WHEAT_06",
@@ -404,16 +384,6 @@
       "borderline_mean_below_040": false
     },
     {
-      "plot_code": "UMRETH_WHEAT_09",
-      "min_peak": 0.1031,
-      "mean_peak": 0.1517,
-      "max_peak": 0.229,
-      "max_peak_category": "below_0.30",
-      "non_crop_suspect": true,
-      "has_any_peak_below_030": true,
-      "borderline_mean_below_040": true
-    },
-    {
       "plot_code": "UMRETH_WHEAT_10",
       "min_peak": 0.6238,
       "mean_peak": 0.6911,
@@ -436,18 +406,18 @@
   ],
   "cohort_seasonal_means": {
     "all_24_plots": {
-      "2020-21": 0.5589,
-      "2021-22": 0.5596,
-      "2022-23": 0.5784,
-      "2023-24": 0.5806,
-      "2024-25": 0.575
+      "2020-21": 0.6172,
+      "2021-22": 0.6164,
+      "2022-23": 0.6362,
+      "2023-24": 0.6383,
+      "2024-25": 0.6372
     },
     "excluding_two_suspect": {
-      "2020-21": 0.6007,
-      "2021-22": 0.6003,
-      "2022-23": 0.617,
-      "2023-24": 0.6199,
-      "2024-25": 0.6189
+      "2020-21": 0.6172,
+      "2021-22": 0.6164,
+      "2022-23": 0.6362,
+      "2023-24": 0.6383,
+      "2024-25": 0.6372
     },
     "excluding_non_crop_suspect": {
       "2020-21": 0.6172,
@@ -466,31 +436,27 @@
   },
   "stress_label_counts": {
     "all_24_plots": {
-      "overall_labelled_rows": 96,
-      "overall_stressed_count": 9,
-      "overall_stressed_rate_pct": 9.38,
-      "season_2024_25_labelled_rows": 24,
-      "season_2024_25_stressed_count": 3,
-      "season_2024_25_stressed_rate_pct": 12.5
+      "overall_labelled_rows": 84,
+      "overall_stressed_count": 4,
+      "overall_stressed_rate_pct": 4.76,
+      "season_2024_25_labelled_rows": 21,
+      "season_2024_25_stressed_count": 1,
+      "season_2024_25_stressed_rate_pct": 4.76
     },
     "excluding_two_suspect_plots": {
       "excluded_plots": [
         "UMRETH_WHEAT_09",
         "KHAMBHAT_WHEAT_12"
       ],
-      "overall_labelled_rows": 88,
-      "overall_stressed_count": 5,
-      "overall_stressed_rate_pct": 5.68,
-      "season_2024_25_labelled_rows": 22,
+      "overall_labelled_rows": 84,
+      "overall_stressed_count": 4,
+      "overall_stressed_rate_pct": 4.76,
+      "season_2024_25_labelled_rows": 21,
       "season_2024_25_stressed_count": 1,
-      "season_2024_25_stressed_rate_pct": 4.55
+      "season_2024_25_stressed_rate_pct": 4.76
     },
     "excluding_all_non_crop_suspect": {
-      "excluded_plots": [
-        "KHAMBHAT_WHEAT_12",
-        "PETLAD_WHEAT_05",
-        "UMRETH_WHEAT_09"
-      ],
+      "excluded_plots": [],
       "overall_labelled_rows": 84,
       "overall_stressed_count": 4,
       "overall_stressed_rate_pct": 4.76,
@@ -502,98 +468,98 @@
   "threshold_sensitivity": [
     {
       "threshold_drop_pct": 5.0,
-      "stressed_count": 23,
-      "share_of_labelled_dataset_pct": 23.96
+      "stressed_count": 18,
+      "share_of_labelled_dataset_pct": 21.43
     },
     {
       "threshold_drop_pct": 10.0,
-      "stressed_count": 16,
-      "share_of_labelled_dataset_pct": 16.67
+      "stressed_count": 11,
+      "share_of_labelled_dataset_pct": 13.1
     },
     {
       "threshold_drop_pct": 15.0,
-      "stressed_count": 9,
-      "share_of_labelled_dataset_pct": 9.38
+      "stressed_count": 4,
+      "share_of_labelled_dataset_pct": 4.76
     },
     {
       "threshold_drop_pct": 20.0,
-      "stressed_count": 3,
-      "share_of_labelled_dataset_pct": 3.12
+      "stressed_count": 1,
+      "share_of_labelled_dataset_pct": 1.19
     },
     {
       "threshold_drop_pct": 25.0,
-      "stressed_count": 3,
-      "share_of_labelled_dataset_pct": 3.12
+      "stressed_count": 1,
+      "share_of_labelled_dataset_pct": 1.19
     },
     {
       "threshold_drop_pct": 30.0,
-      "stressed_count": 2,
-      "share_of_labelled_dataset_pct": 2.08
+      "stressed_count": 0,
+      "share_of_labelled_dataset_pct": 0.0
     }
   ],
   "january_same_window_analysis": [
     {
       "season": "2020-21",
       "window_01_24_jan": {
-        "n_observations": 95,
-        "mean_corrected_ndvi": 0.4339,
+        "n_observations": 84,
+        "mean_corrected_ndvi": 0.4751,
         "distinct_acquisition_dates": 5
       },
       "window_25_31_jan": {
-        "n_observations": 24,
-        "mean_corrected_ndvi": 0.5066,
+        "n_observations": 21,
+        "mean_corrected_ndvi": 0.5624,
         "distinct_acquisition_dates": 1
       }
     },
     {
       "season": "2021-22",
       "window_01_24_jan": {
-        "n_observations": 109,
-        "mean_corrected_ndvi": 0.4077,
+        "n_observations": 96,
+        "mean_corrected_ndvi": 0.4475,
         "distinct_acquisition_dates": 5
       },
       "window_25_31_jan": {
-        "n_observations": 24,
-        "mean_corrected_ndvi": 0.4991,
+        "n_observations": 21,
+        "mean_corrected_ndvi": 0.553,
         "distinct_acquisition_dates": 1
       }
     },
     {
       "season": "2022-23",
       "window_01_24_jan": {
-        "n_observations": 115,
-        "mean_corrected_ndvi": 0.4682,
+        "n_observations": 102,
+        "mean_corrected_ndvi": 0.5139,
         "distinct_acquisition_dates": 5
       },
       "window_25_31_jan": {
-        "n_observations": 24,
-        "mean_corrected_ndvi": 0.453,
+        "n_observations": 21,
+        "mean_corrected_ndvi": 0.5071,
         "distinct_acquisition_dates": 1
       }
     },
     {
       "season": "2023-24",
       "window_01_24_jan": {
-        "n_observations": 105,
-        "mean_corrected_ndvi": 0.4427,
+        "n_observations": 92,
+        "mean_corrected_ndvi": 0.4921,
         "distinct_acquisition_dates": 5
       },
       "window_25_31_jan": {
-        "n_observations": 20,
-        "mean_corrected_ndvi": 0.5012,
+        "n_observations": 18,
+        "mean_corrected_ndvi": 0.5421,
         "distinct_acquisition_dates": 1
       }
     },
     {
       "season": "2024-25",
       "window_01_24_jan": {
-        "n_observations": 120,
-        "mean_corrected_ndvi": 0.4623,
+        "n_observations": 105,
+        "mean_corrected_ndvi": 0.5151,
         "distinct_acquisition_dates": 5
       },
       "window_25_31_jan": {
-        "n_observations": 48,
-        "mean_corrected_ndvi": 0.5026,
+        "n_observations": 42,
+        "mean_corrected_ndvi": 0.56,
         "distinct_acquisition_dates": 2
       }
     }

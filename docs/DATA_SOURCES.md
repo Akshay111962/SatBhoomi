@@ -157,3 +157,17 @@ make build-dataset   # Assemble multi-source joined dataset
 .venv\Scripts\python.exe scripts/fetch_rainfall.py --dry-run
 .venv\Scripts\python.exe scripts/fetch_prices.py --dry-run
 ```
+
+---
+
+## 8. Sample Plot Metadata & Operational Limitations
+
+### Nature of Sample Points
+- **Sample Centroids, Not Real Farmers**: Plots in `data/synthetic/sample_plots.csv` represent spatial point centroids paired with a circular buffer radius (50m–80m) in Anand district, Gujarat. They do **not** correspond to named individuals, actual borrowing farmers, or surveyed land revenue records.
+- **Unverified Ground Truth Crop Type**: Crop cover (`wheat`) is assigned based on satellite imagery and regional cropping patterns; crop type has **not** been verified on the ground through physical field surveys for any plot.
+- **Assigned Static Attributes**: Plot attributes such as `irrigation` (`tube_well`, `canal`, `rainfed`) and `insured` (`0` or `1`) are assigned experimental attributes, not verified ground records.
+
+### Active vs Excluded Plot Set (R1 Exclusion)
+- Following the pre-declared uniform exclusion protocol in `docs/PLOT_SELECTION.md`, three sample plots (`PETLAD_WHEAT_05`, `UMRETH_WHEAT_09`, `KHAMBHAT_WHEAT_12`) are marked **`status = "excluded"`** due to non-crop signals (5-season maximum peak NDVI $< 0.30$).
+- The active operational dataset comprises exactly **21 plots** (105 plot-seasons across 5 rabi seasons).
+

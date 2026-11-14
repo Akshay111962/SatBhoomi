@@ -42,7 +42,12 @@ def generate_ndvi_summary(
 ) -> dict[str, Any]:
     """Deterministically generate the complete NDVI summary metrics dictionary."""
     plots_df = pd.read_csv(plots_path)
-    approved_plots = sorted(plots_df["plot_code"].unique().tolist())
+    if "status" in plots_df.columns:
+        approved_plots = sorted(
+            plots_df[plots_df["status"] == "active"]["plot_code"].unique().tolist()
+        )
+    else:
+        approved_plots = sorted(plots_df["plot_code"].unique().tolist())
 
     season_df = pd.read_csv(season_dataset_path)
     features_df = pd.read_csv(features_path)

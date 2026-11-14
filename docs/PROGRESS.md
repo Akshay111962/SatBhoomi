@@ -11,9 +11,9 @@ This document tracks the implementation status of blueprint tasks **T-01 through
 | Task | Description | Status | Evidence | Date |
 | :--- | :--- | :--- | :--- | :--- |
 | **T-01** | **Repo and CI**<br>Repository structure, tooling (ruff, pytest), GitHub Actions CI, dependencies. | **DONE** | Commit `c5e9eae`, `.github/workflows/ci.yml`, `pyproject.toml`, `.gitignore`, `Makefile`, `README.md` verified in repo. | 2026-10-27 |
-| **T-02** | **Satellite NDVI fetch**<br>Sentinel-2 / Copernicus connector for multi-season NDVI time-series. | **DONE** | Package `src/satbhoomi/connectors/satellite/` (base, fixture, planetary, gee stub, loader, aggregate, seasons); CLI `scripts/fetch_ndvi.py`; dataset `data/processed/ndvi_plot_season.csv` generated (15 records); 11/11 satellite unit tests passing; 81% test coverage; docs/DATA_SOURCES.md created. | 2026-11-04 |
-| **T-03** | **Rainfall, price and yield loaders**<br>CHIRPS / NASA POWER rainfall, AGMARKNET mandi prices, district yield data. | **DONE** | Packages `connectors/rainfall/`, `connectors/mandi/`, `connectors/yield_stats/`; CLIs `scripts/fetch_rainfall.py`, `scripts/fetch_prices.py`, `scripts/build_dataset.py`; Makefile targets added; `data/processed/season_dataset.csv` generated (60 rows, 12 plots x 5 seasons, 100% complete); 49/49 tests passing offline in 2.54s; `docs/DATA_SOURCES.md` updated with leakage prevention warnings and full schemas. | 2026-11-04 |
-| **T-04** | **Features and proxy label**<br>Multi-season feature engineering pipeline and synthetic proxy default label. | **DONE** | Package `src/satbhoomi/features/` (`config.py`, `label.py`, `build_features.py`); CLI `scripts/build_features.py`; Makefile target `build-features`; dataset `data/processed/features.csv` generated (120 rows, 24 plots x 5 seasons, 96 labelled [54 stressed, 42 normal], 24 unlabelled history initialization); 65/65 unit and integration tests passing offline with 87.02% coverage; automated Truncation Test proving zero temporal leakage; documentation in `docs/LABEL_RULE.md` and `docs/FEATURES.md`. See post-hoc root-cause analysis in `docs/DATA_REVISIT.md` and comprehensive read-only audit in `docs/LABEL_AUDIT.md`. | 2026-11-05 |
+| **T-02** | **Satellite NDVI fetch**<br>Sentinel-2 / Copernicus connector for multi-season NDVI time-series. | **DONE** | Package `src/satbhoomi/connectors/satellite/` (base, fixture, planetary, gee stub, loader, aggregate, seasons); CLI `scripts/fetch_ndvi.py`; dataset `data/processed/ndvi_plot_season.csv` rebuilt with PB 04.00 offset correction for 21 active plots (105 plot-seasons across 5 rabi seasons, 0 data gaps); unit tests passing; docs/DATA_SOURCES.md and docs/PLOT_SELECTION.md updated. | 2026-11-14 |
+| **T-03** | **Rainfall, price and yield loaders**<br>CHIRPS / NASA POWER rainfall, AGMARKNET mandi prices, district yield data. | **DONE** | Packages `connectors/rainfall/`, `connectors/mandi/`, `connectors/yield_stats/`; CLIs `scripts/fetch_rainfall.py`, `scripts/fetch_prices.py`, `scripts/build_dataset.py`; dataset `data/processed/season_dataset.csv` rebuilt for 21 active plots across 5 seasons (105 rows, 100% complete, 0 data gaps); 100% non-fixture live data provenance; `docs/DATA_SOURCES.md` updated. | 2026-11-14 |
+| **T-04** | **Features and proxy label**<br>Multi-season feature engineering pipeline and synthetic proxy default label. | **DONE** | Package `src/satbhoomi/features/` (`config.py`, `label.py`, `build_features.py`); CLI `scripts/build_features.py`; dataset `data/processed/features.csv` rebuilt for 21 active plots across 5 seasons (105 rows: 21 unlabelled historical initialization + 84 labelled rows [4 stressed, 80 normal]); automated Truncation Test proving zero temporal leakage; documentation in `docs/LABEL_RULE.md`, `docs/FEATURES.md`, `docs/NDVI_CORRECTION.md`, and `docs/PLOT_SELECTION.md`. | 2026-11-14 |
 | **T-05** | **Baseline and ML models**<br>Heuristic rules baseline, Logistic Regression, Random Forest, XGBoost models. | **SUPERSEDED** | Package `src/satbhoomi/risk/` (`baseline.py`, `models.py`, `evaluate.py`, `train.py`); CLI `scripts/train_models.py`; Makefile target `train`; pre-registered protocol in `docs/EVAL_PROTOCOL.md` (APPROVED); evaluated on 100% live dataset (24 plots $\times$ 5 seasons = 120 rows). **SUPERSEDED**: Computed on pre-correction NDVI without PB 04.00 offset (+1000 DN); model artifacts and metrics in `docs/MODEL_EVAL.md` and `reports/metrics.json` are superseded and ML training is frozen. Rules baseline stays active scorer. | 2026-11-12 |
 | **T-06** | **SHAP reasons**<br>TreeSHAP / LinearSHAP feature attributions translated into top 3 plain reasons. | **SUPERSEDED** | Modules `src/satbhoomi/risk/scoring.py`, `explain.py`, `reason_templates.py`; CLI `scripts/score_plot.py` + Makefile `score`; `docs/SCORING.md` & `docs/RISKS.md`. Active scorer is `rules_baseline` (`AgronomicRulesBaseline`). **SUPERSEDED**: Scored outputs and example explanations were computed on pre-correction features. Code logic remains intact; downstream outputs require recomputation in a future task. | 2026-11-12 |
 | **T-07** | **Loan suggestion rules**<br>Right-sized loan limits, harvest-aligned repayment schedules, crop insurance flags. | **SUPERSEDED** | Module `src/satbhoomi/risk/loan_suggestions.py`; CLI `scripts/score_plot.py --suggest-loan`; documentation in `docs/UNDERWRITING_RULES.md`. **SUPERSEDED**: Rule logic is intact (100% test coverage), but risk-band inputs and haircuts were evaluated against pre-correction risk scores. Recomputation deferred to future task. | 2026-11-13 |
@@ -35,25 +35,28 @@ This document tracks the implementation status of blueprint tasks **T-01 through
 
 ---
 
-## Downstream Artifacts Superseded by Sentinel-2 PB 04.00 Radiometric Correction
+## Downstream Artifacts Superseded by Sentinel-2 PB 04.00 Correction & Plot Exclusion (R1)
 
-The discovery of the uncorrected ESA Sentinel-2 Processing Baseline 04.00 radiometric offset (+1000 DN from 25 January 2022) revealed an artificial ~30% step-drop in calculated NDVI starting in season 2022-23. The following downstream artifacts were derived from pre-correction data and are **SUPERSEDED** (to be recomputed in a future task; do not recompute in this task):
+The discovery of the uncorrected ESA Sentinel-2 Processing Baseline 04.00 radiometric offset (+1000 DN from 25 January 2022) and the subsequent uniform exclusion of 3 persistent non-crop plots (`PETLAD_WHEAT_05`, `UMRETH_WHEAT_09`, `KHAMBHAT_WHEAT_12` per `docs/PLOT_SELECTION.md`) updated the upstream feature dataset to 21 active plots (105 plot-seasons). 
 
-1. **Processed Datasets**:
-   - `data/processed/ndvi_plot_season.csv` (currently rebuilding with PB offset correction)
-   - `data/processed/season_dataset.csv` (to be rebuilt from corrected NDVI)
-   - `data/processed/features.csv` (to be rebuilt from corrected season dataset)
-2. **Model Training & Evaluation Artifacts (T-05)**:
+### Disclosures & Ground Data Limitations:
+- **Sample Centroids, Not Real Farmers**: Sample plots represent spatial centroids in Anand district, not individual surveyed farmers or land registry records.
+- **Unverified Ground Truth Crop Type**: Crop cover has not been physically verified on the ground for any plot.
+- **Assigned Static Attributes**: `irrigation` and `insured` are assigned experimental attributes, not verified ground records.
+
+The following downstream artifacts were derived from pre-correction data and/or the old 24-plot set and are **SUPERSEDED** (marked as needing recomputation in a future task; do not recompute in this task):
+
+1. **Model Training & Evaluation Artifacts (T-05)**:
    - Serialized model: `models/satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112.joblib`
    - Model metadata: `models/satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112.meta.json`
    - Evaluation metrics: `reports/metrics.json`
    - Benchmark report: `docs/MODEL_EVAL.md`
-3. **SHAP Explanations & Scoring Examples (T-06)**:
+2. **SHAP Explanations & Scoring Examples (T-06)**:
    - Example score runs and SHAP factor attributions in `docs/SCORING.md`
-4. **Loan Suggestion Evaluations (T-07)**:
+3. **Loan Suggestion Evaluations (T-07)**:
    - Evaluated loan haircuts and limit bands in `docs/UNDERWRITING_RULES.md`
-5. **What-If Simulations (T-08)**:
+4. **What-If Simulations (T-08)**:
    - Baseline risk scores and simulated delta values in `docs/WHAT_IF.md`
-6. **In-Season Alert Replay Runs (T-09)**:
+5. **In-Season Alert Replay Runs (T-09)**:
    - Historical replay alert logs and event counts in `docs/ALERTS.md`
 
