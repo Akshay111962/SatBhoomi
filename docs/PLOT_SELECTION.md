@@ -55,9 +55,9 @@ Based on the verified metrics in `reports/ndvi_summary.json`:
 
 | Plot Code | 5-Yr Min Peak | 5-Yr Mean Peak | 5-Yr Max Peak | Taluka / District | Status | Flag |
 | :--- | :---: | :---: | :---: | :--- | :---: | :--- |
-| **`ANAND_WHEAT_13`** | 0.3340 | 0.3705 | 0.4070 | Anand, Anand | **ACTIVE** | `borderline` |
-| **`ANAND_WHEAT_14`** | 0.1980 | 0.2393 | 0.3114 | Anand, Anand | **ACTIVE** | `borderline` |
-| **`TARAPUR_WHEAT_11`** | 0.2810 | 0.3661 | 0.4573 | Tarapur, Anand | **ACTIVE** | `borderline` |
+| **`ANAND_WHEAT_13`** | 0.3132 | 0.3542 | 0.3838 | Anand, Anand | **ACTIVE** | `borderline` |
+| **`ANAND_WHEAT_14`** | 0.2237 | 0.2654 | 0.3254 | Anand, Anand | **ACTIVE** | `borderline` |
+| **`TARAPUR_WHEAT_11`** | 0.2100 | 0.2531 | 0.3657 | Tarapur, Anand | **ACTIVE** | `borderline` |
 
 *Total Borderline (Retained): 3 plots.*
 
