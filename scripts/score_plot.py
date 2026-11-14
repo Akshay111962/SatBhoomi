@@ -49,7 +49,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--what-if-input",
         default=None,
-        help="Controllable variable to alter for what-if simulation ('insured', 'irrigation', 'supplementary_irrigation') (T-08).",
+        help=(
+            "Controllable variable to alter for what-if simulation "
+            "('insured', 'irrigation', 'supplementary_irrigation') (T-08)."
+        ),
     )
     parser.add_argument(
         "--what-if-val",

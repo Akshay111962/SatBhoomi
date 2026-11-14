@@ -75,6 +75,11 @@ When rules conflict, this strict precedence order applies:
 - Until then, only the existing placeholder Streamlit home page is allowed.
 - When a task reaches the dashboard, stop and ask the user for these details.
 
+### Rule 10: Strict Numerical Traceability
+- **Every number written in any doc, report, or analysis must originate directly from a saved script output** (a structured file under `reports/` recording the executing command, execution timestamp, and input data hash).
+- No placeholder, approximate, or remembered numbers are permitted.
+- If a figure was not computed or is unavailable, write explicitly **"not computed"**.
+
 ---
 
 ## 3. Architecture & Tech Stack Highlights

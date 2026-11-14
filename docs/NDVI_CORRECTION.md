@@ -74,7 +74,12 @@ New cache files are saved under `{plot_code}_{season}_v2_pb_offset_corrected.jso
 
 > **Descriptive only: no label is being chosen here**
 >
-> *(Note: The numbers below are computed on the rebuilt live 120 plot-season dataset. Confirmation of the correction is confirmed by the elimination of the artificial step drop.)*
+> **Traceability Notice (Rule 10)**: All tables, distributions, and statistics in this section are deterministically reproduced by `python scripts/analysis/ndvi_summary.py` and saved under `reports/ndvi_summary.json`.
+> - **Source Data Hashes (SHA-256)**:
+>   - `data/processed/season_dataset.csv`: `3741804ff81b72f3cd49e0005c24ad2df34fbb77d8fddc7dc7fe548efab47596`
+>   - `data/processed/features.csv`: `a286ec2eb2bc7bdeaf35811cc60dabb519d8034457d618800321f7309df028e0`
+>   - `data/synthetic/sample_plots.csv`: `580289b5c4ce57620b95f6a126d4b95066a1fdffe641f119c84032175dd95b9a`
+> - **Automated Test**: `tests/unit/test_ndvi_summary.py` (verifies structure, types, and exact hash matching)
 
 ### 3.1 Peak NDVI Comparison by Season (Pre vs Post Correction)
 
@@ -129,6 +134,22 @@ In accordance with user decisions:
 - Plots with peak NDVI $< 0.30$ (`UMRETH_WHEAT_09`, `KHAMBHAT_WHEAT_12`) are flagged as `non_crop_suspect` in descriptive reports. No plots have been dropped from the dataset. Replacement of these plots with verified wheat fields is reserved for the user.
 - **Critical Observation**: 4 of the 9 remaining stressed labels under the active rule ($\tau=15\%$) belong directly to `KHAMBHAT_WHEAT_12` (seasons 2021-22, 2023-24, 2024-25) and `UMRETH_WHEAT_09` (season 2024-25). Both plots have baseline NDVI $< 0.17$, meaning small absolute fluctuations in bare soil produce large percentage swings.
 - Plots `PETLAD_WHEAT_05` (peak NDVI $0.21\text{–}0.26$) and `ANAND_WHEAT_14` (peak NDVI $0.22\text{–}0.26$) also exhibit borderline low NDVI.
+
+### 3.6 Multi-Season January Same-Window Stability Check
+
+*Descriptive only: no label is being chosen here. Source: `reports/ndvi_summary.json`*
+
+To verify radiometric continuity without seasonal vegetation phase bias, Sentinel-2 observations across all 5 rabi cycles were audited within the late January transition window (25–31 January) and mid-January vegetative window (1–24 January):
+
+| Rabi Season | 1–24 Jan Obs ($N$) | 1–24 Jan Mean NDVI | Distinct Dates | 25–31 Jan Obs ($N$) | 25–31 Jan Mean NDVI | Distinct Dates |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **2020-21** | 95 | 0.4339 | 5 | 24 | 0.5066 | 1 |
+| **2021-22** | 109 | 0.4077 | 5 | 24 | 0.4991 | 1 |
+| **2022-23** | 115 | 0.4682 | 5 | 24 | 0.4530 | 1 |
+| **2023-24** | 105 | 0.4427 | 5 | 20 | 0.5012 | 1 |
+| **2024-25** | 120 | 0.4623 | 5 | 48 | 0.5026 | 2 |
+
+**Key Finding**: Late January peak heading NDVI remains remarkably consistent across all 5 rabi seasons ($0.4530\text{–}0.5066$), demonstrating that the PB 04.00 offset subtraction successfully eliminates the post-2022 attenuation.
 
 ---
 

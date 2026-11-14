@@ -60,7 +60,8 @@ def deserialize_observation(data: dict[str, object], require_v2: bool = True) ->
         ):
             if req_field not in data:
                 raise ValueError(
-                    f"Cached observation missing required field '{req_field}' for version {PROVIDER_LOGIC_VERSION}"
+                    f"Cached observation missing required field '{req_field}' "
+                    f"for version {PROVIDER_LOGIC_VERSION}"
                 )
 
     return RawObservation(
@@ -70,10 +71,16 @@ def deserialize_observation(data: dict[str, object], require_v2: bool = True) ->
         cloud_prob=float(data["cloud_prob"]) if data.get("cloud_prob") is not None else None,  # type: ignore[arg-type]
         scl_class=int(data["scl_class"]) if data.get("scl_class") is not None else None,  # type: ignore[arg-type]
         scene_id=str(data["scene_id"]) if data.get("scene_id") is not None else None,
-        processing_baseline=str(data["processing_baseline"]) if data.get("processing_baseline") is not None else None,
-        offset_applied=float(data["offset_applied"]) if data.get("offset_applied") is not None else None,
+        processing_baseline=str(data["processing_baseline"])
+        if data.get("processing_baseline") is not None
+        else None,
+        offset_applied=float(data["offset_applied"])
+        if data.get("offset_applied") is not None
+        else None,
         offset_rule=str(data["offset_rule"]) if data.get("offset_rule") is not None else None,
-        provider_logic_version=str(data["provider_logic_version"]) if data.get("provider_logic_version") is not None else None,
+        provider_logic_version=str(data["provider_logic_version"])
+        if data.get("provider_logic_version") is not None
+        else None,
     )
 
 
@@ -88,7 +95,9 @@ def fetch_with_cache(
     cache_file = cache_dir / f"{plot.plot_code}_{window.season_name}_{PROVIDER_LOGIC_VERSION}.json"
 
     if cache_file.is_file():
-        logger.debug("Cache hit for %s %s (%s)", plot.plot_code, window.season_name, PROVIDER_LOGIC_VERSION)
+        logger.debug(
+            "Cache hit for %s %s (%s)", plot.plot_code, window.season_name, PROVIDER_LOGIC_VERSION
+        )
         with cache_file.open("r", encoding="utf-8") as f:
             records = json.load(f)
             return [deserialize_observation(r, require_v2=True) for r in records]

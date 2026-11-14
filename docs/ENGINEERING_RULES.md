@@ -389,7 +389,7 @@ Which relevant practices were applied, such as testing, security, performance, m
 - Lint status
 - Type-check status
 
-Report only results that were actually observed.
+Report only results that were actually observed. In accordance with Rule 10 (Strict Numerical Traceability in `docs/PROJECT_CONTEXT.md`), all reported metrics, tables, and numerical claims must originate from saved script outputs under `reports/` with documented data hashes.
 
 ### Issues and Risks
 What remains unresolved?
