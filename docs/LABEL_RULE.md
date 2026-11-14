@@ -192,3 +192,32 @@ We compare the historical performance of Anand district wheat yield against regi
 2. **Small Sample**: 12 sample plots across 5 seasons (60 plot-seasons) represents a demonstration prototype for banking evaluation, not a production-scale statewide credit model.
 3. **Common Sensor Basis**: Because both pre-cutoff vegetative features (`ndvi_early`, `ndvi_trend`) and the outcome label are derived from optical satellite imagery, the January 31 cut-off barrier is the sole defense against circular reasoning.
 
+---
+
+## 9. Dated Amendment: Radiometric Correction and Active Plot Re-evaluation (2026-11-14)
+
+### Status: Active Specification
+- **Rule Formulation**: The mathematical label rule remains **UNCHANGED**:
+  $$\text{Drop}_{\text{peak}} = \frac{\text{Baseline} - \text{NDVI}_{\text{peak}}}{\text{Baseline}} \times 100\%$$
+  $$\text{Stressed} (Y) = \begin{cases} 1 & \text{if } \text{Drop}_{\text{peak}} \ge 15.0\% \\ 0 & \text{if } \text{Drop}_{\text{peak}} < 15.0\% \\ \text{unavailable} & \text{if } k < 1 \text{ prior completed seasons} \end{cases}$$
+  Where $\text{Baseline}$ is the mean peak NDVI of the plot across strictly preceding completed seasons.
+
+- **What Changed**:
+  1. **Satellite Radiometric Input**: Sentinel-2 Level-2A Processing Baseline PB 04.00+ radiometric offset ($+1000\text{ DN}$) was corrected per-scene (`docs/NDVI_CORRECTION.md`), eliminating the artificial post-2022 step-drop in calculated reflectance.
+  2. **Active Plot Set**: Three persistent non-crop plots (`PETLAD_WHEAT_05`, `UMRETH_WHEAT_09`, `KHAMBHAT_WHEAT_12`) were excluded under uniform biophysical Rule R1 (`docs/PLOT_SELECTION.md`), establishing an active set of 21 plots (105 plot-seasons, 84 labelled rows).
+
+- **Earlier Label Counts Superseded**:
+  - The previous counts (54 stressed out of 96 labelled plot-seasons, 56.25%) were an artifact of the uncorrected PB 04.00 offset and are formally **SUPERSEDED**.
+  - Current verified counts (`reports/label_counts.json`): **4 stressed out of 84 labelled rows (4.76%)**, distributed uniformly with exactly 1 positive per season:
+    * **2021-22**: `TARAPUR_WHEAT_22` (drop: $16.55\%$)
+    * **2022-23**: `ANAND_WHEAT_02` (drop: $27.01\%$)
+    * **2023-24**: `ANAND_WHEAT_01` (drop: $18.09\%$)
+    * **2024-25**: `ANAND_WHEAT_02` (drop: $15.25\%$)
+
+- **Mandatory Disclosures**:
+  1. **Prior Exposure of Test Season**: The label counts for season 2024-25 were already observed during the radiometric audit before this evaluation protocol was written.
+  2. **Timing of Exclusion Rule R1**: Rule R1 was drafted after the label audit revealed that suspect bare-soil plots generated 4 of the 9 positives under the corrected series. Rule R1 relies strictly on 5-season absolute peak NDVI level ($\max < 0.30$), completely independent of stress labels or year-to-year deltas.
+  3. **Baseline Depth Noise**: The single-season historical baseline ($k=1$ for season 2021-22) is sensitive to single-year weather fluctuations compared to multi-year averages.
+  4. **Agronomic Proxy, Not Loan Default**: The label measures relative vegetative canopy decline at sample field centroids, not loan repayment delinquency, NPA status, or farmer insolvency.
+
+

@@ -37,15 +37,41 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ## Modeling & Scoring Risks
 
-### RISK-03: Zero Stressed Labels & Unvalidated Scoring / ML Models
-- **Category**: Data Quality / Model Validity / Credit Risk
-- **Description**: In `data/processed/features.csv`, all available training seasons (`2021-22` to `2023-24`) and the held-out test season (`2024-25`) had **zero stressed labels** (`ndvi_peak = 0.65` across all plots in the cached T-02 satellite file). Consequently, **ROC-AUC was not evaluable, and the ML models (`logreg`, `random_forest`, `xgboost`) could not be validated**. Live scoring currently relies on the unvalidated `AgronomicRulesBaseline` heuristic.
+### RISK-03: Event Scarcity & Unvalidated Scoring / ML Models
+- **Category**: Data Distribution / Statistical Power / Model Validity
+- **Description**: Following Sentinel-2 radiometric offset correction (PB 04.00+) and Rule R1 non-crop plot exclusion, the active dataset contains 21 plots and 84 labelled seasonal observations. Under the unchanged 15% relative drop rule ($\tau = 15\%$), only **4 stressed instances** exist across all 5 seasons (4.76% event rate), with exactly 1 positive in the held-out test season (`2024-25`). Consequently, the dataset **fails the pre-registered Feasibility Gate** ($\ge 5$ test positives, $\ge 10$ pooled positives) and is **NOT EVALUABLE** for statistical or machine learning validation (`reports/label_counts.json`).
 - **Severity**: High
-- **Likelihood**: High (observed in current dataset)
+- **Likelihood**: High (inherent in the current active distribution)
 - **Mitigation & Guardrails**:
-  1. **Rules Baseline Active Scorer**: Saved single-class Logistic Regression is barred from live scoring; `AgronomicRulesBaseline` (`rules_baseline`) is used instead per ADR-2.
-  2. **Mandatory Reliability Note**: Every `RiskScoreResult` outputs the fixed `reliability_note`: *"Not validated: no stressed outcomes were available in the sample data, so this score has not been shown to predict crop stress."*
-  3. **Data Acquisition Requirement**: Before any pilot deployment, replace placeholder NDVI reflectance with real Sentinel-2 L2A band-level NDVI time-series across multi-district plots and historical drought seasons containing genuine stressed and default outcomes.
+  1. **Strict ML Freeze**: All machine learning model training and hyperparameter tuning are strictly frozen (Protocol v2, `docs/EVAL_PROTOCOL.md`).
+  2. **Rules Baseline Active Scorer**: The transparent heuristic `AgronomicRulesBaseline` (`rules_baseline`) serves as the sole active scorer per ADR-2 and ADR-12.
+  3. **Mandatory Disclosures & Forbidden Claims**: All documentation and API responses state clearly that ML models are not validated on this sample. Terms like "accurate", "validated", or "predicts default" are strictly prohibited.
+  4. **Ground-Truth Data Discovery**: Field interviews and data access inquiries are outlined in `docs/OUTCOME_DATA_PLAN.md` to identify real-world insurance claim or yield outcome datasets before unfreezing ML evaluation.
+
+---
+
+### RISK-07: Sample Plot Selection Effects & Non-Crop Contamination
+- **Category**: Geospatial Data Quality / Selection Bias / Sample Representativeness
+- **Description**: Initial sample plot coordinates included locations (`PETLAD_WHEAT_05`, `UMRETH_WHEAT_09`, `KHAMBHAT_WHEAT_12`) whose 5-year maximum peak NDVI never exceeded 0.30 in any season, indicating built-up structures, water, or barren ground rather than cultivated crop land. Additionally, three plots (`ANAND_WHEAT_13`, `ANAND_WHEAT_14`, `TARAPUR_WHEAT_11`) exhibit borderline mean peak NDVI between 0.30 and 0.40.
+- **Severity**: Medium
+- **Likelihood**: High (observed in initial coordinate set)
+- **Mitigation & Guardrails**:
+  1. **Pre-Declared Exclusion Rule R1**: Formulated and locked in `docs/PLOT_SELECTION.md` before applying. Uniformly excludes any plot whose peak NDVI is $< 0.30$ in all 5 seasons, without reference to stress labels.
+  2. **Borderline Sensitivity Tracking**: Borderline plots are retained in the active set with a `status="borderline"` flag. Sensitivity analyses (`reports/label_counts.json`) track model behavior with and without borderline plots.
+  3. **Strict Replacement Protocol**: No replacement plots are added ad-hoc; new coordinates may only be introduced under pre-declared screening rules.
+
+---
+
+### RISK-08: Vegetative Anomaly Proxy Gap vs. Financial Credit Default
+- **Category**: Credit Underwriting / Agronomic Proxy Risk / Ethical Lending
+- **Description**: Satellite-derived NDVI drop is an indirect biophysical proxy for crop canopy vigour. It does not measure farmer harvest yields directly, nor does it account for post-harvest mandi prices, storage capabilities, off-farm household income, or borrower willingness to repay. Conflating satellite vegetative distress with credit default risks unfair loan denial or predatory lending practices.
+- **Severity**: Critical
+- **Likelihood**: High (inherent in remote sensing credit models)
+- **Mitigation & Guardrails**:
+  1. **Forbidden Claims Enforcement**: The project strictly prohibits claiming that satellite NDVI "predicts loan default".
+  2. **Supportive-Only Intervention (Raksha)**: Satellite alerts are restricted to triggering supportive bank interventions (e.g., proactive insurance claim filing assistance, rescheduling repayment windows). They never trigger automated loan cancellations, penal interest rates, or coercive recovery.
+  3. **Multi-Source Triangulation**: Scoring incorporates APMC mandi price volatility and local rainfall anomalies rather than relying solely on satellite greenness.
+  4. **Ground-Truth Outcome Requirement**: Full credit scoring validation requires linkage to audited bank repayment and CCE yield records (`docs/OUTCOME_DATA_PLAN.md`).
 
 ---
 

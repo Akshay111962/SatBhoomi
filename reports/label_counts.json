@@ -1,0 +1,164 @@
+{
+  "metadata": {
+    "generated_at_utc": "2026-11-14T13:47:36.037203+00:00",
+    "generator_command": "python scripts/analysis/label_counts.py",
+    "rule": "Rule 10 (Strict Numerical Traceability)",
+    "data_hashes": {
+      "features_csv_sha256": "f4e110660c5d7dba395cfd5275d5c0e81300888fec989f602d947c9bf414dc78",
+      "plots_csv_sha256": "e63316e10e2d0c1c8910d14210dd8d1af12f0e0f639588da8bf9643262e42348",
+      "season_dataset_csv_sha256": "74bea55571511f91b8e78ffba36cdf5488c2d95d15fcabeec1d4fc79bb06bd15"
+    },
+    "sample_plot_count": 21,
+    "total_rows": 105,
+    "unlabelled_rows": 21,
+    "labelled_rows": 84
+  },
+  "label_counts": {
+    "active_plots_count": 21,
+    "total_labelled_rows": 84,
+    "total_stressed_count": 4,
+    "total_normal_count": 80,
+    "overall_stressed_rate_pct": 4.76,
+    "seasonal_breakdown": [
+      {
+        "season": "2020-21",
+        "total_rows": 21,
+        "labelled_rows": 0,
+        "stressed_count": 0,
+        "normal_count": 0,
+        "stressed_rate_pct": 0.0
+      },
+      {
+        "season": "2021-22",
+        "total_rows": 21,
+        "labelled_rows": 21,
+        "stressed_count": 1,
+        "normal_count": 20,
+        "stressed_rate_pct": 4.76
+      },
+      {
+        "season": "2022-23",
+        "total_rows": 21,
+        "labelled_rows": 21,
+        "stressed_count": 1,
+        "normal_count": 20,
+        "stressed_rate_pct": 4.76
+      },
+      {
+        "season": "2023-24",
+        "total_rows": 21,
+        "labelled_rows": 21,
+        "stressed_count": 1,
+        "normal_count": 20,
+        "stressed_rate_pct": 4.76
+      },
+      {
+        "season": "2024-25",
+        "total_rows": 21,
+        "labelled_rows": 21,
+        "stressed_count": 1,
+        "normal_count": 20,
+        "stressed_rate_pct": 4.76
+      }
+    ]
+  },
+  "feasibility_gate": {
+    "status": "NOT EVALUABLE",
+    "gate_passed": false,
+    "criteria": {
+      "eval_season": "2024-25",
+      "eval_positives_observed": 1,
+      "eval_positives_required": 5,
+      "eval_positives_passed": false,
+      "eval_negatives_observed": 20,
+      "eval_negatives_required": 5,
+      "eval_negatives_passed": true,
+      "pooled_forward_chaining_positives_observed": 4,
+      "pooled_forward_chaining_positives_required": 10,
+      "pooled_positives_passed": false
+    },
+    "ml_action": "FREEZE_ML_TRAINING",
+    "active_scorer": "AgronomicRulesBaseline"
+  },
+  "rules_baseline_descriptive_on_stressed": {
+    "disclaimer": "n = 4, descriptive only, no inference",
+    "rows": [
+      {
+        "plot_code": "TARAPUR_WHEAT_22",
+        "season": "2021-22",
+        "drop_pct": 16.55,
+        "baseline_predicted_prob": 0.1,
+        "baseline_risk_band": "low",
+        "ndvi_early": 0.4303,
+        "rain_deficit_pct": 73.43
+      },
+      {
+        "plot_code": "ANAND_WHEAT_02",
+        "season": "2022-23",
+        "drop_pct": 27.01,
+        "baseline_predicted_prob": 0.45,
+        "baseline_risk_band": "medium",
+        "ndvi_early": 0.2417,
+        "rain_deficit_pct": 680.0
+      },
+      {
+        "plot_code": "ANAND_WHEAT_01",
+        "season": "2023-24",
+        "drop_pct": 18.09,
+        "baseline_predicted_prob": 0.45,
+        "baseline_risk_band": "medium",
+        "ndvi_early": 0.5118,
+        "rain_deficit_pct": 341.9
+      },
+      {
+        "plot_code": "ANAND_WHEAT_02",
+        "season": "2024-25",
+        "drop_pct": 15.25,
+        "baseline_predicted_prob": 0.45,
+        "baseline_risk_band": "medium",
+        "ndvi_early": 0.2509,
+        "rain_deficit_pct": 663.81
+      }
+    ]
+  },
+  "robustness": {
+    "disclaimer": "Descriptive only: no label is being chosen here",
+    "threshold_sensitivity": [
+      {
+        "threshold_drop_pct": 10.0,
+        "stressed_count": 11,
+        "share_pct": 13.1
+      },
+      {
+        "threshold_drop_pct": 15.0,
+        "stressed_count": 4,
+        "share_pct": 4.76
+      },
+      {
+        "threshold_drop_pct": 20.0,
+        "stressed_count": 1,
+        "share_pct": 1.19
+      }
+    ],
+    "depth_at_least_2_seasons": {
+      "seasons_included": [
+        "2022-23",
+        "2023-24",
+        "2024-25"
+      ],
+      "total_labelled": 63,
+      "stressed_count": 3,
+      "stressed_rate_pct": 4.76
+    },
+    "excluding_borderline_plots": {
+      "borderline_plots_excluded": [
+        "ANAND_WHEAT_13",
+        "ANAND_WHEAT_14",
+        "TARAPUR_WHEAT_11"
+      ],
+      "total_labelled": 72,
+      "stressed_count": 4,
+      "stressed_rate_pct": 5.56
+    }
+  }
+}
