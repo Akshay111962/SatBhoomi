@@ -1,5 +1,8 @@
 # SatBhoomi Model Evaluation and Benchmark Report (T-05)
 
+> [!WARNING]
+> **SUPERSEDED ARTIFACT**: The evaluation metrics, cross-validation results, and serialized model artifacts documented in this report were computed on pre-correction satellite data that did not account for the Sentinel-2 Processing Baseline 04.00 radiometric offset (+1000 DN introduced on 2022-01-25). As a result, post-2022 NDVI features were artificially attenuated by ~30%, corrupting historical drop calculations and downstream model signals. This evaluation report is retained for historical auditability but is **SUPERSEDED**. No model will be promoted to production or retrained until the new baseline and label protocol are established. See `docs/NDVI_CORRECTION.md` for full diagnosis.
+
 **Model Version**: `satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112`  
 **Dataset Hash**: `8bac5ab0f36888deeef2fa53882de82faaa7cd608e359140afd9bdb146908ade`  
 **Evaluation Status**: `CRITERIA_NOT_MET`  

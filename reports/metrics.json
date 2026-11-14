@@ -1,4 +1,6 @@
 {
+  "status": "SUPERSEDED",
+  "superseded_reason": "Computed on pre-correction Sentinel-2 data without Processing Baseline 04.00 offset (+1000 DN). See docs/NDVI_CORRECTION.md.",
   "model_version": "satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112",
   "artifact_path": "models\\satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112.joblib",
   "metadata_path": "models\\satbhoomi-risk-v1.0-logreg-feat1-opt1th15-8bac5ab0-20261112.meta.json",

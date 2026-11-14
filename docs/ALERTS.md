@@ -58,7 +58,7 @@ Managed by `InSeasonAlertTracker`:
 ## 5. Replay Results & Historical Evidence Disclosure
 
 ### 5.1 Historical Calamity Status
-* **Zero Confirmed Calamity Events**: As documented in [`docs/DATA_REVISIT.md`](file:///d:/SatBhoomi/docs/DATA_REVISIT.md), zero official disaster, flood, or drought declarations were recorded for Anand district rabi wheat between 2020 and 2025.
+* **Historical Calamity Status**: As documented in [`docs/DATA_REVISIT.md`](file:///d:/SatBhoomi/docs/DATA_REVISIT.md), no adverse events were reported to us; not checked against official records.
 * **Descriptive Reporting Only**: Historical replay is strictly descriptive. We do **not** claim that the alert engine "detects real stressed seasons" or "proves early warning" on historical data.
 
 ### 5.2 Full Historical Replay Metrics (2020–2025, 24 Plots)
@@ -84,7 +84,7 @@ Run via `python scripts/replay_alerts.py`:
 
 ## 6. TC-007 Early Warning Detection (Synthetic Stress Scenario)
 
-Because no external ground-truth disaster occurred in the historical window, **TC-007 is validated exclusively on a labelled synthetic stress scenario**:
+Because no adverse events were reported to us (not checked against official records), **TC-007 is validated exclusively on a labelled synthetic stress scenario**:
 * **Scenario Setup (`SYNTHETIC_STRESS_SCENARIO`)**: On plot `ANAND_WHEAT_01` in season `2023-24`, real Sentinel-2 observations are injected with a simulated 30% NDVI reduction on and after Dec 10.
 * **Detection Date**: First alert triggered on **January 15, 2024**.
 * **Harvest Date**: April 1, 2024.

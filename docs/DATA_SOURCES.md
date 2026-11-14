@@ -31,6 +31,13 @@ $$\text{NDVI} = \frac{B8 - B4}{B8 + B4}$$
 - **Band 4 (Red)**: Central wavelength ~665 nm (10m resolution). Strongly absorbed by chlorophyll $a$ and $b$ for photosynthesis.
 - **Valid Numerical Bounds**: Strict mathematical range $[-1.0, 1.0]$. Values outside this boundary indicate corrupted sensors or invalid atmospheric corrections and are rejected.
 
+### Processing Baseline 04.00 Radiometric Offset Note
+Beginning 25 January 2022 (ESA Processing Baseline 04.00+), Sentinel-2 L2A surface reflectance digital numbers ($\text{DN}$) incorporate an offset of $+1000$ to avoid negative numbers in dark surfaces ($\text{DN} = 10000 \cdot \rho + 1000$).
+- **Conversion Equation**:
+  $$\rho = \frac{\text{DN} + \text{BOA\_ADD\_OFFSET}}{10000.0}$$
+  where $\text{BOA\_ADD\_OFFSET} = -1000.0$ for processing baseline $\ge 04.00$, and $0.0$ for baseline $< 04.00$.
+- **Provider Implementation**: `PlanetaryComputerProvider` reads `raster:bands` metadata or `s2:processing_baseline` per scene to determine the offset. Raw DN == 0 is masked as nodata before offset application, and pixels where corrected NIR + Red $\le 0$ are masked out before NDVI ratio computation.
+
 ### Cloud & Shadow Masking (Scene Classification Layer - SCL)
 Sentinel-2 Level-2A data includes an algorithmic Scene Classification Layer (SCL) at 20m resolution:
 - Excluded: `0` (NO_DATA), `1` (SATURATED_OR_DEFECTIVE), `3` (CLOUD_SHADOWS), `8` (CLOUD_MEDIUM_PROBABILITY), `9` (CLOUD_HIGH_PROBABILITY), `10` (THIN_CIRRUS), `11` (SNOW_ICE).

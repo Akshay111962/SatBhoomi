@@ -51,9 +51,9 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ### RISK-04: In-Season Farm Stress Alerts Not Validated on Real Disaster Events
 - **Category**: Agronomic Sensing / Early Warning Validity / Credit Risk
-- **Description**: While satellite NDVI, NASA POWER precipitation, APMC mandi prices, and government yield statistics in `season_dataset.csv` are 100% empirical live data, **zero official disaster, drought, or flood declarations were recorded in Anand district during the sample seasons (2020-2025)**. Historical replay results are purely descriptive. The early-warning lead time and alert detection efficacy cannot be validated on historical data and were verified exclusively on a labelled **synthetic stress scenario** (TC-007).
+- **Description**: While satellite NDVI, NASA POWER precipitation, APMC mandi prices, and government yield statistics in `season_dataset.csv` are 100% empirical live data, **no adverse events were reported to us; not checked against official records**. Historical replay results are purely descriptive. The early-warning lead time and alert detection efficacy cannot be validated on historical data and were verified exclusively on a labelled **synthetic stress scenario** (TC-007).
 - **Severity**: Medium
-- **Likelihood**: High (no official calamity occurred in the historical sample window)
+- **Likelihood**: High (no adverse events reported in the sample window)
 - **Mitigation & Guardrails**:
   1. **Zero Overclaiming**: The system explicitly disclaims early warning proof or calamity detection on historical data; docs and CLI reports clearly label historical replay as descriptive only.
   2. **TC-007 Synthetic Stress Validation**: Early alert lead time (11.0 weeks before harvest vs. $\ge 6$-week requirement) is tested and passed strictly on a labelled synthetic scenario (`SYNTHETIC_STRESS_SCENARIO` with a simulated 30% vegetative drop).
@@ -71,6 +71,19 @@ This document tracks identified architectural, operational, and ethical risks fo
   1. **API Parity Preserved**: API contract v0.2.0 maintains exact parity with `RiskScoreResult.cutoff_date: str = "January 31"`, preventing uncoordinated breaking changes to underlying scoring logic.
   2. **Audit & Log Tracking**: Persisted database records (`assessment.created_at`) store full timezone-aware ISO timestamps.
   3. **Future Scoring Refactoring**: A future scoring refactoring task will derive a seasonal ISO calendar date (e.g. `2024-01-31`) directly from the evaluated `season` string.
+
+---
+
+### RISK-06: Sentinel-2 Processing-Baseline 04.00 Offset Inconsistency
+- **Category**: Remote Sensing Data Quality / Calibration Inconsistency / Model Degradation
+- **Description**: Beginning 25 January 2022 with ESA Processing Baseline 04.00, Sentinel-2 L2A surface reflectance digital numbers ($\text{DN}$) introduced an offset of $+1000$ ($\text{DN} = 10000 \cdot \rho + 1000$). Reading raw DNs without subtracting this offset introduces an artificial $+0.20$ term in the denominator of the NDVI calculation: $(NIR - RED) / (NIR + RED + 0.20)$, attenuating peak vegetative reflectance by ~30% and causing a severe artificial step drop from 2022-23 onwards.
+- **Severity**: High
+- **Likelihood**: High (encountered in Planetary Computer raw pixel reads)
+- **Mitigation & Guardrails**:
+  1. **Per-Scene Metadata & Baseline Detection**: `PlanetaryComputerProvider` inspects STAC item metadata (`raster:bands` offset) and `s2:processing_baseline` to determine the exact BOA offset per scene ($-1000.0$ for baseline $\ge 04.00$), using date fallback only as a logged last resort.
+  2. **Raw Nodata Masking Pre-Offset**: Pixel value 0 is masked as nodata on raw digital numbers before offset subtraction.
+  3. **Versioned Cache Separation**: Raw observation caches include `processing_baseline`, `offset_applied`, `offset_rule`, and `provider_logic_version="v2_pb_offset_corrected"`, preventing reuse of uncorrected scenes.
+  4. **Downstream Invalidation**: All ML models, evaluations, and replays computed on uncorrected NDVI are marked `SUPERSEDED` pending recomputation.
 
 ---
 
