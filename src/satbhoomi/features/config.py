@@ -21,6 +21,9 @@ RABI_SEASONS_ORDER: Final[tuple[str, ...]] = (
 DEFAULT_CUTOFF_MONTH: Final[int] = 1
 DEFAULT_CUTOFF_DAY: Final[int] = 31
 
+# Active feature set version for pre-cutoff feature extraction and storage
+FEATURE_SET_VERSION: Final[str] = "v1.0-pre-cutoff-jan31"
+
 # Proxy label parameters (Option 1: Expanding prior baseline)
 DEFAULT_LABEL_DROP_THRESHOLD_PCT: Final[float] = 15.0  # 15% drop below historical baseline
 DEFAULT_MIN_PRIOR_SEASONS: Final[int] = 1  # Minimum 1 completed prior season for baseline
@@ -119,3 +122,49 @@ class FeaturePipelineConfig:
         # Rabi seasons span two calendar years (Nov in start_year, Jan in start_year + 1)
         cutoff_year = start_year + 1
         return date(cutoff_year, self.cutoff_month, self.cutoff_day)
+
+
+def get_season_cutoff_iso_date(
+    season: str,
+    cutoff_month: int = DEFAULT_CUTOFF_MONTH,
+    cutoff_day: int = DEFAULT_CUTOFF_DAY,
+) -> str:
+    """Turn a Rabi season name and configured cut-off month/day into an ISO-8601 date.
+
+    Example:
+        get_season_cutoff_iso_date("2021-22", 1, 31) -> "2022-01-31"
+
+    Args:
+        season: Standard Rabi season identifier (format 'YYYY-YY', e.g. '2021-22').
+        cutoff_month: In-season calendar month (default 1 = January).
+        cutoff_day: In-season calendar day (default 31).
+
+    Returns:
+        ISO-formatted date string 'YYYY-MM-DD'.
+
+    Raises:
+        ValueError: If season format is malformed or invalid year span.
+    """
+    if not isinstance(season, str):
+        raise ValueError(f"Season must be a string, got {type(season).__name__}")
+    parts = season.strip().split("-")
+    if len(parts) != 2 or len(parts[0]) != 4 or len(parts[1]) != 2:
+        raise ValueError(
+            f"Invalid season format '{season}'. Expected format 'YYYY-YY' (e.g. '2021-22')."
+        )
+    try:
+        start_year = int(parts[0])
+        end_suffix = int(parts[1])
+    except ValueError as exc:
+        raise ValueError(f"Malformed year digits in season '{season}'") from exc
+
+    expected_suffix = (start_year + 1) % 100
+    if end_suffix != expected_suffix:
+        raise ValueError(
+            f"Invalid year span in season '{season}'. Second year suffix must be "
+            f"consecutive to start year ({expected_suffix:02d})."
+        )
+
+    # In Rabi seasons, the cut-off date falls in the second calendar year
+    cutoff_year = start_year + 1
+    return date(cutoff_year, cutoff_month, cutoff_day).isoformat()

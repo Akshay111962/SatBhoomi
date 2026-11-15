@@ -41,6 +41,7 @@ def test_alembic_upgrade_and_downgrade_cycle(
         "alert",
         "action_log",
         "audit_log",
+        "plot_season_features",
         "alembic_version",
     }
     assert expected_tables.issubset(set(tables)), (

@@ -140,6 +140,18 @@ This document records the architectural decisions made for **SatBhoomi Score + R
   * *Positive*: Prevents brute-force credential stuffing; commits lockout state and audit log immediately; eliminates privilege retention upon role demotion.
   * *Negative*: In-memory rate limiting is process-bound (requires distributed Redis in multi-worker cluster); account lockout enables targeted DoS against known usernames.
 
+---
+
+## ADR-15: Cut-off Feature Storage as JSON and Strict Label Exclusion
+* **Status**: Accepted
+* **Date**: November 2026
+* **Context**: Real in-season credit scoring requires accessing pre-cutoff seasonal features per plot and season. These features were generated in `data/processed/features.csv` (gitignored). Storing them in a dedicated database table ensures persistence and unblocks the real assessment endpoint.
+* **Decision**: Store pre-cutoff features and data provenance in a dedicated `plot_season_features` table keyed by `(plot_id, season)`. Feature dictionaries and provenance source mappings are stored as structured JSON. Under strict label blindness rules, ground-truth stress labels (`stressed`, `label_unavailable`, `peak_drop_pct`) are dropped upon ingestion and NEVER imported into the database.
+* **Consequences**:
+  * *Positive*: Enables schema-flexible seasonal feature storage without rigid per-feature column migrations; guarantees complete label blindness in production databases; cascade-deletes with parent plot records.
+  * *Negative*: Querying individual feature metrics requires JSON extraction operators instead of typed relational columns.
+
+
 
 
 

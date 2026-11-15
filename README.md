@@ -165,6 +165,25 @@ make test
 
 ---
 
+## Database Setup & Ingestion Sequence
+
+The SQLite database file (`data/satbhoomi.db`) is gitignored (never committed) and is rebuilt locally following this mandatory sequence:
+
+1. **Apply database migrations**:
+   ```bash
+   alembic upgrade head
+   ```
+2. **Create first administrator** (interactive secure prompt):
+   ```bash
+   python scripts/create_user.py --username admin --role admin
+   ```
+3. **Import active plots and pre-cutoff features** (strictly drops labels on load):
+   ```bash
+   python scripts/import_plots_features.py --features-path data/processed/features.csv
+   ```
+
+---
+
 ## Running the Application
 
 ### 1. Run FastAPI Backend

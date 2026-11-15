@@ -163,6 +163,7 @@ Farm plot polygons or centroid coordinates associated with a farmer.
 - **Constraints**: `CHECK(area_acre > 0)`
 - **Fields**:
   - `id`: Primary key, integer autoincrement.
+  - `plot_code`: Optional unique natural identifier (e.g. `ANAND_WHEAT_01`), indexed.
   - `farmer_id`: Foreign key referencing `farmer.id` (`ON DELETE CASCADE`). Indexed.
   - `crop`: Sown crop (e.g. `wheat`).
   - `area_acre`: Physical land area in acres (must be strictly > 0).
@@ -246,6 +247,21 @@ Immutable system audit ledger for operational accountability.
   - `entity`: Target table name (`plot`, `assessment`, `farmer`, `alert`).
   - `entity_id`: Primary key of the affected entity.
   - `at`: UTC timestamp.
+
+### 2.11 `plot_season_features`
+Immutable snapshot of in-season cut-off feature values and data provenance for an active agricultural plot-season.
+- **Constraints**: `UNIQUE(plot_id, season)`
+- **Indexes**: `ix_plot_season_features_plot_id` on `plot_id`
+- **Label Blindness Guardrail**: Ground-truth stress labels (`stressed`, `label_unavailable`, `peak_drop_pct`) are strictly excluded from storage.
+- **Fields**:
+  - `id`: Primary key, integer autoincrement.
+  - `plot_id`: Foreign key referencing `plot.id` (`ON DELETE CASCADE`). Indexed.
+  - `season`: Season identifier (e.g. `2021-22`).
+  - `cutoff_date`: Calendar cut-off date (`DATE`, e.g. `2022-01-31`).
+  - `feature_set_version`: Feature pipeline version tag (e.g. `v1.0-pre-cutoff-jan31`).
+  - `features`: JSON dictionary containing pre-cutoff feature values exactly as extracted (nulls preserved).
+  - `provenance`: JSON dictionary containing data source tracking tags (e.g. `ndvi_source`, `rain_source`).
+  - `imported_at`: UTC timestamp when features were ingested.
 
 ---
 

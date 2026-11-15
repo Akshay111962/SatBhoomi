@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from satbhoomi.db.models.alert import Alert
     from satbhoomi.db.models.assessment import Assessment
     from satbhoomi.db.models.farmer import Farmer
+    from satbhoomi.db.models.plot_season_features import PlotSeasonFeatures
     from satbhoomi.db.models.season_observation import SeasonObservation
 
 
@@ -27,6 +28,12 @@ class Plot(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    plot_code: Mapped[str | None] = mapped_column(
+        String(50),
+        unique=True,
+        nullable=True,
+        index=True,
+    )
     farmer_id: Mapped[int] = mapped_column(
         Integer,
         ForeignKey("farmer.id", ondelete="CASCADE"),
@@ -65,6 +72,12 @@ class Plot(Base):
     )
     alerts: Mapped[list["Alert"]] = relationship(
         "Alert",
+        back_populates="plot",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    season_features: Mapped[list["PlotSeasonFeatures"]] = relationship(
+        "PlotSeasonFeatures",
         back_populates="plot",
         cascade="all, delete-orphan",
         passive_deletes=True,
