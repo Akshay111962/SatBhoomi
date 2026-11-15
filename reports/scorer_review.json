@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated_at_utc": "2026-11-14T15:11:26.284476+00:00",
+    "generated_at_utc": "2026-11-15T07:57:09.877500+00:00",
     "generator_command": "python scripts/analysis/scorer_review.py",
     "rule": "Rule 10 (Strict Numerical Traceability) & Label Blindness",
     "data_hashes": {

@@ -1,7 +1,6 @@
 # SatBhoomi Scorer and Threshold Review (Stage A: Review)
 
-**Status**: APPROVED  
-**Approval Date**: 2026-11-14  
+**Status**: PROPOSED (Awaiting User Approval)  
 **Date**: November 2026  
 **Document Type**: Pre-Implementation Agronomic Scorer Review  
 **Reference Report**: `reports/scorer_review.json` (Strict Numerical Traceability & Label Blindness)  
@@ -227,5 +226,5 @@ If approved, the transition from uncorrected absolute thresholds to harmonized r
 ---
 
 > [!NOTE]
-> **GATE APPROVED (Stage A Complete, Stage B Active)**:
-> In accordance with instructions, this review document was reviewed and received user approval on **2026-11-14**. Stage B implementation proceeds in accordance with the principles specified herein.
+> **GATE STATUS (Stage A: Review Proposed)**:
+> In accordance with instructions, this review document is PROPOSED and awaits the user's written approval before any Stage B implementations (scorer config, code changes, or recomputation) proceed.
