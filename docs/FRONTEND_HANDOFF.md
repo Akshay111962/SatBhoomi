@@ -77,6 +77,32 @@ make run-api-mock
 
 ---
 
+## 2.1. Real Authentication Mode (`MOCK_API=false`)
+
+When `MOCK_API=false` (or unset), real Argon2id password verification and PyJWT session authentication are enforced.
+
+* **Login Endpoint**: `POST /api/v1/auth/login`
+  * Body: `{"username": "<username>", "password": "<password>"}`
+  * Success (`200 OK`): Returns `TokenResponse` containing a signed HS256 JWT in `access_token`, `token_type: "bearer"`, and `expires_in: 3600` (60 minutes lifetime).
+* **Protected Routes**:
+  * Pass `Authorization: Bearer <access_token>`.
+  * User active status and database role (`officer` or `admin`) are evaluated on every request; account deactivation or role demotion takes effect immediately.
+* **Token Non-Interchangeability**:
+  * Real signed tokens are **rejected** in mock mode.
+  * Mock tokens (`mock-officer-token-xyz`) are **rejected** in real mode with HTTP 401.
+* **Failure Responses**:
+  * **HTTP 401 (`INVALID_CREDENTIALS`)**: Returned byte-for-byte identically for incorrect passwords, unknown usernames, deactivated accounts, and locked accounts. Constant-time dummy hashing is performed on non-existent usernames to prevent timing side channels.
+  * **HTTP 429 (`RATE_LIMIT_EXCEEDED`)**: Returned when a client IP exceeds the per-IP rate limit (10 attempts per minute). The response includes a `Retry-After` header specifying the wait duration in seconds.
+* **Account Lockout Policy**:
+  * 5 consecutive failed password attempts automatically lock the user account for **15 minutes**.
+  * While locked, further attempts return HTTP 401 but do **not** increment the counter or extend the 15-minute lock duration.
+  * After 15 minutes expire, the next login attempt starts a fresh count.
+* **Known Weakness**:
+  * The 15-minute account lockout policy permits a denial-of-service condition: an attacker knowing an officer's username can deliberately lock that account for 15 minutes by submitting 5 incorrect passwords.
+
+
+---
+
 ## 3. Endpoints Status & Screen Mapping
 
 This table maps the **9 UI screens (S1–S9)** defined in Blueprint Section 5 to the corresponding API v1 endpoints.

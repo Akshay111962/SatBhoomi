@@ -124,6 +124,22 @@ This document records the architectural decisions made for **SatBhoomi Score + R
   * *Positive*: State-of-the-art cryptographic resilience against GPU/ASIC cracking; zero reliance on deprecated libraries; native compatibility with Python 3.11, 3.12, and 3.13; constant-time dummy verification protects against user enumeration.
   * *Negative*: Memory-hard parameters require ~64 MiB RAM per concurrent hash operation in production (mitigated by rate limiting and account lockout after 5 consecutive failed attempts).
 
+---
+
+## ADR-14: JWT Authentication, Lockout Countermeasure, and Rate Limiting
+* **Status**: Accepted
+* **Date**: November 2026
+* **Context**: Real session authentication requires cryptographically signed tokens, brute-force mitigation, account lockout protection, and role-based access control (RBAC).
+* **Decision**:
+  1. **Token Standard**: Use PyJWT (version 2.15.1) with HMAC-SHA256 (`HS256`). Mandatory claims: `sub` (user ID), `iat`, `exp` (default 60 minutes). Algorithm is strictly pinned to `HS256` during decoding; `none` and alternate algorithms are rejected.
+  2. **Role Authorization**: Role and active status are resolved directly from the database on every authenticated request rather than relying on token claims, ensuring deactivations and role demotions take immediate effect.
+  3. **Persisted Account Lockout**: Consecutive failed logins on active accounts increment `failed_login_count`. At 5 failures, `locked_until` is set to UTC now + 15 minutes and committed to database across 401 responses. While locked, further attempts return generic 401 without incrementing the counter or extending the lock duration (preventing perpetual lock extension). After 15 minutes, the next attempt starts a fresh count.
+  4. **Rate Limiting**: An in-memory sliding-window rate limiter limits login attempts to 10 per minute per direct client IP address (`request.client.host`, ignoring `X-Forwarded-For`).
+  5. **Known Weakness**: The 15-minute account lockout allows a targeted denial-of-service attack against a known officer's username by repeatedly triggering 5 failed attempts every 15 minutes.
+* **Consequences**:
+  * *Positive*: Prevents brute-force credential stuffing; commits lockout state and audit log immediately; eliminates privilege retention upon role demotion.
+  * *Negative*: In-memory rate limiting is process-bound (requires distributed Redis in multi-worker cluster); account lockout enables targeted DoS against known usernames.
+
 
 
 

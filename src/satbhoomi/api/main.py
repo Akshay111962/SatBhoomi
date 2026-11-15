@@ -23,8 +23,7 @@ API_CONTRACT_VERSION = "0.2.0"
 async def lifespan(app: FastAPI):
     """Lifecycle manager validating security and environment constraints at startup."""
     current_settings = get_settings()
-    if current_settings.is_production and current_settings.mock_api:
-        raise RuntimeError("FATAL: MOCK_API cannot be enabled in production environment.")
+    current_settings.validate_production_security()
     yield
 
 
