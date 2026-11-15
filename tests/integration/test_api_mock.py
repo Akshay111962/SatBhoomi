@@ -261,7 +261,8 @@ def test_without_mock_api_every_business_endpoint_returns_501(non_mock_client: T
     err = ErrorResponse.model_validate(login_resp.json())
     assert err.error.code == "INVALID_CREDENTIALS"
 
-    # Real endpoints (login, assessments, what-if, monitoring, alert actions) return 401 without valid session token
+    # Real endpoints (login, assessments, what-if, monitoring, alert actions)
+    # return 401 without valid session token
     real_endpoints = [
         ("POST", "/api/v1/plots/1/assessments", {"season": "2024-25"}),
         ("GET", "/api/v1/assessments/1", None),
