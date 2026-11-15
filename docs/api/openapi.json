@@ -2,22 +2,27 @@
   "components": {
     "schemas": {
       "AlertActionRequest": {
-        "description": "[DRAFT] Request payload to record an officer intervention on an alert.\n\nTagged DRAFT: Will be finalised in Task T-12 (Playbooks).",
+        "description": "[DRAFT] Request payload to record an officer intervention on an alert.",
         "properties": {
           "action_type": {
-            "description": "Category of supportive officer intervention",
+            "description": "Category of supportive officer intervention from the fixed playbook",
             "enum": [
+              "field_visit",
+              "insurance_claim_help",
+              "extension_support",
+              "repayment_timing_discussion",
+              "rescheduling_request",
+              "senior_or_local_support",
               "supportive_field_visit",
               "check_water_irrigation",
-              "insurance_claim_help",
               "harvest_repayment_rescheduling"
             ],
-            "example": "supportive_field_visit",
+            "example": "field_visit",
             "title": "Action Type",
             "type": "string"
           },
           "note": {
-            "description": "Detailed officer note documenting supportive findings and support needed",
+            "description": "Detailed officer note documenting supportive findings and support needed (max 500 chars, no PII/numbers)",
             "example": "Conducted field inspection; confirmed tubewell motor repair underway, repayment stress mitigated.",
             "maxLength": 500,
             "minLength": 5,
@@ -33,7 +38,7 @@
         "type": "object"
       },
       "AlertActionResponse": {
-        "description": "[DRAFT] Audited confirmation of recorded officer intervention.\n\nTagged DRAFT: Will be finalised in Task T-12 (Playbooks).",
+        "description": "[DRAFT] Audited confirmation of recorded officer intervention.",
         "properties": {
           "action_id": {
             "description": "Unique action log entry ID",
@@ -42,7 +47,7 @@
             "type": "integer"
           },
           "action_type": {
-            "example": "supportive_field_visit",
+            "example": "field_visit",
             "title": "Action Type",
             "type": "string"
           },
@@ -60,7 +65,7 @@
           },
           "done_on": {
             "description": "Action execution timestamp",
-            "example": "2026-11-13T10:30:00Z",
+            "example": "2026-11-15T10:30:00Z",
             "title": "Done On",
             "type": "string"
           },
@@ -76,7 +81,7 @@
             "description": "Response metadata container"
           },
           "note": {
-            "example": "Field visit logged.",
+            "example": "Conducted field inspection; confirmed tubewell repair.",
             "title": "Note",
             "type": "string"
           },
@@ -85,6 +90,30 @@
             "example": "recorded",
             "title": "Status",
             "type": "string"
+          },
+          "status_after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "example": "in_progress",
+            "title": "Status After"
+          },
+          "status_before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "example": "open",
+            "title": "Status Before"
           }
         },
         "required": [
@@ -99,7 +128,7 @@
         "type": "object"
       },
       "AlertSummary": {
-        "description": "[STABLE] In-season stress alert summary mirroring AlertItem (T-09) and Alert ORM.",
+        "description": "In-season stress alert summary mirroring AlertItem (T-09) and Alert ORM.",
         "properties": {
           "checkpoint_label": {
             "description": "Seasonal monitoring checkpoint date",
@@ -150,6 +179,13 @@
             "example": 1,
             "title": "Id"
           },
+          "is_replay": {
+            "default": true,
+            "description": "Whether alert was evaluated from historical season replay simulation",
+            "example": true,
+            "title": "Is Replay",
+            "type": "boolean"
+          },
           "plot_code": {
             "description": "Synthetic plot code",
             "example": "PLOT-001",
@@ -179,6 +215,7 @@
             "enum": [
               "open",
               "acknowledged",
+              "in_progress",
               "resolved",
               "dismissed"
             ],
@@ -946,7 +983,7 @@
         "type": "object"
       },
       "PlotMonitoringResponse": {
-        "description": "[STABLE] In-season plot monitoring timeline and active stress alerts.\n\nMirrors EvaluationCheckpointResult (T-09). Action playbooks and resolution logs\nare finalised in Task T-12.",
+        "description": "In-season plot monitoring timeline and active stress alerts.\n\nMirrors EvaluationCheckpointResult (T-09). Replay mode disclaimer strictly enforced.",
         "properties": {
           "active_alerts": {
             "description": "List of currently active in-season alerts",
@@ -1005,6 +1042,17 @@
             ],
             "description": "Response metadata container"
           },
+          "mode": {
+            "default": "replay",
+            "description": "Operational monitoring mode: 'replay' simulation or 'live' monitoring",
+            "enum": [
+              "replay",
+              "live"
+            ],
+            "example": "replay",
+            "title": "Mode",
+            "type": "string"
+          },
           "past_alerts": {
             "description": "List of resolved or escalated historical alerts",
             "items": {
@@ -1024,6 +1072,12 @@
             "example": 1,
             "title": "Plot Id",
             "type": "integer"
+          },
+          "replay_note": {
+            "default": "Historical season replay; not live in-season monitoring. Makes no claim of detecting real-world stress events.",
+            "description": "Mandatory disclaimer for replay simulation mode",
+            "title": "Replay Note",
+            "type": "string"
           },
           "season": {
             "description": "Monitored cropping season",
@@ -1768,13 +1822,13 @@
   "info": {
     "description": "AI farm credit scoring and early-warning decision-support tool for bank loan officers",
     "title": "SatBhoomi Score + Raksha",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "openapi": "3.1.0",
   "paths": {
     "/api/v1/alerts/{id}/actions": {
       "post": {
-        "description": "[DRAFT] Log a supportive loan officer action taken in response to an in-season alert.",
+        "description": "Log a supportive loan officer action taken in response to an in-season alert.",
         "operationId": "log_alert_action_api_v1_alerts__id__actions_post",
         "parameters": [
           {
@@ -1850,7 +1904,7 @@
                 }
               }
             },
-            "description": "Validation error"
+            "description": "Validation error or disallowed PII in note"
           },
           "401": {
             "content": {
@@ -1872,6 +1926,16 @@
             },
             "description": "Alert not found"
           },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Disallowed status transition"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -1881,16 +1945,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Log Alert Action",
@@ -2709,7 +2763,7 @@
     },
     "/api/v1/plots/{id}/monitoring": {
       "get": {
-        "description": "[DRAFT] Retrieve in-season crop health timeline, rainfall trajectory, and active alerts.",
+        "description": "Retrieve in-season crop health timeline, rainfall trajectory, and stress alerts.",
         "operationId": "get_plot_monitoring_api_v1_plots__id__monitoring_get",
         "parameters": [
           {
@@ -2721,6 +2775,24 @@
               "description": "Target plot identifier",
               "title": "Id",
               "type": "integer"
+            }
+          },
+          {
+            "description": "Optional cropping season filter (e.g., '2023-24')",
+            "in": "query",
+            "name": "season",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Optional cropping season filter (e.g., '2023-24')",
+              "title": "Season"
             }
           },
           {
@@ -2767,6 +2839,16 @@
             },
             "description": "Successful Response"
           },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
           "401": {
             "content": {
               "application/json": {
@@ -2796,16 +2878,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Get Plot Monitoring",

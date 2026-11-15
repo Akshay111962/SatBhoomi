@@ -124,6 +124,18 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ---
 
+### RISK-10: In-Season Monitoring Is a Historical Replay Not Validated on Real Stress Events
+- **Category**: Early Warning / Validation / Operational Claims
+- **Description**: Monitoring is a replay and not validated on real stress events; the in-season monitoring API serves precomputed historical seasonal replays rather than live streaming telemetry, and no confirmed disaster or crop failure events occurred in the historical sample.
+- **Severity**: Medium
+- **Likelihood**: High (known historical data limitation)
+- **Mitigation & Guardrails**:
+  1. **Mandatory Replay Disclosure**: All monitoring API responses and UI screens strictly include `mode: "replay"` and the statutory disclaimer `replay_note`: *"Historical season replay; not live in-season monitoring. Makes no claim of detecting real-world stress events."*
+  2. **Synthetic Validation Isolation**: Early warning lead time (TC-007) is validated strictly against a labelled synthetic stress simulation at the engine level; synthetic scenarios are never imported into the operational database.
+  3. **Human Officer Playbook**: In-season alerts serve as non-automated triggers for supportive officer check-ins, field visits, or PMFBY claims assistance, never automated sanctions or recovery pressure.
+
+---
+
 ## Open Questions
 
 ### OPEN QUESTION-01: Pre-Sowing Loan Approval vs. In-Season (January 31) Assessment

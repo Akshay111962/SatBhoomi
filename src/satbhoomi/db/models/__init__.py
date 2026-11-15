@@ -8,6 +8,7 @@ from satbhoomi.db.models.consent import Consent
 from satbhoomi.db.models.farmer import Farmer
 from satbhoomi.db.models.plot import Plot
 from satbhoomi.db.models.plot_season_features import PlotSeasonFeatures
+from satbhoomi.db.models.plot_season_timeline import PlotSeasonTimeline
 from satbhoomi.db.models.season_observation import SeasonObservation
 from satbhoomi.db.models.user import User
 from satbhoomi.db.models.what_if import WhatIf
@@ -21,6 +22,7 @@ __all__ = [
     "Farmer",
     "Plot",
     "PlotSeasonFeatures",
+    "PlotSeasonTimeline",
     "SeasonObservation",
     "User",
     "WhatIf",

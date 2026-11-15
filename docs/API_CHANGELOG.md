@@ -17,6 +17,17 @@ This document tracks all versioned changes to the **SatBhoomi Score + Raksha** R
 
 ## Releases
 
+### [0.4.0] - 2026-11-15 (Historical Replay Simulation & Playbook Actions)
+* **[BREAKING (draft endpoints only)] In-Season Monitoring Schema (`PlotMonitoringResponse`)**:
+  - Added `mode` (`Literal["replay", "live"]`, default `"replay"`) and mandatory `replay_note` disclaimer stating this is a historical replay simulation, not live monitoring.
+  - Added optional `season` query parameter to `GET /api/v1/plots/{id}/monitoring` allowing historical season inspection.
+  - Updated `AlertSummary.status` enum to include `"in_progress"` and added `is_replay: bool`.
+* **[BREAKING (draft endpoints only)] Alert Action Schema (`AlertActionRequest`, `AlertActionResponse`)**:
+  - Aligned `action_type` to fixed officer playbook actions (`field_visit`, `insurance_claim_help`, `extension_support`, `repayment_timing_discussion`, `rescheduling_request`, `senior_or_local_support`).
+  - Added strict PII detection rejecting phone, national ID, and account numbers in officer notes.
+  - Added `status_before` and `status_after` tracking alert state progression (`open` $\to$ `in_progress` $\to$ `resolved`).
+* **STABLE Schemas**: Zero modifications to stable endpoints or schemas (`AssessmentResponse`, `LoanSuggestionResponse`, `WhatIfResponse`).
+
 ### [0.3.0] - 2026-11-15 (Additive Cutoff ISO Date & Real Assessment Foundation)
 * **[ADDITIVE] Assessment Schema (`AssessmentResponse`)**:
   - Added `cutoff_date_iso` (`str | None`, format `YYYY-MM-DD`, e.g. `"2025-01-31"`) next to the unchanged human-readable `cutoff_date` (`"January 31"`).

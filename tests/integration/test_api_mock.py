@@ -261,11 +261,17 @@ def test_without_mock_api_every_business_endpoint_returns_501(non_mock_client: T
     err = ErrorResponse.model_validate(login_resp.json())
     assert err.error.code == "INVALID_CREDENTIALS"
 
-    # Real endpoints (login, assessments, what-if) return 401 without valid session token
+    # Real endpoints (login, assessments, what-if, monitoring, alert actions) return 401 without valid session token
     real_endpoints = [
         ("POST", "/api/v1/plots/1/assessments", {"season": "2024-25"}),
         ("GET", "/api/v1/assessments/1", None),
         ("POST", "/api/v1/assessments/1/what-if", {"changed_input": "insured", "new_value": "1"}),
+        ("GET", "/api/v1/plots/1/monitoring", None),
+        (
+            "POST",
+            "/api/v1/alerts/1/actions",
+            {"action_type": "field_visit", "note": "Supportive visit logged"},
+        ),
     ]
     for method, path, body in real_endpoints:
         if method == "POST":
@@ -280,12 +286,6 @@ def test_without_mock_api_every_business_endpoint_returns_501(non_mock_client: T
     endpoints = [
         ("POST", "/api/v1/plots", {"farmer_id": 1, "area_acre": 2.0}),
         ("GET", "/api/v1/plots", None),
-        ("GET", "/api/v1/plots/1/monitoring", None),
-        (
-            "POST",
-            "/api/v1/alerts/1/actions",
-            {"action_type": "supportive_field_visit", "note": "Supportive visit logged"},
-        ),
         ("GET", "/api/v1/plots/1/relief-report", None),
         ("GET", "/api/v1/assessments/1/farmer-summary?lang=en", None),
     ]

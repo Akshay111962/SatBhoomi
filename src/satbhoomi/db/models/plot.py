@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from satbhoomi.db.models.assessment import Assessment
     from satbhoomi.db.models.farmer import Farmer
     from satbhoomi.db.models.plot_season_features import PlotSeasonFeatures
+    from satbhoomi.db.models.plot_season_timeline import PlotSeasonTimeline
     from satbhoomi.db.models.season_observation import SeasonObservation
 
 
@@ -78,6 +79,12 @@ class Plot(Base):
     )
     season_features: Mapped[list["PlotSeasonFeatures"]] = relationship(
         "PlotSeasonFeatures",
+        back_populates="plot",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    timelines: Mapped[list["PlotSeasonTimeline"]] = relationship(
+        "PlotSeasonTimeline",
         back_populates="plot",
         cascade="all, delete-orphan",
         passive_deletes=True,

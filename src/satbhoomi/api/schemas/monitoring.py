@@ -1,9 +1,9 @@
-"""[STABLE] In-season plot monitoring timeline and alert schemas (blueprint section 8).
+"""[DRAFT] In-season plot monitoring timeline and alert schemas (blueprint section 8).
 
 Matches the real AlertItem and EvaluationCheckpointResult from
 src/satbhoomi/alerts/models.py (T-09).
 Rule 2 Compliance: Alerts strictly describe farm and repayment stress and support needed.
-Action playbooks and workflow execution are finalised in Task T-12.
+Updated in Task T-11C with replay simulation mode and disclaimers.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ class TimelinePoint(BaseModel):
 
 
 class AlertSummary(BaseModel):
-    """[STABLE] In-season stress alert summary mirroring AlertItem (T-09) and Alert ORM."""
+    """In-season stress alert summary mirroring AlertItem (T-09) and Alert ORM."""
 
     model_config = ConfigDict(frozen=True)
 
@@ -56,7 +56,7 @@ class AlertSummary(BaseModel):
         description="Severity level matching Alert ORM check constraint ('low', 'medium', 'high')",
         example="medium",
     )
-    status: Literal["open", "acknowledged", "resolved", "dismissed"] = Field(
+    status: Literal["open", "acknowledged", "in_progress", "resolved", "dismissed"] = Field(
         default="open",
         description="Alert workflow state matching Alert ORM state constraints",
         example="open",
@@ -81,13 +81,17 @@ class AlertSummary(BaseModel):
         description="Diagnostic warning if cloud gap or missing prior baseline impacted detection",
         example=None,
     )
+    is_replay: bool = Field(
+        default=True,
+        description="Whether alert was evaluated from historical season replay simulation",
+        example=True,
+    )
 
 
 class PlotMonitoringResponse(BaseModel):
-    """[STABLE] In-season plot monitoring timeline and active stress alerts.
+    """In-season plot monitoring timeline and active stress alerts.
 
-    Mirrors EvaluationCheckpointResult (T-09). Action playbooks and resolution logs
-    are finalised in Task T-12.
+    Mirrors EvaluationCheckpointResult (T-09). Replay mode disclaimer strictly enforced.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -114,6 +118,18 @@ class PlotMonitoringResponse(BaseModel):
         default=None,
         description="Date of latest checkpoint evaluation (YYYY-MM-DD)",
         example="2024-01-15",
+    )
+    mode: Literal["replay", "live"] = Field(
+        default="replay",
+        description="Operational monitoring mode: 'replay' simulation or 'live' monitoring",
+        example="replay",
+    )
+    replay_note: str = Field(
+        default=(
+            "Historical season replay; not live in-season monitoring. "
+            "Makes no claim of detecting real-world stress events."
+        ),
+        description="Mandatory disclaimer for replay simulation mode",
     )
     timeline: list[TimelinePoint] = Field(
         default_factory=list,

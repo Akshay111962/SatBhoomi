@@ -24,6 +24,17 @@ Release `0.3.0` activates the real backend for assessments and what-if simulatio
 ### 2. Additive Field: `cutoff_date_iso`
 - `AssessmentResponse` now includes `cutoff_date_iso` (e.g., `"2025-01-31"`) next to the unchanged human-readable `cutoff_date` (`"January 31"`). Available in both real and mock modes.
 
+### 3. Real Monitoring & Alert Action Endpoints (Contract v0.4.0)
+- **`GET /api/v1/plots/{id}/monitoring`**:
+  - Served from stored historical replay simulation (`mode: "replay"`) with mandatory disclaimer `replay_note: "Historical season replay; not live in-season monitoring. Makes no claim of detecting real-world stress events."`
+  - Optional `season` query parameter (e.g. `?season=2023-24`); defaults to latest season with stored timeline observations.
+  - Returns compact checkpoint `timeline` (date, NDVI-window value, cumulative rainfall, data_gap flag) and `active_alerts` / `past_alerts`.
+- **`POST /api/v1/alerts/{id}/actions`**:
+  - Records loan officer interventions from the fixed supportive playbook (`field_visit`, `insurance_claim_help`, `extension_support`, `repayment_timing_discussion`, `rescheduling_request`, `senior_or_local_support`). Strictly no debt collection or recovery pressure actions.
+  - Officer notes must not exceed 500 characters and must not contain personal phone numbers, national IDs, or bank account numbers (rejected with `400 Bad Request`, `code="PII_NOT_PERMITTED"`).
+  - Enforces alert status lifecycle progression: `open` $\to$ `in_progress` $\to$ `resolved`. Disallowed transitions (e.g. attempting actions on already resolved/dismissed alerts) return `409 Conflict` (`code="DISALLOWED_STATUS_TRANSITION"`).
+  - Generates append-only audit trail logging user ID, alert ID, and action type with zero personal data.
+
 ---
 
 ## 0.1 What Changed in Contract v0.2.0 (Domain Parity)

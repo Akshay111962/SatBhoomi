@@ -161,12 +161,12 @@ def test_invalid_role_band_severity_status_rejected(db_session: Session) -> None
         db_session.commit()
     db_session.rollback()
 
-    # Invalid alert status
+    # Invalid alert status ('invalid_status' not in allowed set)
     invalid_alert_stat = Alert(
         plot_id=plot.id,
         type="crop_health_drop",
         severity="high",
-        status="in_progress",  # Allowed: 'open', 'acknowledged', 'resolved', 'dismissed'
+        status="invalid_status",
     )
     db_session.add(invalid_alert_stat)
     with pytest.raises(IntegrityError):

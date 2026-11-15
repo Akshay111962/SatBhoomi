@@ -181,6 +181,10 @@ The SQLite database file (`data/satbhoomi.db`) is gitignored (never committed) a
    ```bash
    python scripts/import_plots_features.py --features-path data/processed/features.csv
    ```
+4. **Import historical alert replay and monitoring timelines** (idempotent, active plots only):
+   ```bash
+   python scripts/import_alert_replay.py
+   ```
 
 ---
 

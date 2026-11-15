@@ -27,6 +27,8 @@ class ActionLog(Base):
     )
     action_type: Mapped[str] = mapped_column(String(50), nullable=False)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    status_before: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    status_after: Mapped[str | None] = mapped_column(String(20), nullable=True)
     done_by: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("user.id", ondelete="SET NULL"),
