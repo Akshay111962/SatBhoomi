@@ -252,9 +252,17 @@ def test_without_mock_api_every_business_endpoint_returns_501(non_mock_client: T
     assert resp.json()["status"] == "ok"
     assert resp.json()["mock_api"] is False
 
-    # Business endpoints return 501 Not Implemented with standard error body
+    # POST /api/v1/auth/login is implemented in real mode; invalid credentials return 401
+    login_resp = non_mock_client.post(
+        "/api/v1/auth/login",
+        json={"username": "officer_test", "password": "password_123"},
+    )
+    assert login_resp.status_code == 401
+    err = ErrorResponse.model_validate(login_resp.json())
+    assert err.error.code == "INVALID_CREDENTIALS"
+
+    # Remaining business endpoints return 501 Not Implemented with standard error body
     endpoints = [
-        ("POST", "/api/v1/auth/login", {"username": "officer_test", "password": "password_123"}),
         ("POST", "/api/v1/plots", {"farmer_id": 1, "area_acre": 2.0}),
         ("GET", "/api/v1/plots", None),
         ("POST", "/api/v1/plots/1/assessments", {"season": "2024-25"}),
