@@ -1,6 +1,20 @@
-"""Streamlit user interface entry point for SatBhoomi Score + Raksha."""
+"""Streamlit user interface entry point for SatBhoomi Score + Raksha (Screens S1 to S4)."""
+
+from __future__ import annotations
 
 import streamlit as st
+
+from satbhoomi.ui.components import inject_custom_styles
+from satbhoomi.ui.screens.add_plot import render_add_plot_screen
+from satbhoomi.ui.screens.assessment import render_assessment_screen
+from satbhoomi.ui.screens.dashboard import render_dashboard_screen
+from satbhoomi.ui.screens.login import render_login_screen
+from satbhoomi.ui.state import (
+    clear_session,
+    get_current_user,
+    init_session_state,
+    is_authenticated,
+)
 
 st.set_page_config(
     page_title="SatBhoomi Score + Raksha",
@@ -9,107 +23,58 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom calm green and navy styling
-st.markdown(
-    """
-    <style>
-    .main-title {
-        color: #1b4332;
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 0.2rem;
-    }
-    .sub-title {
-        color: #1a2a3a;
-        font-size: 1.1rem;
-        margin-bottom: 1.5rem;
-    }
-    .status-card {
-        background-color: #f0f7f4;
-        border-left: 5px solid #2d6a4f;
-        padding: 1rem 1.2rem;
-        border-radius: 4px;
-        margin-bottom: 1.5rem;
-    }
-    .status-card h4 {
-        color: #1b4332;
-        margin: 0 0 0.5rem 0;
-    }
-    .status-card p {
-        color: #264653;
-        margin: 0;
-    }
-    .disclaimer-box {
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        padding: 0.8rem 1rem;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        color: #495057;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+# Initialize ephemeral session state
+init_session_state()
+inject_custom_styles()
 
-st.markdown('<div class="main-title">SatBhoomi Score + Raksha</div>', unsafe_allow_html=True)
-st.markdown(
-    '<div class="sub-title">'
-    "AI Farm Credit Scoring & Early-Warning Decision Support for Bank Officers"
-    "</div>",
-    unsafe_allow_html=True,
-)
 
-st.markdown(
-    """
-    <div class="status-card">
-        <h4>System Foundation Active (Blueprint Task T-01)</h4>
-        <p>The system infrastructure, modular monolith service architecture, API contracts,
-        and database engine are initialized and operational.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+def page_login() -> None:
+    render_login_screen()
 
-col1, col2, col3 = st.columns(3)
 
-with col1:
-    st.subheader("🌾 SatBhoomi Score")
-    st.caption("Farm Credit Assessment")
-    st.write(
-        "Combines multi-season satellite crop health (NDVI), rainfall deficit, and mandi prices "
-        "to deliver a calibrated 0–100 risk score with top plain-language reasons and "
-        "right-sized limits."
-    )
-    st.info("Pipeline connector setup in progress (Task T-02).")
+def page_dashboard() -> None:
+    render_dashboard_screen()
 
-with col2:
-    st.subheader("🛡️ Raksha Early Warning")
-    st.caption("In-Season Monitoring")
-    st.write(
-        "Detects in-season crop health drops, rainfall anomalies, and price crashes early. "
-        "Provides actionable playbooks focused on repayment support and insurance assistance."
-    )
-    st.info("Alert engine scheduled for Task T-09.")
 
-with col3:
-    st.subheader("📋 Relief Evidence")
-    st.caption("RBI 33% Calamity Support")
-    st.write(
-        "Generates objective before-vs-after crop loss evidence aligned with the RBI 33% crop loss "
-        "rescheduling framework to support timely restructuring decisions."
-    )
-    st.info("Report generator scheduled for Task T-12.")
+def page_add_plot() -> None:
+    render_add_plot_screen()
 
-st.divider()
 
-st.markdown(
-    """
-    <div class="disclaimer-box">
-        <strong>Operating Notice:</strong> SatBhoomi Score + Raksha is an advisory
-        decision-support tool. The system never automatically approves or rejects loans;
-        credit decisions reside solely with the authorized bank officer.
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+def page_assessment() -> None:
+    render_assessment_screen()
+
+
+# Define pages using modern st.Page API
+login_p = st.Page(page_login, title="Officer Login", icon="🔐")
+dashboard_p = st.Page(page_dashboard, title="Plot Portfolio", icon="📊")
+add_plot_p = st.Page(page_add_plot, title="Register Plot", icon="➕")
+assessment_p = st.Page(page_assessment, title="Risk Assessment", icon="🌾")
+
+if not is_authenticated():
+    pg = st.navigation([login_p])
+else:
+    # Sidebar user profile badge and logout
+    user = get_current_user() or {}
+    username = user.get("username", "Officer")
+    with st.sidebar:
+        st.markdown(f"**Logged in as:** `{username}`")
+        if st.button("Sign Out", key="sidebar_logout_btn", use_container_width=True):
+            clear_session()
+            st.rerun()
+        st.divider()
+
+    # Route programmatic transitions via session_state["active_screen"]
+    active_target = st.session_state.pop("active_screen", None)
+    if active_target == "add_plot":
+        pg = st.navigation([dashboard_p, add_plot_p, assessment_p], position="sidebar")
+        # Direct render if requested
+        add_plot_p.run()
+        st.stop()
+    elif active_target == "assessment":
+        pg = st.navigation([dashboard_p, add_plot_p, assessment_p], position="sidebar")
+        assessment_p.run()
+        st.stop()
+    else:
+        pg = st.navigation([dashboard_p, add_plot_p, assessment_p], position="sidebar")
+
+pg.run()

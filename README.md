@@ -190,28 +190,56 @@ The SQLite database file (`data/satbhoomi.db`) is gitignored (never committed) a
 
 ## Running the Application
 
+### Setup Sequence Before Starting
+To prepare local state for the UI and API, run the following setup steps in order:
+1. **Apply database migrations**:
+   - Bash / Make: `alembic upgrade head` (or `make migrate`)
+   - PowerShell: `.venv\Scripts\alembic upgrade head`
+2. **Create local officer / admin user**:
+   - Bash: `python scripts/create_user.py --username admin --role admin`
+   - PowerShell: `.venv\Scripts\python scripts/create_user.py --username admin --role admin`
+3. **Import synthetic plot parcels and pre-cutoff features**:
+   - Bash: `python scripts/import_plots_features.py --features-path data/processed/features.csv`
+   - PowerShell: `.venv\Scripts\python scripts/import_plots_features.py --features-path data/processed/features.csv`
+4. **Import alert replay monitoring history**:
+   - Bash: `python scripts/import_alert_replay.py`
+   - PowerShell: `.venv\Scripts\python scripts/import_alert_replay.py`
+
 ### 1. Run FastAPI Backend
 Start the FastAPI server on `http://localhost:8000`:
 
 ```bash
+# Bash:
 uvicorn satbhoomi.api.main:app --reload --host 0.0.0.0 --port 8000
 
 # Or with Make:
 make run-api
+
+# PowerShell (Windows):
+.venv\Scripts\uvicorn satbhoomi.api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 - Health Check endpoint: `http://localhost:8000/health`
 - Interactive OpenAPI documentation: `http://localhost:8000/docs`
 
-### 2. Run Streamlit UI
+### 2. Run Streamlit UI (Screens S1 to S4)
 Launch the bank officer dashboard on `http://localhost:8501`:
 
 ```bash
+# Bash:
 streamlit run src/satbhoomi/ui/app.py
 
 # Or with Make:
 make run-ui
+
+# PowerShell (Windows):
+.venv\Scripts\streamlit run src/satbhoomi/ui/app.py
 ```
+
+The Streamlit interface talks exclusively to FastAPI via HTTP. To point to an alternate API instance, configure the `SATBHOOMI_API_URL` environment variable:
+- Bash: `export SATBHOOMI_API_URL="http://localhost:8000"`
+- PowerShell: `$env:SATBHOOMI_API_URL="http://localhost:8000"`
+*(Defaults to `http://localhost:8000` if unset).*
 
 ---
 
