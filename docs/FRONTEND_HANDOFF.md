@@ -1,4 +1,4 @@
-# Frontend Handoff Guide: SatBhoomi API Contract (v0.2.0)
+# Frontend Handoff Guide: SatBhoomi API Contract (v0.3.0)
 
 This document serves as the integration contract and onboarding guide for frontend developers building the **React web app** and **Streamlit dashboard** for **SatBhoomi Score + Raksha**.
 
@@ -10,7 +10,23 @@ This document serves as the integration contract and onboarding guide for fronte
 
 ---
 
-## 0. What Changed in Contract v0.2.0 (Breaking Changes & Screen Impact)
+## 0. What Changed in Contract v0.3.0 (Additive Updates & Real Endpoints)
+
+Release `0.3.0` activates the real backend for assessments and what-if simulation, while keeping monitoring, alert actions, relief reports, and farmer summaries on mock/501:
+
+### 1. Real Endpoints Active in Database Mode (`MOCK_API=false`)
+- **`POST /api/v1/plots/{id}/assessments`**: Runs active `AgronomicRulesBaseline` v2.0 against stored pre-cutoff features in `plot_season_features` with plot attributes overlaid.
+  - **Idempotency-Key Header**: Optional `Idempotency-Key` header (8 to 64 chars). Replays return `200 OK` with the identical assessment. Reusing the key for a different plot or season returns `400 Bad Request` (`code="IDEMPOTENCY_KEY_REUSED"`). Repeated calls without a key create new auditable assessment rows.
+  - **Handling `insufficient_data`**: When a plot has no historical baseline (e.g., season 1 `2020-21`), `status` is `"insufficient_data"`, `score` and `band` are `null`, `insufficient_data_reason` is populated, and `loan_suggestion.status` is `"manual_appraisal_required"`. The UI must render the explanatory banner and disable automated loan sizing.
+- **`GET /api/v1/assessments/{id}`**: Returns the stored assessment directly from the database without recomputing (returns `404 Not Found` if missing).
+- **`POST /api/v1/assessments/{id}/what-if`**: Runs deterministic sensitivity simulation. Allowed inputs are strictly `insured` (`"0"`, `"1"`, `"true"`, `"false"`) and `irrigation` (`"rainfed"`, `"tube_well"`, `"canal"`, `"drip"`, `"sprinkler"`). Modifying unmodelled inputs returns `400 Bad Request` with the invalid field name. The original assessment record is guaranteed immutable.
+
+### 2. Additive Field: `cutoff_date_iso`
+- `AssessmentResponse` now includes `cutoff_date_iso` (e.g., `"2025-01-31"`) next to the unchanged human-readable `cutoff_date` (`"January 31"`). Available in both real and mock modes.
+
+---
+
+## 0.1 What Changed in Contract v0.2.0 (Domain Parity)
 
 Release `0.2.0` aligns the API contract directly with the verified domain objects in `src/satbhoomi/risk/` and `src/satbhoomi/alerts/` via an explicit adapter layer.
 

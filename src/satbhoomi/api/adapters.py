@@ -1,15 +1,16 @@
 """Explicit adapter functions converting real domain result objects into API response schemas.
 
-Task T-10 / v0.2.0 API contract compliance:
+Task T-10 / v0.3.0 API contract compliance:
 - Bridges RiskScoreResult (T-06) -> AssessmentResponse
 - Bridges LoanSuggestionResult (T-07) -> LoanSuggestionResponse
 - Bridges WhatIfResult (T-08) -> WhatIfResponse
 - Bridges AlertItem / EvaluationCheckpointResult (T-09) -> AlertSummary / PlotMonitoringResponse
+- Bridges stored ORM Assessment -> AssessmentResponse
 """
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Any, Literal
 
 from satbhoomi.alerts.models import AlertItem, EvaluationCheckpointResult
 from satbhoomi.api.schemas.assessments import (
@@ -20,6 +21,7 @@ from satbhoomi.api.schemas.assessments import (
 from satbhoomi.api.schemas.common import ResponseMeta
 from satbhoomi.api.schemas.monitoring import AlertSummary, PlotMonitoringResponse, TimelinePoint
 from satbhoomi.api.schemas.what_if import WhatIfResponse
+from satbhoomi.risk.config import CUTOFF_DATE_LABEL, FIXED_INTERPRETATION
 from satbhoomi.risk.loan_suggestions import LoanSuggestionResult
 from satbhoomi.risk.scoring import FIXED_RELIABILITY_NOTE, RiskScoreResult
 from satbhoomi.risk.what_if import WhatIfResult
@@ -79,13 +81,76 @@ def adapt_risk_score_to_assessment_response(
         model_version=score_result.model_version,
         scorer=score_result.scorer,
         cutoff_date=score_result.cutoff_date,
+        cutoff_date_iso=getattr(score_result, "cutoff_date_iso", None),
         data_warnings=list(score_result.data_warnings),
         insufficient_data_reason=score_result.insufficient_data_reason,
         interpretation=score_result.interpretation,
         reliability_note=score_result.reliability_note,
         loan_suggestion=loan_suggestion,
         created_at=created_at,
-        meta=ResponseMeta(synthetic=synthetic, version="0.2.0"),
+        meta=ResponseMeta(synthetic=synthetic, version="0.3.0"),
+    )
+
+
+def adapt_stored_assessment_to_response(
+    assessment: Any,
+    *,
+    plot_code: str,
+    protective_factor: str | None = None,
+    synthetic: bool = False,
+) -> AssessmentResponse:
+    """Adapt a persisted ORM Assessment model into the API AssessmentResponse schema."""
+    reasons: list[ReasonItem] = []
+    if assessment.reasons_json:
+        for item in assessment.reasons_json:
+            if isinstance(item, dict):
+                reasons.append(
+                    ReasonItem(
+                        feature_name=item.get("feature_name", "in_season_agronomic_indicators"),
+                        text=item.get("text", ""),
+                    )
+                )
+            else:
+                reasons.append(
+                    ReasonItem(
+                        feature_name="in_season_agronomic_indicators",
+                        text=str(item),
+                    )
+                )
+
+    loan_resp = None
+    if assessment.loan_suggestion_json:
+        loan_resp = LoanSuggestionResponse(**assessment.loan_suggestion_json)
+
+    cutoff_iso = (
+        assessment.cutoff_date.isoformat()
+        if hasattr(assessment.cutoff_date, "isoformat")
+        else (str(assessment.cutoff_date) if assessment.cutoff_date else None)
+    )
+
+    return AssessmentResponse(
+        id=assessment.id,
+        plot_id=assessment.plot_id,
+        plot_code=plot_code,
+        season=assessment.season,
+        status=assessment.status,
+        score=int(round(assessment.score)) if assessment.score is not None else None,
+        band=assessment.band,
+        reasons=reasons,
+        protective_factor=protective_factor,
+        model_version=assessment.model_version,
+        scorer=assessment.scorer,
+        cutoff_date=CUTOFF_DATE_LABEL,
+        cutoff_date_iso=cutoff_iso,
+        data_warnings=list(assessment.data_warnings or []),
+        insufficient_data_reason=assessment.insufficient_data_reason,
+        interpretation=FIXED_INTERPRETATION,
+        reliability_note=FIXED_RELIABILITY_NOTE,
+        loan_suggestion=loan_resp,
+        created_at=assessment.created_at.isoformat()
+        if hasattr(assessment.created_at, "isoformat")
+        else str(assessment.created_at),
+        meta=ResponseMeta(synthetic=synthetic, version="0.3.0"),
     )
 
 
@@ -145,7 +210,7 @@ def adapt_what_if_to_response(
         disclaimer=what_if_result.disclaimer,
         reliability_note=getattr(what_if_result, "reliability_note", FIXED_RELIABILITY_NOTE),
         notes=list(what_if_result.notes),
-        meta=ResponseMeta(synthetic=synthetic, version="0.2.0"),
+        meta=ResponseMeta(synthetic=synthetic, version="0.3.0"),
     )
 
 
@@ -192,5 +257,5 @@ def adapt_checkpoint_to_monitoring_response(
         timeline=timeline or [],
         active_alerts=active_summaries,
         past_alerts=past_alerts or [],
-        meta=ResponseMeta(synthetic=synthetic, version="0.2.0"),
+        meta=ResponseMeta(synthetic=synthetic, version="0.3.0"),
     )

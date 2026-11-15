@@ -266,6 +266,20 @@
             "title": "Cutoff Date",
             "type": "string"
           },
+          "cutoff_date_iso": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": "2025-01-31",
+            "description": "ISO 8601 representation of in-season cutoff date",
+            "example": "2025-01-31",
+            "title": "Cutoff Date Iso"
+          },
           "data_warnings": {
             "description": "Diagnostic data quality warnings (e.g. cloud gaps)",
             "items": {
@@ -1754,7 +1768,7 @@
   "info": {
     "description": "AI farm credit scoring and early-warning decision-support tool for bank loan officers",
     "title": "SatBhoomi Score + Raksha",
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -1974,16 +1988,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Get Assessment",
@@ -2123,7 +2127,7 @@
     },
     "/api/v1/assessments/{id}/what-if": {
       "post": {
-        "description": "[STABLE] Simulate prospective risk score changes under a controllable mitigation (T-08).",
+        "description": "Simulate prospective risk score changes under a controllable mitigation (T-08).",
         "operationId": "run_what_if_api_v1_assessments__id__what_if_post",
         "parameters": [
           {
@@ -2230,16 +2234,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Run What If",
@@ -2674,7 +2668,7 @@
                 }
               }
             },
-            "description": "Validation error"
+            "description": "Validation error or idempotency key reuse"
           },
           "401": {
             "content": {
@@ -2694,7 +2688,7 @@
                 }
               }
             },
-            "description": "Plot not found"
+            "description": "Plot or stored features not found"
           },
           "422": {
             "content": {
@@ -2705,16 +2699,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Create Assessment",

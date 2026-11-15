@@ -17,6 +17,12 @@ This document tracks all versioned changes to the **SatBhoomi Score + Raksha** R
 
 ## Releases
 
+### [0.3.0] - 2026-11-15 (Additive Cutoff ISO Date & Real Assessment Foundation)
+* **[ADDITIVE] Assessment Schema (`AssessmentResponse`)**:
+  - Added `cutoff_date_iso` (`str | None`, format `YYYY-MM-DD`, e.g. `"2025-01-31"`) next to the unchanged human-readable `cutoff_date` (`"January 31"`).
+  - Derived deterministically from the stored seasonal cutoff date in database records or mock data.
+  - Fully backward-compatible; no breaking contract changes.
+
 ### [0.2.0] - 2026-11-13 (Domain Result Parity & Adapter Layer)
 * **[BREAKING] Loan Suggestion Schema (`LoanSuggestionResponse`)**:
   - Replaced preliminary `DraftLoanSuggestion` with structured `LoanSuggestionResponse` mirroring `LoanSuggestionResult` (T-07).

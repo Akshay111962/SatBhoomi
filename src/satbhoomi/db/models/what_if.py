@@ -1,9 +1,9 @@
 """WhatIf simulation model."""
 
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import CheckConstraint, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import JSON, CheckConstraint, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from satbhoomi.db.base import Base
@@ -37,6 +37,7 @@ class WhatIf(Base):
     old_value: Mapped[str] = mapped_column(String(100), nullable=False)
     new_value: Mapped[str] = mapped_column(String(100), nullable=False)
     new_score: Mapped[float] = mapped_column(Float, nullable=False)
+    result_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

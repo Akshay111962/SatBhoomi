@@ -113,6 +113,17 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ---
 
+### RISK-09: Placeholder Underwriting Parameters in Loan Sizing Rules
+- **Category**: Credit Policy / Underwriting Integrity / Parameter Calibration
+- **Description**: Loan suggestion parameters in `src/satbhoomi/risk/config.py` (DLTC Scale of Finance ₹28,000/acre for irrigated wheat, ₹18,000/acre for rainfed, risk haircut bands 0%–10% low, 20%–35% medium, 50%–60% high, and RBI ₹2,00,000 collateral-free limit) are representative heuristics calibrated on published regional guidance but have not been formally verified against specific participating bank credit policies or updated DLTC schedules for the current financial year.
+- **Severity**: Medium
+- **Likelihood**: High (inherent in prototype underwriting rules)
+- **Mitigation & Guardrails**:
+  1. **Strict Decision-Support Labeling**: Loan suggestion outputs carry statutory disclaimer `DISCLAIMER_LOAN_SUGGESTION` stating they are indicative decision-support aids only; human loan officers retain sole sanction authority.
+  2. **Configurable Underwriting Rule Engine**: All scale-of-finance rates, risk haircut bounds, and repayment schedules reside in `src/satbhoomi/risk/config.py` and must be audited and aligned with partner bank internal credit circulars prior to production deployment.
+
+---
+
 ## Open Questions
 
 ### OPEN QUESTION-01: Pre-Sowing Loan Approval vs. In-Season (January 31) Assessment

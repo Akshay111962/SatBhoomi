@@ -39,9 +39,9 @@ def test_alembic_upgrade_and_downgrade(tmp_path: Path) -> None:
     audit_cols = {col["name"]: col for col in inspector.get_columns("audit_log")}
     assert audit_cols["user_id"]["nullable"] is True
 
-    # 2. Downgrade to initial schema (-1)
+    # 2. Downgrade to initial schema (35c220ad71ed)
     engine.dispose()
-    command.downgrade(alembic_cfg, "-1")
+    command.downgrade(alembic_cfg, "35c220ad71ed")
 
     engine = create_engine(db_url)
     inspector = inspect(engine)

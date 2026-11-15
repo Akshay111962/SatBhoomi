@@ -172,6 +172,11 @@ class AssessmentResponse(BaseModel):
         description="In-season temporal cutoff date",
         example="January 31",
     )
+    cutoff_date_iso: str | None = Field(
+        default="2025-01-31",
+        description="ISO 8601 representation of in-season cutoff date",
+        example="2025-01-31",
+    )
     data_warnings: list[str] = Field(
         default_factory=list,
         description="Diagnostic data quality warnings (e.g. cloud gaps)",

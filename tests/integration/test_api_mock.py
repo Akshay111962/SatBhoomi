@@ -261,13 +261,25 @@ def test_without_mock_api_every_business_endpoint_returns_501(non_mock_client: T
     err = ErrorResponse.model_validate(login_resp.json())
     assert err.error.code == "INVALID_CREDENTIALS"
 
-    # Remaining business endpoints return 501 Not Implemented with standard error body
-    endpoints = [
-        ("POST", "/api/v1/plots", {"farmer_id": 1, "area_acre": 2.0}),
-        ("GET", "/api/v1/plots", None),
+    # Real endpoints (login, assessments, what-if) return 401 without valid session token
+    real_endpoints = [
         ("POST", "/api/v1/plots/1/assessments", {"season": "2024-25"}),
         ("GET", "/api/v1/assessments/1", None),
         ("POST", "/api/v1/assessments/1/what-if", {"changed_input": "insured", "new_value": "1"}),
+    ]
+    for method, path, body in real_endpoints:
+        if method == "POST":
+            resp = non_mock_client.post(path, json=body or {})
+        else:
+            resp = non_mock_client.get(path)
+        assert resp.status_code == 401, f"Expected 401 for {method} {path}, got {resp.status_code}"
+        err = ErrorResponse.model_validate(resp.json())
+        assert err.error.code == "UNAUTHORIZED"
+
+    # Remaining unimplemented endpoints return 501 Not Implemented with standard error body
+    endpoints = [
+        ("POST", "/api/v1/plots", {"farmer_id": 1, "area_acre": 2.0}),
+        ("GET", "/api/v1/plots", None),
         ("GET", "/api/v1/plots/1/monitoring", None),
         (
             "POST",
