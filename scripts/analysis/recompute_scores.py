@@ -210,6 +210,26 @@ def run_recomputation(
     with open(output_json, "w", encoding="utf-8") as f:
         json.dump(summary, f, indent=2)
 
+    # Write reports/scores.csv for B3(a)
+    scores_csv_path = output_json.parent / "scores.csv"
+    scores_df = pd.DataFrame(
+        [
+            {
+                "plot_code": r["plot_code"],
+                "season": r["season"],
+                "status": r["status"],
+                "score": r["score"],
+                "band": r["band"],
+                "reasons": "; ".join(r["reasons"]) if r.get("reasons") else "",
+                "protective_factor": r.get("protective_factor") or "",
+                "insufficient_data_reason": r.get("insufficient_data_reason") or "",
+                "data_warnings": "; ".join(r["data_warnings"]) if r.get("data_warnings") else "",
+            }
+            for r in scores_records
+        ]
+    )
+    scores_df.to_csv(scores_csv_path, index=False)
+
     return summary
 
 
