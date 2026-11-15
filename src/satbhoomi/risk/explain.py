@@ -8,7 +8,7 @@ dependencies:
   log-odds space (intercept + sum(contributions) == logit == log(p/(1-p))).
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import numpy as np
@@ -19,6 +19,19 @@ from satbhoomi.risk.baseline import AgronomicRulesBaseline
 from satbhoomi.risk.config import RAINFED_TYPES
 from satbhoomi.risk.models import SafeClassifierWrapper
 from satbhoomi.risk.reason_templates import render_feature_reason
+
+# Specific rule keys for explanation output labelling
+FEATURE_RULE_KEY_MAP: dict[str, str] = {
+    "ndvi_pre_cutoff_mean": "relative_ndvi_rule",
+    "rain_pre_cutoff_deficit_pct": "rainfall_rule",
+    "mandi_pre_cutoff_volatility": "price_rule",
+}
+
+
+def map_feature_to_reason_key(feature_name: str) -> str:
+    """Map feature name to specific rule key or feature key."""
+    return FEATURE_RULE_KEY_MAP.get(feature_name, feature_name)
+
 
 # Deterministic priority order for contextual fallback reasons when fewer than 3
 # features have strictly positive risk-increasing contributions.
@@ -50,6 +63,7 @@ class ExplanationResult:
     contributions: dict[str, float]
     reasons: list[str]
     protective_factor: str | None
+    reason_keys: list[str] = field(default_factory=list)
 
 
 def is_value_missing(val: Any) -> bool:
@@ -67,7 +81,7 @@ def _select_reasons_and_protective(
     contributions: dict[str, float],
     missing_features: set[str],
     n_reasons: int = 3,
-) -> tuple[list[str], str | None]:
+) -> tuple[list[str], list[str], str | None]:
     """Select top risk-increasing reasons (up to 3, padded deterministically) and
     top protective factor, skipping all missing features.
     """
@@ -99,8 +113,11 @@ def _select_reasons_and_protective(
             direction = "down" if contributions.get(f, 0.0) < -1e-12 else "neutral"
             selected_for_reasons.append((f, direction))
 
+    reason_keys = [map_feature_to_reason_key(f) for f, _ in selected_for_reasons]
     reasons = [
-        render_feature_reason(f, row[f], direction=direction, row_context=row)
+        render_feature_reason(
+            map_feature_to_reason_key(f), row[f], direction=direction, row_context=row
+        )
         for f, direction in selected_for_reasons
     ]
 
@@ -111,13 +128,16 @@ def _select_reasons_and_protective(
     )
     protective = (
         render_feature_reason(
-            down_features[0], row[down_features[0]], direction="down", row_context=row
+            map_feature_to_reason_key(down_features[0]),
+            row[down_features[0]],
+            direction="down",
+            row_context=row,
         )
         if down_features
         else None
     )
 
-    return reasons, protective
+    return reasons, reason_keys, protective
 
 
 def explain_rules_baseline(
@@ -204,7 +224,9 @@ def explain_rules_baseline(
         pred_prob = scorer_model.prob_low
 
     ctx = dict(row, rel_drop_pct=drop_pct, baseline_ndvi=baseline)
-    reasons, protective = _select_reasons_and_protective(ctx, contributions, missing_features)
+    reasons, reason_keys, protective = _select_reasons_and_protective(
+        ctx, contributions, missing_features
+    )
 
     return ExplanationResult(
         scorer="rules_baseline",
@@ -214,6 +236,7 @@ def explain_rules_baseline(
         model_output_value=pred_prob,
         contributions=contributions,
         reasons=reasons,
+        reason_keys=reason_keys,
         protective_factor=protective,
     )
 
@@ -230,7 +253,9 @@ def explain_logistic_regression(
     if model.single_class_target_ is not None or model.pipeline_ is None:
         base_val = float(model.single_class_target_ or 0)
         contributions = {f: 0.0 for f in FEATURE_COLUMNS if f not in missing_features}
-        reasons, protective = _select_reasons_and_protective(row, contributions, missing_features)
+        reasons, reason_keys, protective = _select_reasons_and_protective(
+            row, contributions, missing_features
+        )
         return ExplanationResult(
             scorer="logreg",
             space="probability",
@@ -239,6 +264,7 @@ def explain_logistic_regression(
             model_output_value=pred_prob,
             contributions=contributions,
             reasons=reasons,
+            reason_keys=reason_keys,
             protective_factor=protective,
         )
 
@@ -263,7 +289,9 @@ def explain_logistic_regression(
         elif name.startswith("cat__irrigation_"):
             raw_contribs["irrigation"] += contrib
 
-    reasons, protective = _select_reasons_and_protective(row, raw_contribs, missing_features)
+    reasons, reason_keys, protective = _select_reasons_and_protective(
+        row, raw_contribs, missing_features
+    )
 
     return ExplanationResult(
         scorer="logreg",
@@ -273,5 +301,6 @@ def explain_logistic_regression(
         model_output_value=logit,
         contributions=raw_contribs,
         reasons=reasons,
+        reason_keys=reason_keys,
         protective_factor=protective,
     )

@@ -44,8 +44,8 @@ def render_feature_reason(
     Returns:
         Plain-language English sentence containing only numbers from the row.
     """
-    if feature_name not in FEATURE_COLUMNS:
-        raise ValueError(f"Unknown feature '{feature_name}' not in FEATURE_COLUMNS")
+    if feature_name not in TEMPLATE_FEATURES:
+        raise ValueError(f"Unknown feature or rule key '{feature_name}' not in TEMPLATE_FEATURES")
 
     ctx = row_context or {}
 
@@ -71,8 +71,23 @@ def render_feature_reason(
             )
         return f"Early-season vegetation greenness is healthy (NDVI {v})."
 
-    if feature_name == "ndvi_pre_cutoff_mean":
+    if feature_name in ("ndvi_pre_cutoff_mean", "relative_ndvi_rule"):
         v = _fmt_float(value, 2)
+        rel_drop = ctx.get("rel_drop_pct")
+        baseline = ctx.get("baseline_ndvi")
+        if rel_drop is not None and baseline is not None:
+            drop_str = _fmt_float(rel_drop, 1)
+            base_str = _fmt_float(baseline, 2)
+            if direction == "up":
+                return (
+                    f"Vegetation greenness up to the cut-off date is low "
+                    f"(NDVI {v}, {drop_str}% below the plot's historical baseline "
+                    f"of {base_str} NDVI), pointing to farm stress."
+                )
+            return (
+                f"Vegetation greenness up to the cut-off date is {v} (NDVI), tracking close to "
+                f"the plot's historical baseline ({base_str} NDVI, {drop_str}% relative change)."
+            )
         if direction == "up":
             return (
                 f"Average vegetation greenness up to the cut-off date is low (NDVI {v}), "
@@ -112,7 +127,7 @@ def render_feature_reason(
             )
         return f"Cumulative rainfall up to the cut-off date was {v} mm."
 
-    if feature_name == "rain_pre_cutoff_deficit_pct":
+    if feature_name in ("rain_pre_cutoff_deficit_pct", "rainfall_rule"):
         v = _fmt_float(value, 1)
         if direction == "up":
             return (
@@ -121,7 +136,7 @@ def render_feature_reason(
             )
         return f"Pre-cutoff rainfall departure is {v}% from normal."
 
-    if feature_name == "mandi_pre_cutoff_volatility":
+    if feature_name in ("mandi_pre_cutoff_volatility", "price_rule"):
         v = _fmt_float(value, 3)
         if direction == "up":
             return (
@@ -174,8 +189,29 @@ def render_feature_reason(
             f"{OFFICER_RECORDED_PHRASE}), which relates to repayment stress buffer."
         )
 
+    if feature_name == "in_season_agronomic_indicators":
+        if isinstance(value, str) and len(value) > 0 and value != "0":
+            return value
+        if direction == "up":
+            return (
+                "In-season agronomic indicators point to observed farm stress "
+                "up to the cut-off date."
+            )
+        return (
+            "In-season agronomic indicators reflect normal crop and weather "
+            "conditions up to the cut-off date."
+        )
+
     raise ValueError(f"No template defined for feature '{feature_name}'")  # pragma: no cover
 
 
+# New specific rule keys and generic key for explanation output labelling
+NEW_REASON_RULE_KEYS: tuple[str, ...] = (
+    "relative_ndvi_rule",
+    "rainfall_rule",
+    "price_rule",
+    "in_season_agronomic_indicators",
+)
+
 # Explicit registry of supported template keys for completeness verification
-TEMPLATE_FEATURES: tuple[str, ...] = tuple(FEATURE_COLUMNS)
+TEMPLATE_FEATURES: tuple[str, ...] = tuple(FEATURE_COLUMNS) + NEW_REASON_RULE_KEYS

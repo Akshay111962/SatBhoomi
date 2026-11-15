@@ -15,7 +15,7 @@ from collections.abc import Mapping
 from typing import Any, Literal
 
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 
 from satbhoomi.features.config import (
     FEATURE_COLUMNS,
@@ -79,6 +79,13 @@ class RiskScoreResult(BaseModel):
     insufficient_data_reason: str | None = None
     interpretation: str = FIXED_INTERPRETATION
     reliability_note: str = FIXED_RELIABILITY_NOTE
+
+    _reason_keys: list[str] = PrivateAttr(default_factory=list)
+
+    @property
+    def reason_keys(self) -> list[str]:
+        """Return the specific rule or feature keys corresponding to reasons."""
+        return self._reason_keys
 
 
 def map_score_to_band(score: int) -> Literal["low", "medium", "high"]:
@@ -206,7 +213,7 @@ def score_plot_season(
     clamped_score = max(0, min(100, raw_score))
     band = map_score_to_band(clamped_score)
 
-    return RiskScoreResult(
+    res = RiskScoreResult(
         status="ok",
         plot_code=plot_code,
         season=season,
@@ -219,3 +226,5 @@ def score_plot_season(
         data_warnings=data_warnings,
         insufficient_data_reason=None,
     )
+    object.__setattr__(res, "_reason_keys", list(explanation.reason_keys))
+    return res

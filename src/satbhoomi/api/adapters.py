@@ -59,11 +59,16 @@ def adapt_risk_score_to_assessment_response(
     synthetic: bool = True,
 ) -> AssessmentResponse:
     """Adapt a domain RiskScoreResult (T-06) into the API AssessmentResponse schema."""
+    keys = (
+        score_result.reason_keys
+        if score_result.reason_keys and len(score_result.reason_keys) == len(score_result.reasons)
+        else ["in_season_agronomic_indicators"] * len(score_result.reasons)
+    )
     reasons: list[ReasonItem] = []
-    for r in score_result.reasons:
+    for k, r in zip(keys, score_result.reasons, strict=False):
         reasons.append(
             ReasonItem(
-                feature_name="in_season_agronomic_indicators",
+                feature_name=k,
                 text=r,
             )
         )
@@ -101,22 +106,37 @@ def adapt_stored_assessment_to_response(
 ) -> AssessmentResponse:
     """Adapt a persisted ORM Assessment model into the API AssessmentResponse schema."""
     reasons: list[ReasonItem] = []
+    reason_keys: list[str] = []
     if assessment.reasons_json:
-        for item in assessment.reasons_json:
-            if isinstance(item, dict):
-                reasons.append(
-                    ReasonItem(
-                        feature_name=item.get("feature_name", "in_season_agronomic_indicators"),
-                        text=item.get("text", ""),
-                    )
-                )
-            else:
+        if isinstance(assessment.reasons_json, dict):
+            items = assessment.reasons_json.get("top_reasons", [])
+            for item in items:
                 reasons.append(
                     ReasonItem(
                         feature_name="in_season_agronomic_indicators",
                         text=str(item),
                     )
                 )
+                reason_keys.append("in_season_agronomic_indicators")
+        elif isinstance(assessment.reasons_json, list):
+            for item in assessment.reasons_json:
+                if isinstance(item, dict):
+                    fn = item.get("feature_name", "in_season_agronomic_indicators")
+                    reasons.append(
+                        ReasonItem(
+                            feature_name=fn,
+                            text=item.get("text", ""),
+                        )
+                    )
+                    reason_keys.append(fn)
+                else:
+                    reasons.append(
+                        ReasonItem(
+                            feature_name="in_season_agronomic_indicators",
+                            text=str(item),
+                        )
+                    )
+                    reason_keys.append("in_season_agronomic_indicators")
 
     loan_resp = None
     if assessment.loan_suggestion_json:

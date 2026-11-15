@@ -190,8 +190,13 @@ def create_assessment(
         insured=plot.insured,
     )
 
+    keys = (
+        score_res.reason_keys
+        if score_res.reason_keys and len(score_res.reason_keys) == len(score_res.reasons)
+        else ["in_season_agronomic_indicators"] * len(score_res.reasons)
+    )
     reasons_list = [
-        {"feature_name": "in_season_agronomic_indicators", "text": r} for r in score_res.reasons
+        {"feature_name": k, "text": r} for k, r in zip(keys, score_res.reasons, strict=False)
     ]
 
     # 8. Store assessment and append-only audit log in single atomic transaction

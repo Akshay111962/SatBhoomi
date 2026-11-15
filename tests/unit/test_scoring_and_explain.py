@@ -243,14 +243,21 @@ def test_missing_features_tolerance_and_insufficient_data(healthy_row: dict) -> 
 
 
 def test_every_feature_has_template_and_no_banned_wording(stressed_row: dict) -> None:
-    """Every feature in FEATURE_COLUMNS has a template and passes banned-wording check."""
-    assert set(TEMPLATE_FEATURES) == set(FEATURE_COLUMNS)
+    """Every feature and new rule key in TEMPLATE_FEATURES has a template.
 
-    for feat in FEATURE_COLUMNS:
+    Passes banned-wording check.
+    """
+    from satbhoomi.risk.reason_templates import NEW_REASON_RULE_KEYS
+
+    expected_keys = set(FEATURE_COLUMNS) | set(NEW_REASON_RULE_KEYS)
+    assert set(TEMPLATE_FEATURES) == expected_keys
+
+    for key in TEMPLATE_FEATURES:
+        val = stressed_row.get(key, 0.45)
         for direction in ("up", "down", "neutral"):
             text = render_feature_reason(
-                feat,
-                stressed_row[feat],
+                key,
+                val,
                 direction=direction,
                 row_context=stressed_row,
             )
