@@ -20,6 +20,7 @@ from satbhoomi.api.adapters import adapt_what_if_to_response
 from satbhoomi.api.mock_data import MOCK_ASSESSMENTS, SYNTHETIC_META
 from satbhoomi.api.routes.deps import (
     check_mock_error_triggers,
+    enforce_farmer_consent,
     get_mock_status,
     require_officer,
     standard_error_response,
@@ -270,6 +271,8 @@ def run_what_if(
             message=f"Plot for assessment {id} not found",
             field="id",
         )
+
+    enforce_farmer_consent(db, plot.farmer_id)
 
     psf = (
         db.execute(

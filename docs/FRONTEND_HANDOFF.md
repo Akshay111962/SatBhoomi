@@ -142,9 +142,36 @@ This table maps the **9 UI screens (S1–S9)** defined in Blueprint Section 5 to
 | **S4** | Assessment Result | `POST /api/v1/plots/{id}/assessments`<br>`GET /api/v1/assessments/{id}` | **STABLE** | Evaluates credit score. Returns score, band, exactly 3 reasons, `protective_factor`, and indicative `loan_suggestion` with structured `limit_band` and `repayment_schedule`. |
 | **S5** | What-If Simulator | `POST /api/v1/assessments/{id}/what-if` | **STABLE** | Simulates `insured`, `irrigation`, `supplementary_irrigation`. Returns `old_score`, `new_score`, `score_delta`, `old_limit_band`, `new_limit_band`, `effect_basis`, and `assumption`. Mandatory `"estimate"` label. |
 | **S6** | Monitoring & Alerts | `GET /api/v1/plots/{id}/monitoring` | **STABLE** | In-season timeline of NDVI/rain, data-gap status, active alerts matching `AlertItem` and database ORM enums. |
-| **S7** | Alert Action Playbook | `POST /api/v1/alerts/{id}/actions` | **DRAFT** | Audited logging of supportive loan officer visits and relief actions. Finalised in T-12. |
-| **S8** | Relief Evidence Report| `GET /api/v1/plots/{id}/relief-report` | **DRAFT** | Before/after NDVI, loss band vs. RBI 33% threshold. Mandatory disclaimer. Finalised in T-12. |
-| **S9** | Farmer Vernacular Summary | `GET /api/v1/assessments/{id}/farmer-summary?lang=en\|gu\|hi` | **DRAFT** | Plain-language summaries in English (`en`), Gujarati (`gu`), and Hindi (`hi`). Finalised in T-12. |
+| **S7** | Alert Action Playbook | `POST /api/v1/alerts/{id}/actions` | **STABLE** | Audited logging of supportive loan officer visits and relief actions. |
+| **S8** | Relief Evidence Report| `GET /api/v1/plots/{id}/relief-report` | **STABLE** | Before/after NDVI, loss band vs. RBI 33% threshold. Mandatory disclaimer. |
+| **S9** | Farmer Vernacular Summary | `GET /api/v1/assessments/{id}/farmer-summary?lang=en\|gu\|hi` | **STABLE** | Plain-language summaries in English (`en`), Gujarati (`gu`), and Hindi (`hi`). |
+| **—** | Consent Management | `POST /api/v1/farmers/{id}/consents`<br>`POST /api/v1/consents/{id}/withdraw`<br>`GET /api/v1/farmers/{id}/consents` | **STABLE** | DPDP Act consent tracking (additive in 0.6.0). |
+
+---
+
+## 3.1 Consent Management & Real Data Ingestion (Contract v0.6.0)
+
+In Contract `0.6.0`, security and consent guardrails are active:
+1. **Consent Endpoints**:
+   - `POST /api/v1/farmers/{id}/consents`: Give consent. Request body: `{"purpose": "credit_scoring"}` (allowed: `credit_scoring`, `in_season_monitoring`, `relief_support`, `advisory`). Returns `201 Created` with consent ID, `farmer_id`, `purpose`, `given_on` (ISO UTC), and `recorded_by`.
+   - `POST /api/v1/consents/{id}/withdraw`: Withdraw consent. Returns `200 OK` with updated `withdrawn_on` timestamp.
+   - `GET /api/v1/farmers/{id}/consents`: List all consents for a farmer. Returns `200 OK` with `{"items": [...], "total": int}`.
+2. **Consent Guard on Real Farmers (`CONSENT_REQUIRED`)**:
+   - Synthetic farmers (`data_origin="synthetic"`, default for all sample plots) bypass consent checks.
+   - For any farmer with `data_origin="real"`, calling assessment, what-if, monitoring read, alert action, relief report, or farmer summary requires an active consent (given and not withdrawn). Otherwise, the API returns `403 Forbidden` with:
+     ```json
+     {
+       "error": {
+         "code": "CONSENT_REQUIRED",
+         "message": "Active consent required for real farmer processing",
+         "field": "farmer_id"
+       }
+     }
+     ```
+3. **`ALLOW_REAL_DATA` Safety Switch**:
+   - Creating a plot for a `data_origin="real"` farmer is blocked with `403 FORBIDDEN` unless `ALLOW_REAL_DATA=true` is explicitly set in server environment settings (default is `false`).
+
+---
 
 ---
 

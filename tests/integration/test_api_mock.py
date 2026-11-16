@@ -273,6 +273,10 @@ def test_without_mock_api_every_business_endpoint_returns_501(non_mock_client: T
             "/api/v1/alerts/1/actions",
             {"action_type": "field_visit", "note": "Supportive visit logged"},
         ),
+        ("POST", "/api/v1/plots", {"farmer_id": 1, "area_acre": 2.0}),
+        ("GET", "/api/v1/plots", None),
+        ("GET", "/api/v1/plots/1/relief-report", None),
+        ("GET", "/api/v1/assessments/1/farmer-summary?lang=en", None),
     ]
     for method, path, body in real_endpoints:
         if method == "POST":
@@ -282,24 +286,6 @@ def test_without_mock_api_every_business_endpoint_returns_501(non_mock_client: T
         assert resp.status_code == 401, f"Expected 401 for {method} {path}, got {resp.status_code}"
         err = ErrorResponse.model_validate(resp.json())
         assert err.error.code == "UNAUTHORIZED"
-
-    # Remaining unimplemented endpoints return 501 Not Implemented with standard error body
-    endpoints = [
-        ("POST", "/api/v1/plots", {"farmer_id": 1, "area_acre": 2.0}),
-        ("GET", "/api/v1/plots", None),
-        ("GET", "/api/v1/plots/1/relief-report", None),
-        ("GET", "/api/v1/assessments/1/farmer-summary?lang=en", None),
-    ]
-
-    for method, path, body in endpoints:
-        if method == "POST":
-            resp = non_mock_client.post(path, json=body or {})
-        else:
-            resp = non_mock_client.get(path)
-
-        assert resp.status_code == 501, f"Expected 501 for {method} {path}, got {resp.status_code}"
-        err = ErrorResponse.model_validate(resp.json())
-        assert err.error.code == "NOT_IMPLEMENTED"
 
 
 @pytest.mark.anyio

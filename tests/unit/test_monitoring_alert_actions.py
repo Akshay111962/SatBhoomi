@@ -29,7 +29,7 @@ from sqlalchemy.pool import StaticPool
 
 from satbhoomi.alerts.replay import generate_synthetic_stress_scenario
 from satbhoomi.api.auth.tokens import create_access_token
-from satbhoomi.api.main import app
+from satbhoomi.api.main import API_CONTRACT_VERSION, app
 from satbhoomi.api.routes.alerts import PLAYBOOK_ACTIONS
 from satbhoomi.api.routes.monitoring import REPLAY_NOTE
 from satbhoomi.config.settings import Settings, get_settings
@@ -474,14 +474,14 @@ def test_openapi_drift_and_stable_schemas_preserved() -> None:
     assert res.status_code == 200
     live_spec = res.json()
 
-    assert live_spec["info"]["version"] == "0.4.0"
+    assert live_spec["info"]["version"] == API_CONTRACT_VERSION
 
     openapi_path = Path("docs/api/openapi.json")
     assert openapi_path.is_file()
     with open(openapi_path, encoding="utf-8") as f:
         stored_spec = json.load(f)
 
-    assert stored_spec["info"]["version"] == "0.4.0"
+    assert stored_spec["info"]["version"] == API_CONTRACT_VERSION
 
     # Assert stable schemas exist with identical required core fields
     schemas = stored_spec["components"]["schemas"]

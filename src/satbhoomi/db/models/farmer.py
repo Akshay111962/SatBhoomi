@@ -3,7 +3,7 @@
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from satbhoomi.db.base import Base
@@ -21,6 +21,9 @@ class Farmer(Base):
     """
 
     __tablename__ = "farmer"
+    __table_args__ = (
+        CheckConstraint("data_origin IN ('synthetic', 'real')", name="ck_farmer_data_origin"),
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     display_name: Mapped[str] = mapped_column(
@@ -31,6 +34,12 @@ class Farmer(Base):
     )
     village: Mapped[str] = mapped_column(String(100), nullable=False)
     district: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    data_origin: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="synthetic",
+        server_default="synthetic",
+    )
     consent_id: Mapped[int | None] = mapped_column(
         Integer,
         ForeignKey("consent.id", ondelete="SET NULL", use_alter=True),

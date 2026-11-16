@@ -136,6 +136,42 @@ This document tracks identified architectural, operational, and ethical risks fo
 
 ---
 
+### RISK-11: Real Farmer Data Ingestion Disabled by Default
+- **Category**: Data Governance / Privacy / Sandbox Boundaries
+- **Description**: Ingesting real farmer data without established organizational DPDP compliance infrastructure risks accidental regulatory non-compliance or data leakage.
+- **Severity**: High
+- **Likelihood**: Low (prevented by default settings)
+- **Mitigation & Guardrails**:
+  1. Setting `ALLOW_REAL_DATA` defaults to `False` in application code, `.env.example`, and test environments.
+  2. Plot and farmer creation routes reject records with `data_origin="real"` unless `ALLOW_REAL_DATA=true`.
+  3. Repository data consists strictly of 21 synthetic/anonymized sample plots.
+
+---
+
+### RISK-12: Absence of Consent Management User Interface (UI)
+- **Category**: Usability / Frontend Scope Boundary
+- **Description**: While backend REST endpoints exist for granting, withdrawing, and listing consents (`/api/v1/farmers/{id}/consents`), no dedicated frontend UI screens (S1–S9) were authorized or built for consent tracking in this task.
+- **Severity**: Low
+- **Likelihood**: High (inherent in task scope)
+- **Mitigation & Guardrails**:
+  1. All synthetic sample plots bypass the consent check, ensuring the dashboard operates smoothly without UI blocks.
+  2. Documented as a frontend backlog item in `docs/FRONTEND_HANDOFF.md`. Any future ingestion of real farmers will require building a dedicated consent recording UI screen before enabling `ALLOW_REAL_DATA`.
+
+---
+
+### RISK-13: DPDP Act Technical Implementation Lacks Formal Legal Review
+- **Category**: Regulatory Compliance / Legal Certification
+- **Description**: Consent lifecycles, withdrawal flows, and cascading erasure CLI scripts are designed against technical interpretations of India's Digital Personal Data Protection Act, 2023 principles, but have not undergone formal legal verification or regulatory audit.
+- **Severity**: Medium
+- **Likelihood**: High (prototype nature)
+- **Mitigation & Guardrails**:
+  1. Prominent disclosures across all security documentation and reports: *"Likely relevant once real personal data is used; not legal advice; not verified for this case."*
+  2. The system makes no claim of legal certification or statutory compliance.
+
+---
+
+---
+
 ## Open Questions
 
 ### OPEN QUESTION-01: Pre-Sowing Loan Approval vs. In-Season (January 31) Assessment

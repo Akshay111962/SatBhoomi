@@ -16,6 +16,7 @@ from satbhoomi.api.adapters import adapt_stored_assessment_to_response
 from satbhoomi.api.mock_data import MOCK_ASSESSMENTS
 from satbhoomi.api.routes.deps import (
     check_mock_error_triggers,
+    enforce_farmer_consent,
     get_mock_status,
     require_officer,
     standard_error_response,
@@ -96,6 +97,8 @@ def create_assessment(
             message=f"Plot with id {id} not found or inactive",
             field="id",
         )
+
+    enforce_farmer_consent(db, plot.farmer_id)
 
     # 4. Retrieve stored pre-cutoff seasonal features (404 if missing)
     if payload is not None and payload.season:

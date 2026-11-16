@@ -10,6 +10,7 @@ from satbhoomi.db.base import Base
 
 if TYPE_CHECKING:
     from satbhoomi.db.models.farmer import Farmer
+    from satbhoomi.db.models.user import User
 
 
 class Consent(Base):
@@ -34,10 +35,19 @@ class Consent(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    recorded_by: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey("user.id", ondelete="SET NULL"),
+        nullable=True,
+    )
 
     # Relationships
     farmer: Mapped["Farmer"] = relationship(
         "Farmer",
         back_populates="consents",
         foreign_keys=[farmer_id],
+    )
+    recorder: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[recorded_by],
     )

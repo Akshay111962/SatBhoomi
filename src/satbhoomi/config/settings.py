@@ -88,6 +88,11 @@ class Settings(BaseSettings):
         alias="MOCK_API",
         description="Whether to run API in synthetic mock mode for frontend development",
     )
+    allow_real_data: bool = Field(
+        default=False,
+        alias="ALLOW_REAL_DATA",
+        description="Safety gate controlling ingestion and processing of real farmer data",
+    )
     cors_allowed_origins: list[str] = Field(
         default_factory=lambda: ["http://localhost:5173", "http://localhost:3000"],
         alias="CORS_ALLOWED_ORIGINS",

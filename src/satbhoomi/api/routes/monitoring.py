@@ -16,12 +16,14 @@ from sqlalchemy.orm import Session
 from satbhoomi.api.mock_data import MOCK_MONITORING, SYNTHETIC_META
 from satbhoomi.api.routes.deps import (
     check_mock_error_triggers,
+    enforce_farmer_consent,
     get_mock_status,
     require_officer,
     standard_error_response,
 )
 from satbhoomi.api.schemas.common import ErrorResponse, ResponseMeta
 from satbhoomi.api.schemas.monitoring import AlertSummary, PlotMonitoringResponse, TimelinePoint
+from satbhoomi.db.audit import write_audit_log
 from satbhoomi.db.models.alert import Alert
 from satbhoomi.db.models.plot import Plot
 from satbhoomi.db.models.plot_season_timeline import PlotSeasonTimeline
@@ -102,6 +104,8 @@ def get_plot_monitoring(
             message=f"Plot with id {id} not found or inactive",
             field="id",
         )
+
+    enforce_farmer_consent(db, plot.farmer_id)
 
     # Determine target season: requested season, or latest season with stored timeline
     if season:
@@ -218,6 +222,15 @@ def get_plot_monitoring(
         past_alerts=past_summaries,
         meta=resp_meta,
     )
+
+    write_audit_log(
+        db=db,
+        user_id=current_user.id,
+        event="monitoring_read",
+        entity="plot",
+        entity_id=plot.id,
+    )
+    db.commit()
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,

@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 from satbhoomi.api.mock_data import SYNTHETIC_META
 from satbhoomi.api.routes.deps import (
     check_mock_error_triggers,
+    enforce_farmer_consent,
     get_mock_status,
     require_officer,
     standard_error_response,
@@ -28,6 +29,7 @@ from satbhoomi.api.schemas.common import ErrorResponse, ResponseMeta
 from satbhoomi.db.audit import write_audit_log
 from satbhoomi.db.models.action_log import ActionLog
 from satbhoomi.db.models.alert import Alert
+from satbhoomi.db.models.plot import Plot
 from satbhoomi.db.models.user import User
 from satbhoomi.db.session import get_db
 
@@ -144,6 +146,10 @@ def log_alert_action(
             message=f"Alert with id {id} not found",
             field="id",
         )
+
+    plot = db.get(Plot, alert.plot_id)
+    if plot:
+        enforce_farmer_consent(db, plot.farmer_id)
 
     # Enforce alert status transition lifecycle: open -> in_progress -> resolved
     status_before = alert.status

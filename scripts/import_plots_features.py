@@ -253,6 +253,7 @@ def import_plots_and_features(
                 display_name=farmer_display,
                 village=village_val,
                 district=district_val,
+                data_origin="synthetic",
             )
             session.add(farmer)
             session.flush()

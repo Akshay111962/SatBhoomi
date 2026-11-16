@@ -17,6 +17,15 @@ This document tracks all versioned changes to the **SatBhoomi Score + Raksha** R
 
 ## Releases
 
+### [0.6.0] - 2026-11-16 (DPDP Consent Management & Additive Endpoints)
+* **[ADDITIVE] Consent Management Endpoints**:
+  - `POST /api/v1/farmers/{id}/consents`: Grants active processing consent for a farmer with a fixed purpose (`credit_scoring`, `in_season_monitoring`, `relief_assessment`, `farmer_summary`, `farm_advisory`). One active consent per farmer and purpose; duplicate attempts return 409 Conflict.
+  - `POST /api/v1/consents/{id}/withdraw`: Revokes an active consent, setting `withdrawn_on`. Cannot withdraw twice (returns 409 Conflict).
+  - `GET /api/v1/farmers/{id}/consents`: Lists historical and active consent records for a farmer.
+* **[ADDITIVE] Consent Guard**:
+  - For real farmers (`data_origin="real"`), endpoints (`POST /plots/{id}/assessments`, `POST /what-if`, `GET /plots/{id}/monitoring`, `POST /alerts/{id}/actions`, `GET /plots/{id}/relief-report`, `GET /assessments/{id}/farmer-summary`) require active consent, returning HTTP 403 `CONSENT_REQUIRED` if absent or revoked. Synthetic farmers never require consent.
+* **STABLE Schemas**: Zero modifications to existing schemas. All pre-existing response models remain identical.
+
 ### [0.4.0] - 2026-11-15 (Historical Replay Simulation & Playbook Actions)
 * **[BREAKING (draft endpoints only)] In-Season Monitoring Schema (`PlotMonitoringResponse`)**:
   - Added `mode` (`Literal["replay", "live"]`, default `"replay"`) and mandatory `replay_note` disclaimer stating this is a historical replay simulation, not live monitoring.

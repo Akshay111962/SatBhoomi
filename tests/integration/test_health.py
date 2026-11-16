@@ -21,7 +21,7 @@ def test_unregistered_route_returns_404(test_client: TestClient) -> None:
     assert response.status_code == 404
 
 
-def test_business_endpoints_return_501_in_default_mode(test_client: TestClient) -> None:
-    """Verify that registered business routes return 501 in default non-mock mode."""
+def test_business_endpoints_require_auth_in_default_mode(test_client: TestClient) -> None:
+    """Verify that registered business routes require authentication in default non-mock mode."""
     response = test_client.get("/api/v1/plots")
-    assert response.status_code == 501
+    assert response.status_code == 401

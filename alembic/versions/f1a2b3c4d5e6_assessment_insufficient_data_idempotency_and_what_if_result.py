@@ -9,6 +9,7 @@ Create Date: 2026-11-15 15:20:00.000000
 from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -54,19 +55,11 @@ def upgrade() -> None:
                 nullable=True,
             )
         )
-        batch_op.add_column(
-            sa.Column("idempotency_key", sa.String(length=64), nullable=True)
-        )
-        batch_op.add_column(
-            sa.Column("request_hash", sa.String(length=64), nullable=True)
-        )
+        batch_op.add_column(sa.Column("idempotency_key", sa.String(length=64), nullable=True))
+        batch_op.add_column(sa.Column("request_hash", sa.String(length=64), nullable=True))
         batch_op.alter_column("score", existing_type=sa.Float(), nullable=True)
-        batch_op.alter_column(
-            "band", existing_type=sa.String(length=10), nullable=True
-        )
-        batch_op.alter_column(
-            "loan_suggestion_json", existing_type=sa.JSON(), nullable=True
-        )
+        batch_op.alter_column("band", existing_type=sa.String(length=10), nullable=True)
+        batch_op.alter_column("loan_suggestion_json", existing_type=sa.JSON(), nullable=True)
         batch_op.create_unique_constraint(
             "uq_assessment_idempotency",
             ["created_by", "plot_id", "idempotency_key"],
@@ -83,12 +76,8 @@ def downgrade() -> None:
 
     with op.batch_alter_table("assessment", schema=None) as batch_op:
         batch_op.drop_constraint("uq_assessment_idempotency", type_="unique")
-        batch_op.alter_column(
-            "loan_suggestion_json", existing_type=sa.JSON(), nullable=False
-        )
-        batch_op.alter_column(
-            "band", existing_type=sa.String(length=10), nullable=False
-        )
+        batch_op.alter_column("loan_suggestion_json", existing_type=sa.JSON(), nullable=False)
+        batch_op.alter_column("band", existing_type=sa.String(length=10), nullable=False)
         batch_op.alter_column("score", existing_type=sa.Float(), nullable=False)
         batch_op.drop_column("request_hash")
         batch_op.drop_column("idempotency_key")

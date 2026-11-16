@@ -6,11 +6,14 @@ from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from satbhoomi.api.auth.tokens import decode_access_token
 from satbhoomi.api.mock_data import FAKE_MOCK_TOKEN
 from satbhoomi.config.settings import get_settings
+from satbhoomi.db.models.consent import Consent
+from satbhoomi.db.models.farmer import Farmer
 from satbhoomi.db.models.user import User
 from satbhoomi.db.session import get_db
 
@@ -284,3 +287,45 @@ def require_admin(current_user: Annotated[User, Depends(get_current_user)]) -> U
             },
         )
     return current_user
+
+
+def enforce_farmer_consent(db: Session, farmer_id: int) -> None:
+    """Enforce DPDP Act consent requirement for real farmers.
+
+    - Synthetic farmers never need consent.
+    - Real farmers require ALLOW_REAL_DATA=true.
+    - Real farmers require an active consent record (given and not withdrawn).
+    - If consent is missing or withdrawn, raises 403 CONSENT_REQUIRED.
+    """
+    farmer = db.get(Farmer, farmer_id)
+    if not farmer:
+        return
+    if farmer.data_origin == "synthetic":
+        return
+
+    # Real farmer checks
+    settings = get_settings()
+    if not settings.allow_real_data:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "REAL_DATA_DISALLOWED",
+                "message": "Real farmer data processing is disabled by system policy",
+                "field": None,
+            },
+        )
+
+    stmt = select(Consent).where(
+        Consent.farmer_id == farmer_id,
+        Consent.withdrawn_on.is_(None),
+    )
+    active_consent = db.execute(stmt).first()
+    if not active_consent:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "CONSENT_REQUIRED",
+                "message": "Active consent is required for real farmer data processing",
+                "field": None,
+            },
+        )

@@ -471,6 +471,103 @@
         "title": "AssessmentResponse",
         "type": "object"
       },
+      "ConsentCreateRequest": {
+        "description": "Payload to grant a new processing consent for a farmer.",
+        "properties": {
+          "purpose": {
+            "description": "Stated processing purpose from fixed allowed list",
+            "example": "credit_scoring",
+            "title": "Purpose",
+            "type": "string"
+          }
+        },
+        "required": [
+          "purpose"
+        ],
+        "title": "ConsentCreateRequest",
+        "type": "object"
+      },
+      "ConsentListResponse": {
+        "description": "List response envelope for a farmer's consent history.",
+        "properties": {
+          "items": {
+            "description": "List of consent records",
+            "items": {
+              "$ref": "#/components/schemas/ConsentResponse"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "description": "Total count of consents for farmer",
+            "example": 1,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "ConsentListResponse",
+        "type": "object"
+      },
+      "ConsentResponse": {
+        "description": "Representation of an individual farmer consent record.",
+        "properties": {
+          "farmer_id": {
+            "description": "Farmer identifier",
+            "example": 1,
+            "title": "Farmer Id",
+            "type": "integer"
+          },
+          "given_on": {
+            "description": "UTC ISO timestamp when consent was granted",
+            "example": "2026-11-16T10:00:00Z",
+            "title": "Given On",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique consent identifier",
+            "example": 1,
+            "title": "Id",
+            "type": "integer"
+          },
+          "purpose": {
+            "description": "Processing purpose",
+            "example": "credit_scoring",
+            "title": "Purpose",
+            "type": "string"
+          },
+          "recorded_by": {
+            "description": "Officer user ID who recorded the consent",
+            "example": 1,
+            "title": "Recorded By",
+            "type": "integer"
+          },
+          "withdrawn_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nullable UTC ISO timestamp if revoked",
+            "title": "Withdrawn On"
+          }
+        },
+        "required": [
+          "id",
+          "farmer_id",
+          "purpose",
+          "given_on",
+          "recorded_by"
+        ],
+        "title": "ConsentResponse",
+        "type": "object"
+      },
       "ErrorDetail": {
         "description": "Structured error object conforming to SatBhoomi blueprint section 8.",
         "properties": {
@@ -1822,7 +1919,7 @@
   "info": {
     "description": "AI farm credit scoring and early-warning decision-support tool for bank loan officers",
     "title": "SatBhoomi Score + Raksha",
-    "version": "0.4.0"
+    "version": "0.6.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -2052,7 +2149,7 @@
     },
     "/api/v1/assessments/{id}/farmer-summary": {
       "get": {
-        "description": "[DRAFT] Generate plain-language credit summary in Gujarati, Hindi, or English.",
+        "description": "Generate plain-language credit summary in Gujarati, Hindi, or English.",
         "operationId": "get_farmer_summary_api_v1_assessments__id__farmer_summary_get",
         "parameters": [
           {
@@ -2142,6 +2239,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Consent required or forbidden"
+          },
           "404": {
             "content": {
               "application/json": {
@@ -2161,16 +2268,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Get Farmer Summary",
@@ -2386,6 +2483,342 @@
         ]
       }
     },
+    "/api/v1/consents/{id}/withdraw": {
+      "post": {
+        "description": "Withdraw an active processing consent.",
+        "operationId": "withdraw_consent_api_v1_consents__id__withdraw_post",
+        "parameters": [
+          {
+            "description": "Consent identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Consent identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Consent not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Consent already withdrawn"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Withdraw Consent",
+        "tags": [
+          "Consents"
+        ]
+      }
+    },
+    "/api/v1/farmers/{id}/consents": {
+      "get": {
+        "description": "Retrieve full consent history for a farmer.",
+        "operationId": "list_farmer_consents_api_v1_farmers__id__consents_get",
+        "parameters": [
+          {
+            "description": "Farmer identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Farmer identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Farmer not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Farmer Consents",
+        "tags": [
+          "Consents"
+        ]
+      },
+      "post": {
+        "description": "Record a newly granted processing consent for a farmer.",
+        "operationId": "give_consent_api_v1_farmers__id__consents_post",
+        "parameters": [
+          {
+            "description": "Farmer identifier",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "description": "Farmer identifier",
+              "title": "Id",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Mock-Error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Mock-Error"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ConsentCreateRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsentResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Invalid purpose"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Farmer not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Active consent already exists"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Give Consent",
+        "tags": [
+          "Consents"
+        ]
+      }
+    },
     "/api/v1/plots": {
       "get": {
         "description": "List agricultural plots with pagination and optional district filter.",
@@ -2499,16 +2932,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "List Plots",
@@ -2594,6 +3017,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Real farmer data disallowed"
+          },
           "422": {
             "content": {
               "application/json": {
@@ -2603,16 +3036,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Create Plot",
@@ -2888,7 +3311,7 @@
     },
     "/api/v1/plots/{id}/relief-report": {
       "get": {
-        "description": "[DRAFT] Generate evidence report supporting restructuring under RBI 33% relief rules.",
+        "description": "Generate evidence report supporting restructuring under RBI 33% relief rules.",
         "operationId": "get_relief_report_api_v1_plots__id__relief_report_get",
         "parameters": [
           {
@@ -2956,6 +3379,16 @@
             },
             "description": "Unauthorized"
           },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Consent required or forbidden"
+          },
           "404": {
             "content": {
               "application/json": {
@@ -2975,16 +3408,6 @@
               }
             },
             "description": "Validation Error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented (when MOCK_API=false)"
           }
         },
         "summary": "Get Relief Report",
