@@ -212,3 +212,121 @@ class ApiClient:
             raise self._parse_error_response(resp)
 
         return resp.json()
+
+    def run_what_if(
+        self,
+        assessment_id: int,
+        changed_input: str,
+        new_value: str,
+        token: str,
+    ) -> dict[str, Any]:
+        """Project score and limit variations under a hypothetical farm intervention."""
+        url = f"{self.base_url}/api/v1/assessments/{assessment_id}/what-if"
+        payload = {"changed_input": changed_input, "new_value": new_value}
+
+        logger.info(
+            "Running what-if on assessment=%d (input=%s, val=%s)",
+            assessment_id,
+            changed_input,
+            new_value,
+        )
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.post(url, json=payload, headers=self._headers(token=token))
+        except httpx.RequestError as exc:
+            logger.error("Network failure during run_what_if: %s", type(exc).__name__)
+            raise ApiError(f"Network error: {exc}", code="NETWORK_ERROR", status_code=503) from exc
+
+        if resp.status_code != 200:
+            raise self._parse_error_response(resp)
+
+        return resp.json()
+
+    def get_monitoring(
+        self,
+        plot_id: int,
+        token: str,
+        season: str | None = None,
+    ) -> dict[str, Any]:
+        """Fetch historical monitoring replay timeline and in-season alerts for a plot."""
+        url = f"{self.base_url}/api/v1/plots/{plot_id}/monitoring"
+        params: dict[str, Any] = {}
+        if season and season.strip():
+            params["season"] = season.strip()
+
+        logger.info("Fetching monitoring for plot_id=%d, season=%s", plot_id, season)
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.get(url, params=params or None, headers=self._headers(token=token))
+        except httpx.RequestError as exc:
+            logger.error("Network failure during get_monitoring: %s", type(exc).__name__)
+            raise ApiError(f"Network error: {exc}", code="NETWORK_ERROR", status_code=503) from exc
+
+        if resp.status_code != 200:
+            raise self._parse_error_response(resp)
+
+        return resp.json()
+
+    def record_alert_action(
+        self,
+        alert_id: int,
+        action_type: str,
+        note: str,
+        token: str,
+    ) -> dict[str, Any]:
+        """Record an officer intervention from the supportive playbook for an alert."""
+        url = f"{self.base_url}/api/v1/alerts/{alert_id}/actions"
+        payload = {"action_type": action_type, "note": note}
+
+        logger.info("Logging alert action on alert_id=%d, action=%s", alert_id, action_type)
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.post(url, json=payload, headers=self._headers(token=token))
+        except httpx.RequestError as exc:
+            logger.error("Network failure during record_alert_action: %s", type(exc).__name__)
+            raise ApiError(f"Network error: {exc}", code="NETWORK_ERROR", status_code=503) from exc
+
+        if resp.status_code != 201:
+            raise self._parse_error_response(resp)
+
+        return resp.json()
+
+    def get_relief_report(self, plot_id: int, token: str) -> dict[str, Any]:
+        """Fetch RBI 33% calamity relief screening evidence report."""
+        url = f"{self.base_url}/api/v1/plots/{plot_id}/relief-report"
+
+        logger.info("Fetching relief report for plot_id=%d", plot_id)
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.get(url, headers=self._headers(token=token))
+        except httpx.RequestError as exc:
+            logger.error("Network failure during get_relief_report: %s", type(exc).__name__)
+            raise ApiError(f"Network error: {exc}", code="NETWORK_ERROR", status_code=503) from exc
+
+        if resp.status_code != 200:
+            raise self._parse_error_response(resp)
+
+        return resp.json()
+
+    def get_farmer_summary(
+        self,
+        assessment_id: int,
+        token: str,
+        lang: str = "en",
+    ) -> dict[str, Any]:
+        """Fetch vernacular credit assessment summary in English, Gujarati, or Hindi."""
+        url = f"{self.base_url}/api/v1/assessments/{assessment_id}/farmer-summary"
+        params = {"lang": lang.lower()}
+
+        logger.info("Fetching farmer summary for assessment=%d, lang=%s", assessment_id, lang)
+        try:
+            with httpx.Client(timeout=self.timeout) as client:
+                resp = client.get(url, params=params, headers=self._headers(token=token))
+        except httpx.RequestError as exc:
+            logger.error("Network failure during get_farmer_summary: %s", type(exc).__name__)
+            raise ApiError(f"Network error: {exc}", code="NETWORK_ERROR", status_code=503) from exc
+
+        if resp.status_code != 200:
+            raise self._parse_error_response(resp)
+
+        return resp.json()

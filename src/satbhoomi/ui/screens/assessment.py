@@ -234,3 +234,14 @@ def render_assessment_screen(api_client: ApiClient | None = None) -> None:
         """,
         unsafe_allow_html=True,
     )
+
+    st.divider()
+    c_link1, c_link2 = st.columns(2)
+    with c_link1:
+        if st.button("Simulate Interventions in What-If (S5)", key="btn_to_what_if"):
+            st.session_state["active_screen"] = "what_if"
+            st.rerun()
+    with c_link2:
+        if st.button("Generate Farmer Summary (S9)", key="btn_to_farmer_summary"):
+            st.session_state["active_screen"] = "farmer_summary"
+            st.rerun()

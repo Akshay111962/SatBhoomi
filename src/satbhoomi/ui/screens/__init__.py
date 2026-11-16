@@ -1,1 +1,1 @@
-"""Streamlit screens for SatBhoomi frontend (S1 to S4)."""
+"""Streamlit screens for SatBhoomi frontend (S1 to S9)."""

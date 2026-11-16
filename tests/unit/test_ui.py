@@ -131,6 +131,106 @@ def fake_client() -> MagicMock:
             "Prototype evaluation grounded strictly on pre-cutoff satellite observations."
         ),
     }
+    client.run_what_if.return_value = {
+        "status": "ok",
+        "assessment_id": 10,
+        "plot_id": 1,
+        "plot_code": "PLOT-001",
+        "season": "2024-25",
+        "changed_input": "insured",
+        "old_value": "0",
+        "new_value": "1",
+        "old_score": 18,
+        "new_score": 18,
+        "score_delta": 0,
+        "old_band": "low",
+        "new_band": "low",
+        "old_limit_band": {
+            "limit_min_inr": 60000,
+            "limit_max_inr": 80000,
+            "limit_recommended_inr": 75000,
+        },
+        "new_limit_band": {
+            "limit_min_inr": 65000,
+            "limit_max_inr": 85000,
+            "limit_recommended_inr": 80000,
+        },
+        "estimate_label": "estimate",
+        "effect_basis": "scorer_input",
+        "assumption": "Crop insurance enrollment maintains baseline haircut exemptions.",
+        "rationale": "Crop insurance buffers risk against unexpected weather shock.",
+        "disclaimer": "This statistical simulation demonstrates sensitivity only.",
+        "reliability_note": "Validation status disclosure: model estimate.",
+    }
+    client.get_monitoring.return_value = {
+        "plot_id": 1,
+        "plot_code": "PLOT-001",
+        "season": "2024-25",
+        "status": "ok",
+        "data_gap_reason": None,
+        "checkpoint_label": "January 15",
+        "evaluation_date": "2025-01-15",
+        "mode": "replay",
+        "replay_note": "Historical season replay; not live in-season monitoring.",
+        "timeline": [
+            {"date": "2024-12-15", "ndvi": 0.52, "rainfall_mm": 0.0, "data_gap": False},
+            {"date": "2025-01-01", "ndvi": 0.65, "rainfall_mm": 5.0, "data_gap": False},
+            {"date": "2025-01-10", "ndvi": None, "rainfall_mm": 0.0, "data_gap": True},
+        ],
+        "active_alerts": [
+            {
+                "id": 101,
+                "plot_code": "PLOT-001",
+                "season": "2024-25",
+                "checkpoint_label": "January 15",
+                "detected_on": "2025-01-15",
+                "type": "crop_health_drop",
+                "severity": "medium",
+                "status": "open",
+                "headline": "Vegetation vigor drag below baseline",
+                "detail": "At Jan 15, plot recorded vegetative drag.",
+                "supportive_action": "Schedule supportive field visit.",
+                "data_gap_warning": None,
+                "is_replay": True,
+            }
+        ],
+        "past_alerts": [],
+    }
+    client.record_alert_action.return_value = {
+        "action_id": 1,
+        "alert_id": 101,
+        "action_type": "field_visit",
+        "note": "Conducted supportive inspection; confirmed tubewell repair.",
+        "status_before": "open",
+        "status_after": "in_progress",
+        "done_by": "Officer-001",
+        "done_on": "2026-11-16T10:00:00Z",
+        "status": "recorded",
+    }
+    client.get_relief_report.return_value = {
+        "plot_id": 1,
+        "plot_code": "PLOT-001",
+        "season": "2024-25",
+        "baseline_ndvi_mean": 0.70,
+        "current_ndvi_mean": 0.42,
+        "ndvi_drop_pct": 40.0,
+        "estimated_loss_band": "33% to 50% loss",
+        "exceeds_rbi_33_threshold": True,
+        "supporting_evidence_summary": "Vegetative vigor dropped 40.0% below baseline.",
+        "disclaimer": (
+            "Official crop loss assessment and calamity declaration remain strictly with "
+            "government and bank relief committees. "
+            "This evidence report is for decision support only."
+        ),
+    }
+    client.get_farmer_summary.return_value = {
+        "assessment_id": 10,
+        "plot_code": "PLOT-001",
+        "lang": "gu",
+        "source": "template",
+        "summary_text": "તમારા ઘઉંના પાકની સ્થિતિનું મૂલ્યાંકન કરવામાં આવ્યું છે.",
+        "key_points": ["પાક સામાન્ય છે.", "બોરવેલનું પાણી ઉપલબ્ધ છે."],
+    }
     return client
 
 
@@ -452,3 +552,230 @@ def test_no_banned_wording_in_ui_code_and_text() -> None:
             assert not re.search(rf"\b{re.escape(banned)}\b", content), (
                 f"Banned word '{banned}' detected in {file_path}"
             )
+
+
+def test_what_if_screen_estimate_zero_change_and_disclaimers(fake_client: MagicMock) -> None:
+    """S5 What-If displays estimate label, zero change as 'no change', and verbatim disclaimers."""
+
+    def run_what_if(client):
+        from satbhoomi.ui.screens.what_if import render_what_if_screen
+        from satbhoomi.ui.state import init_session_state, set_user_session
+
+        init_session_state()
+        set_user_session("token-123", {"username": "officer"})
+        render_what_if_screen(api_client=client)
+
+    at = AppTest.from_function(run_what_if, args=(fake_client,))
+    at.run()
+    # Click Run What-If Simulation
+    at.button[0].click().run()
+    assert not at.exception
+
+    all_text = " ".join(m.value for m in at.markdown) + " ".join(c.value for c in at.caption)
+    all_metrics = " ".join(f"{met.label} {met.value}" for met in at.metric)
+
+    # Verify score change: delta == 0 displays as 'no change'
+    assert "no change" in all_metrics.lower()
+
+    # Verify mandatory Rule 6 disclosures
+    assert "estimate" in all_text.lower()
+    assert "Scorer Input" in all_text
+    assert "Crop insurance enrollment maintains baseline" in all_text or any(
+        "Crop insurance enrollment maintains baseline" in i.value for i in at.info
+    )
+
+    # Verify disclaimers exactly as API returns them
+    assert "This statistical simulation demonstrates sensitivity only." in all_text
+    assert "Validation status disclosure: model estimate." in all_text
+
+    # Verify loan limit impact displayed
+    assert "₹60,000" in all_text
+    assert "₹85,000" in all_text
+
+
+def test_monitoring_screen_replay_banner_timeline_table_and_empty_state(
+    fake_client: MagicMock,
+) -> None:
+    """S6 Monitoring shows replay banner, data gap markers, severity badges, and empty state."""
+
+    def run_monitor(client):
+        from satbhoomi.ui.screens.monitoring import render_monitoring_screen
+        from satbhoomi.ui.state import init_session_state, set_user_session
+
+        init_session_state()
+        set_user_session("token-123", {"username": "officer"})
+        render_monitoring_screen(api_client=client)
+
+    # 1. Populated monitoring state
+    at = AppTest.from_function(run_monitor, args=(fake_client,))
+    at.run()
+    assert not at.exception
+
+    all_text = " ".join(m.value for m in at.markdown)
+
+    # Replay banner presence
+    assert "Replay of past seasons. Not live monitoring." in all_text
+
+    # Table contains data gap notice
+    assert len(at.dataframe) >= 1
+    df = at.dataframe[0].value
+    assert any("DATA GAP" in str(row["Observation Quality"]) for _, row in df.iterrows())
+
+    # Alert severity badge
+    assert "[MEDIUM SEVERITY]" in all_text
+
+    # 2. Empty state when 0 alerts exist
+    empty_client = MagicMock(spec=ApiClient)
+    empty_client.list_plots.return_value = fake_client.list_plots.return_value
+    empty_client.get_monitoring.return_value = {
+        "plot_id": 1,
+        "plot_code": "PLOT-001",
+        "season": "2024-25",
+        "status": "ok",
+        "mode": "replay",
+        "timeline": [],
+        "active_alerts": [],
+        "past_alerts": [],
+    }
+
+    at_empty = AppTest.from_function(run_monitor, args=(empty_client,))
+    at_empty.run()
+    all_empty_info = " ".join(i.value for i in at_empty.info)
+    assert "No alerts recorded" in all_empty_info
+
+
+def test_alert_detail_screen_playbook_actions_note_limits_and_transitions(
+    fake_client: MagicMock,
+) -> None:
+    """S7 Alert detail shows canon playbook, distressed guidance, and handles API errors."""
+
+    def run_detail(client):
+        from satbhoomi.ui.screens.alert_detail import render_alert_detail_screen
+        from satbhoomi.ui.state import init_session_state, set_user_session
+
+        init_session_state()
+        set_user_session("token-123", {"username": "officer"})
+        render_alert_detail_screen(api_client=client)
+
+    at = AppTest.from_function(run_detail, args=(fake_client,))
+    at.run()
+    assert not at.exception
+
+    all_warnings = " ".join(w.value for w in at.warning)
+    assert "involve a senior colleague and local support" in all_warnings
+
+    # Submit action with valid note
+    at.text_area[0].input("Conducted supportive inspection; confirmed tubewell repair.")
+    at.button[0].click().run()
+    assert any("Action recorded successfully" in s.value for s in at.success)
+
+    # Disallowed status transition (409) test
+    err_client = MagicMock(spec=ApiClient)
+    err_client.record_alert_action.side_effect = ApiError(
+        message="Cannot transition alert already resolved",
+        code="DISALLOWED_STATUS_TRANSITION",
+        status_code=409,
+    )
+
+    at_err = AppTest.from_function(run_detail, args=(err_client,))
+    at_err.run()
+    at_err.text_area[0].input("Attempting transition on resolved alert.")
+    at_err.button[0].click().run()
+    assert any("Illegal status transition" in e.value for e in at_err.error)
+
+
+def test_relief_report_screen_screening_notice_and_insufficient_data(
+    fake_client: MagicMock,
+) -> None:
+    """S8 Relief report shows statutory disclaimer and screening notice, handles no data."""
+
+    def run_relief(client):
+        from satbhoomi.ui.screens.relief_report import render_relief_report_screen
+        from satbhoomi.ui.state import init_session_state, set_user_session
+
+        init_session_state()
+        set_user_session("token-123", {"username": "officer"})
+        render_relief_report_screen(api_client=client)
+
+    at = AppTest.from_function(run_relief, args=(fake_client,))
+    at.run()
+    assert not at.exception
+
+    all_text = " ".join(m.value for m in at.markdown) + " ".join(i.value for i in at.info)
+    assert "NDVI-based screening indicator, not a crop loss assessment" in all_text
+    assert "Official crop loss assessment and calamity declaration remain strictly with" in all_text
+    assert "EXCEEDS RBI 33% CALAMITY THRESHOLD" in all_text
+
+    # Insufficient data test
+    insuff_client = MagicMock(spec=ApiClient)
+    insuff_client.list_plots.return_value = fake_client.list_plots.return_value
+    insuff_client.get_relief_report.return_value = {
+        "status": "insufficient_data",
+        "plot_code": "PLOT-001",
+        "season": "2020-21",
+        "disclaimer": "Official crop loss assessment decides.",
+    }
+
+    at_insuff = AppTest.from_function(run_relief, args=(insuff_client,))
+    at_insuff.run()
+    all_insuff_warn = " ".join(w.value for w in at_insuff.warning)
+    assert "Insufficient data to generate crop calamity screening" in all_insuff_warn
+    # No percentage metric displayed
+    assert not any("%" in met.value for met in at_insuff.metric)
+
+
+def test_farmer_summary_screen_unreviewed_box_fallback_and_no_banned_verbiage(
+    fake_client: MagicMock,
+) -> None:
+    """S9 Farmer summary displays unreviewed warning box, fallback notice, and safe words."""
+
+    def run_summary(client):
+        from satbhoomi.ui.screens.farmer_summary import render_farmer_summary_screen
+        from satbhoomi.ui.state import init_session_state, set_user_session
+
+        init_session_state()
+        set_user_session("token-123", {"username": "officer"})
+        render_farmer_summary_screen(api_client=client)
+
+    # 1. Vernacular unreviewed template test
+    at = AppTest.from_function(run_summary, args=(fake_client,))
+    at.run()
+    assert not at.exception
+
+    all_text = " ".join(m.value for m in at.markdown)
+    assert "Unreviewed translation: officer preview only" in all_text
+    assert "તમારા ઘઉંના પાકની સ્થિતિનું મૂલ્યાંકન" in all_text
+
+    # Decision words check: Zero 'approved', 'rejected', 'eligible' in any casing
+    for banned_word in ("approved", "rejected", "eligible"):
+        assert not re.search(rf"\b{banned_word}\b", all_text.lower()), (
+            f"Banned automated decision word '{banned_word}' found in summary!"
+        )
+
+    # 2. Fallback notice test
+    fallback_client = MagicMock(spec=ApiClient)
+    fallback_client.get_farmer_summary.return_value = {
+        "assessment_id": 10,
+        "plot_code": "PLOT-001",
+        "lang": "en",
+        "source": "template",
+        "summary_text": "Assessment summary in English.",
+        "key_points": [],
+    }
+
+    def run_fallback(client):
+        from satbhoomi.ui.screens.farmer_summary import render_farmer_summary_screen
+        from satbhoomi.ui.state import init_session_state, set_user_session
+
+        init_session_state()
+        set_user_session("token-123", {"username": "officer"})
+        # Select Hindi ('hi')
+        render_farmer_summary_screen(api_client=client)
+
+    at_fb = AppTest.from_function(run_fallback, args=(fallback_client,))
+    at_fb.run()
+    at_fb.selectbox[0].select("hi")
+    at_fb.button[0].click().run()
+
+    all_fb_text = " ".join(m.value for m in at_fb.markdown)
+    assert "fallen back to english" in all_fb_text.lower()
