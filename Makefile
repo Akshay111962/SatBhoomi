@@ -1,4 +1,4 @@
-.PHONY: help install lint format test migrate seed run-api run-api-mock export-openapi run-ui fetch-ndvi fetch-rainfall fetch-prices build-dataset build-features train score
+.PHONY: help install lint format test migrate seed run-api run-api-mock export-openapi run-ui fetch-ndvi fetch-rainfall fetch-prices build-dataset build-features train score demo-setup demo-check
 
 help:
 	@echo "SatBhoomi Score + Raksha - Development Commands"
@@ -12,6 +12,8 @@ help:
 	@echo "  make run-api         Start FastAPI backend on http://localhost:8000"
 	@echo "  make run-api-mock    Start FastAPI mock server on http://localhost:8000 (MOCK_API=true)"
 	@echo "  make run-ui          Start Streamlit dashboard on http://localhost:8501"
+	@echo "  make demo-setup      Provision fresh isolated demo database and sample data"
+	@echo "  make demo-check      Run demo day offline pre-flight checks against live API"
 	@echo "  make fetch-ndvi      Fetch multi-season NDVI observations for sample plots"
 	@echo "  make fetch-rainfall  Fetch multi-season daily rainfall for sample plots"
 	@echo "  make fetch-prices    Fetch multi-season mandi commodity prices"
@@ -73,4 +75,11 @@ train:
 
 score:
 	python scripts/score_plot.py --plot ANAND_WHEAT_01 --season 2024-25
+
+demo-setup:
+	powershell -ExecutionPolicy Bypass -File scripts/demo_setup.ps1
+
+demo-check:
+	powershell -ExecutionPolicy Bypass -File scripts/demo_check.ps1
+
 

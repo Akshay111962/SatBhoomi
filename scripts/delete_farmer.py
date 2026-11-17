@@ -6,8 +6,10 @@ plots, consents, observations, assessments, what-if simulations, alerts, and act
 while maintaining an immutable compliance entry in audit_log without personal data.
 
 Usage:
-    python scripts/delete_farmer.py --farmer-code SAMPLE-FARMER-ANAND_WHEAT_01 --db ./data/satbhoomi.db
-    python scripts/delete_farmer.py --farmer-code SAMPLE-FARMER-ANAND_WHEAT_01 --db ./data/satbhoomi.db --confirm
+    python scripts/delete_farmer.py --farmer-code SAMPLE-FARMER-ANAND_WHEAT_01 \\
+        --db ./data/satbhoomi.db
+    python scripts/delete_farmer.py --farmer-code SAMPLE-FARMER-ANAND_WHEAT_01 \\
+        --db ./data/satbhoomi.db --confirm
 """
 
 from __future__ import annotations
@@ -113,7 +115,8 @@ def main(argv: list[str] | None = None) -> int:
     db_arg = args.db
     env_db = os.environ.get("DATABASE_URL")
 
-    # Safety check: Refuse if database URL points to something other than explicit --db unless --confirm is passed
+    # Safety check: Refuse if database URL points to something other than explicit --db
+    # unless --confirm is passed
     if not db_arg and not args.confirm:
         print(
             "ERROR: Target database was not explicitly provided with --db. "
@@ -142,7 +145,8 @@ def main(argv: list[str] | None = None) -> int:
         counts = inspect_farmer_cascade_counts(session, farmer)
 
         print(
-            f"\n--- Cascade Erasure Inspection for Farmer: {farmer.display_name} (ID #{farmer.id}) ---"
+            f"\n--- Cascade Erasure Inspection for Farmer: {farmer.display_name} "
+            f"(ID #{farmer.id}) ---"
         )
         for entity_name, count in counts.items():
             print(f"  • {entity_name:25s}: {count}")
@@ -150,7 +154,8 @@ def main(argv: list[str] | None = None) -> int:
         if not args.confirm:
             print("\n[DRY RUN] No records were modified or deleted.")
             print(
-                "To permanently delete this farmer and all associated records, re-run with --confirm.\n"
+                "To permanently delete this farmer and all associated records, "
+                "re-run with --confirm.\n"
             )
             return 0
 
@@ -171,7 +176,8 @@ def main(argv: list[str] | None = None) -> int:
         session.commit()
 
         print(
-            f"\n[SUCCESS] Farmer #{farmer_id} ({args.farmer_code}) and all cascading records successfully deleted."
+            f"\n[SUCCESS] Farmer #{farmer_id} ({args.farmer_code}) and all "
+            "cascading records successfully deleted."
         )
         print("Audit ledger updated with event='farmer_deleted'. No personal data retained.\n")
         return 0

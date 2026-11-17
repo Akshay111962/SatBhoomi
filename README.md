@@ -1,6 +1,6 @@
 # SatBhoomi Score + Raksha
 
-> **AI farm credit scoring and early-warning decision-support tool for bank officers.**
+> **AI farm credit scoring and early-warning decision-support tool for bank loan officers.**
 
 [![CI](https://github.com/Akshay111962/SatBhoomi/actions/workflows/ci.yml/badge.svg)](https://github.com/Akshay111962/SatBhoomi/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
@@ -8,250 +8,119 @@
 
 ---
 
-## How to Work on This Project
+## What It Is & What It Is Not
 
-All contributors and AI agents must strictly follow our engineering principles and project guardrails:
-1. **Rule Precedence**: Safety and honesty in [docs/PROJECT_CONTEXT.md](file:///d:/SatBhoomi/docs/PROJECT_CONTEXT.md) supersede all other instructions, followed by [docs/ENGINEERING_RULES.md](file:///d:/SatBhoomi/docs/ENGINEERING_RULES.md), followed by the specific task prompt.
-2. **Approval Before Code**: Always present a short plan with assumptions and wait for user approval before writing code.
-3. **Scope Control**: Implement only the requested task; no extra unrequested features.
-4. **Radical Honesty**: Never claim code or tests are verified unless actually executed and observed.
-5. **No Destructive Actions**: Never perform destructive, irreversible, or expensive operations without explicit approval.
-6. **Task Completion Report**: Conclude every task with the Section 8 report format from [docs/ENGINEERING_RULES.md](file:///d:/SatBhoomi/docs/ENGINEERING_RULES.md).
-7. **Frontend Gate**: Do not build UI screens (S1–S9) until layout and branding details are provided.
-8. **Progress Tracking**: Keep [docs/PROGRESS.md](file:///d:/SatBhoomi/docs/PROGRESS.md) updated at the completion of every task.
+### What It Is
+- **Explainable Decision-Support System**: Assists bank loan officers in appraising smallholder farm credit risk and managing in-season agricultural distress.
+- **Pre-Disbursal Scoring (SatBhoomi Score)**: Combines multi-season Sentinel-2 NDVI, NASA POWER / CHIRPS precipitation, and APMC mandi price volatility to generate an explainable 0–100 risk score, risk band, top 3 plain-language reasons, right-sized loan limit suggestions, and what-if sensitivity simulations.
+- **In-Season Monitoring & Relief (Raksha)**: Tracks crop health and winter rainfall deficits, triggering supportive action playbooks (field visits, restructuring) and objective calamity evidence reports benchmarked against the statutory **RBI 33% crop loss threshold**.
 
-> **Antigravity Rule Integration**: Antigravity automatically discovers project-level rules from `GEMINI.md`, `AGENTS.md`, or `.agents/rules/*.md` at the project root, or global rules in `~/.gemini/config/`. To load these rules automatically in every session without prompt overhead, copy or symlink `docs/PROJECT_CONTEXT.md` and `docs/ENGINEERING_RULES.md` into a root `GEMINI.md` file.
-
----
-
-## Overview
-
-Smallholder farmers frequently lack formal credit histories, forcing financial institutions to rely on slow, manual field appraisals or arbitrary lending caps. When unseasonal rains, drought, or mandi price collapses occur, repayment stress builds up silently until an installment is missed.
-
-**SatBhoomi Score + Raksha** bridges this information gap by delivering an explainable, satellite-driven decision-support platform for bank officers:
-
-1. **SatBhoomi Score (Pre-Disbursal Assessment)**:
-   - Evaluates multi-season satellite vegetation indices (Sentinel-2 NDVI), rainfall anomalies (CHIRPS/NASA POWER), and local mandi prices.
-   - Computes a calibrated **0–100 risk score** with low/medium/high risk banding.
-   - Surfaces **top 3 plain-language reasons** via SHAP feature attribution.
-   - Recommends right-sized loan limits, harvest-aligned repayment schedules, and mandatory crop insurance flags.
-   - Features an interactive **What-If Simulator** to project score changes given interventions (e.g. drip irrigation, insurance).
-
-2. **Raksha (In-Season Early-Warning & Relief Support)**:
-   - Monitors active plots throughout the cropping season to detect crop health decline, rainfall deficits, or market price shocks.
-   - Generates supportive action playbooks (field visits, claims guidance, restructuring under RBI guidelines) — strictly focusing on **repayment stress and support needed**.
-   - Produces objective **Relief Evidence Reports** evaluating crop damage against the **RBI 33% calamity threshold** to facilitate timely debt rescheduling.
-
-*For full product specifications and functional requirements (FR-001 to FR-014), refer to the [Product Blueprint](file:///d:/SatBhoomi/docs/blueprint.pdf).*
+### What It Is NOT
+- **NOT an Automated Loan Decision System**: SatBhoomi **never approves or rejects loans**. Bank officers retain sole underwriting and sanction authority.
+- **NOT Live Streaming Telemetry**: In-season monitoring operates on precomputed historical seasonal replays with temporal truncation; it is not real-time live satellite telemetry.
+- **NOT Validated on Real Bank Defaults**: Models are calibrated on proxy vegetative stress labels; no commercial loan default ground truth is present.
+- **NOT Real Farmer Records**: All farmer identities, land parcels, and plot boundaries are anonymized synthetic coordinates and centroids in Anand, Gujarat.
+- **NOT Legal Advice**: DPDP Act compliance features align with technical principles but do not constitute legal certification or formal legal advice.
 
 ---
 
-## Architecture & Project Structure
-
-The codebase is organized as a typed **modular monolith** in Python:
+## Architecture
 
 ```text
-SatBhoomi/
-├── .github/workflows/ci.yml       # GitHub Actions CI (lint, format, test)
-├── data/                          # Data directory (gitignored)
-│   ├── raw/                       # Raw satellite & meteorological datasets
-│   ├── processed/                 # Engineered seasonal features
-│   └── synthetic/                 # Synthetic & mock farmer profiles
-├── docs/
-│   ├── blueprint.pdf              # Full product blueprint (FR-001 to FR-014)
-│   ├── PROJECT_CONTEXT.md         # Permanent project rules & ethical guidelines
-│   ├── ENGINEERING_RULES.md       # Universal engineering practices & workflow
-│   ├── DECISIONS.md               # Architecture Decision Records (ADR-1 to ADR-8)
-│   ├── RISKS.md                   # Risk register & mitigations
-│   ├── PROGRESS.md                # Blueprint implementation tracking
-│   └── DATA_MODEL.md              # Relational schema & entity specifications
-├── scripts/                       # Operational and migration scripts
-├── src/satbhoomi/
-│   ├── config/                    # Settings loaded from environment variables
-│   ├── connectors/                # External data connectors (satellite, rainfall, mandi, yield)
-│   ├── features/                  # Feature engineering & caching pipeline
-│   ├── risk/                      # Rules baseline, ML models, SHAP explanations
-│   ├── alerts/                    # In-season stress detection & action playbooks
-│   ├── api/                       # FastAPI application layer (REST endpoints)
-│   ├── db/                        # SQLAlchemy 2.0 ORM (SQLite for PoC, PostgreSQL-ready)
-│   ├── reports/                   # Relief evidence & PDF report generation
-│   ├── summary/                   # Farmer-facing summaries in English, Gujarati, Hindi
-│   └── ui/                        # Streamlit web dashboard for bank officers
-└── tests/
-    ├── conftest.py                # Shared fixtures (FastAPI TestClient, settings)
-    ├── unit/                      # Unit tests (config, validation)
-    └── integration/               # Integration tests (health endpoint, API contracts)
++--------------------------------------------------------------------------+
+|                     Streamlit Web Dashboard (S1 to S9)                   |
+| (Officer Login, Portfolio, Assessment, What-If, Alerts, Relief Evidence) |
++--------------------------------------------------------------------------+
+                                    │  HTTP / JSON
+                                    ▼
++--------------------------------------------------------------------------+
+|                  FastAPI REST Backend (API Contract v0.6.0)               |
+|      (Auth & Lockout, Plot Ingestion, Scoring, What-If, Monitoring)      |
++--------------------------------------------------------------------------+
+       │                             │                             │
+       ▼                             ▼                             ▼
++---------------+             +---------------+             +--------------+
+| Risk Engine   |             | Raksha Alerts |             | Features     |
+| - Rules v2.0  |             | - NDVI Drop   |             | - Sentinel-2 |
+| - What-If Sim |             | - Rain Deficit|             | - NASA POWER |
+| - SHAP Reasons|             | - RBI 33% Loss|             | - AGMARKNET  |
++---------------+             +---------------+             +--------------+
+       │                             │                             │
+       +─────────────────────────────┼─────────────────────────────+
+                                     │  SQLAlchemy 2.0 (ORM)
+                                     ▼
++--------------------------------------------------------------------------+
+|                SQLite Database (WAL Mode, Enforced Foreign Keys)         |
+|  - Relational Schema (PostgreSQL-ready ANSI SQL types via Alembic)       |
+|  - Immutable Audit Ledger (SQLite triggers blocking UPDATE / DELETE)     |
++--------------------------------------------------------------------------+
 ```
 
 ---
 
-## Getting Started
+## Quick Start (Demo Setup)
 
-### 1. Prerequisites
-- **Python 3.11+** (Python 3.11, 3.12, or 3.13)
-- `git`
-- `make` (optional, PowerShell/Bash compatible)
+The demo runs completely offline from local data using an isolated demonstration database:
 
-### 2. Environment Setup
+### 1. Provision Demo Database
+Run the automated setup script to create a fresh demo database (`data/satbhoomi_demo.db`), apply migrations, create a secure loan officer account, and import sample plots, pre-cutoff features, and alert replay:
 
-Clone the repository and set up a virtual environment:
+```powershell
+# PowerShell:
+powershell -ExecutionPolicy Bypass -File scripts/demo_setup.ps1 -Reset
 
-```bash
-# Create virtual environment
-python -m venv .venv
+# Or using Make:
+make demo-setup
+```
+*(Enter a secure password for `demo_officer` when prompted, minimum 12 characters).*
 
-# Activate virtual environment
-# Windows (PowerShell):
-.venv\Scripts\Activate.ps1
-# Linux / macOS:
-source .venv/bin/activate
+### 2. Start Services
+
+Open two separate terminals:
+
+**Terminal 1 — Backend API**:
+```powershell
+$env:DATABASE_URL = "sqlite:///./data/satbhoomi_demo.db"
+.venv\Scripts\uvicorn.exe satbhoomi.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-### 3. Install Dependencies
-
-Install the package in editable mode along with development and testing tooling:
-
-```bash
-pip install --upgrade pip
-pip install -e ".[dev]"
+**Terminal 2 — Streamlit Frontend**:
+```powershell
+.venv\Scripts\streamlit.exe run src/satbhoomi/ui/app.py --server.port 8501
 ```
 
-Or using the Makefile:
-```bash
-make install
+### 3. Verify System Health (Demo Check)
+In a third terminal, run the one-command offline pre-flight check:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/demo_check.ps1
 ```
 
-### 4. Configure Environment Variables
-
-Copy the example environment configuration:
-
-```bash
-cp .env.example .env
-```
+Access the user interface at [http://localhost:8501](http://localhost:8501) and API interactive documentation at [http://localhost:8000/docs](http://localhost:8000/docs).
 
 ---
 
-## Running Quality Checks
+## Known Limitations
 
-### Run Linting & Formatting Checks
-
-```bash
-# Check code style and formatting
-ruff check src tests
-ruff format --check src tests
-
-# Or with Make:
-make lint
-```
-
-### Automatically Fix Formatting & Lint Issues
-
-```bash
-ruff format src tests
-ruff check --fix src tests
-
-# Or with Make:
-make format
-```
-
-### Run Tests with Coverage
-
-```bash
-pytest --cov=src/satbhoomi tests/
-
-# Or with Make:
-make test
-```
+1. **Proxy Stress Label**: In the absence of real commercial bank loan default records, the system uses an objective proxy vegetative stress label derived from multi-season NDVI drops and yield anomalies.
+2. **Synthetic Sample Points**: The 21 sample plots represent spatial centroids in Anand district, Gujarat, not verified land registry titles or surveyed individual farmers.
+3. **ML Evaluation Frozen**: Due to low event scarcity in the 21-plot sample (only 4 stressed instances across 84 labelled observations), ML models (Logistic Regression, Random Forest, XGBoost) failed statistical feasibility criteria (held-out $\text{AUC} < 0.70$). Model training is frozen under Evaluation Protocol v2, and the transparent agronomic **Rules Baseline v2.0** (`rules_baseline_2.0`) is the active operational scorer.
+4. **Sentinel-2 PB 04.00+ Radiometric Offset**: An ESA processing baseline shift (+1000 DN after January 2022) was identified and uniformly corrected across raw observation caches, with 3 persistent non-crop plots excluded under pre-declared Rule R1.
+5. **In-Season Monitoring Is Replay**: The monitoring module executes offline historical seasonal replay with temporal truncation to ensure zero future data leakage. It does not ingest live streaming satellite passes.
+6. **Unreviewed Vernacular Summaries**: Farmer-facing loan summaries in Gujarati and Hindi are generated from fixed templates and require human loan officer review before distribution.
+7. **Representative Underwriting Parameters**: Scale of Finance rates (₹28,000/acre irrigated, ₹18,000/acre rainfed) and haircut bands are calibrated on regional guidance and must be aligned with partner bank internal credit circulars prior to production deployment.
+8. **Prototype Security**: Authentication employs Argon2id password hashing, account lockout (5 failed attempts), and signed JWT bearer tokens. While SQLite immutability triggers protect the audit ledger, enterprise deployment requires dedicated key management and relational PostgreSQL backing.
 
 ---
 
-## Database Setup & Ingestion Sequence
+## Documentation Index
 
-The SQLite database file (`data/satbhoomi.db`) is gitignored (never committed) and is rebuilt locally following this mandatory sequence:
-
-1. **Apply database migrations**:
-   ```bash
-   alembic upgrade head
-   ```
-2. **Create first administrator** (interactive secure prompt):
-   ```bash
-   python scripts/create_user.py --username admin --role admin
-   ```
-3. **Import active plots and pre-cutoff features** (strictly drops labels on load):
-   ```bash
-   python scripts/import_plots_features.py --features-path data/processed/features.csv
-   ```
-4. **Import historical alert replay and monitoring timelines** (idempotent, active plots only):
-   ```bash
-   python scripts/import_alert_replay.py
-   ```
-
----
-
-## Running the Application
-
-### Setup Sequence Before Starting
-To prepare local state for the UI and API, run the following setup steps in order:
-1. **Apply database migrations**:
-   - Bash / Make: `alembic upgrade head` (or `make migrate`)
-   - PowerShell: `.venv\Scripts\alembic upgrade head`
-2. **Create local officer / admin user**:
-   - Bash: `python scripts/create_user.py --username admin --role admin`
-   - PowerShell: `.venv\Scripts\python scripts/create_user.py --username admin --role admin`
-3. **Import synthetic plot parcels and pre-cutoff features**:
-   - Bash: `python scripts/import_plots_features.py --features-path data/processed/features.csv`
-   - PowerShell: `.venv\Scripts\python scripts/import_plots_features.py --features-path data/processed/features.csv`
-4. **Import alert replay monitoring history**:
-   - Bash: `python scripts/import_alert_replay.py`
-   - PowerShell: `.venv\Scripts\python scripts/import_alert_replay.py`
-
-### 1. Run FastAPI Backend
-Start the FastAPI server on `http://localhost:8000`:
-
-```bash
-# Bash:
-uvicorn satbhoomi.api.main:app --reload --host 0.0.0.0 --port 8000
-
-# Or with Make:
-make run-api
-
-# PowerShell (Windows):
-.venv\Scripts\uvicorn satbhoomi.api.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-- Health Check endpoint: `http://localhost:8000/health`
-- Interactive OpenAPI documentation: `http://localhost:8000/docs`
-
-### 2. Run Streamlit UI (Screens S1 to S4)
-Launch the bank officer dashboard on `http://localhost:8501`:
-
-```bash
-# Bash:
-streamlit run src/satbhoomi/ui/app.py
-
-# Or with Make:
-make run-ui
-
-# PowerShell (Windows):
-.venv\Scripts\streamlit run src/satbhoomi/ui/app.py
-```
-
-The Streamlit interface talks exclusively to FastAPI via HTTP. To point to an alternate API instance, configure the `SATBHOOMI_API_URL` environment variable:
-- Bash: `export SATBHOOMI_API_URL="http://localhost:8000"`
-- PowerShell: `$env:SATBHOOMI_API_URL="http://localhost:8000"`
-*(Defaults to `http://localhost:8000` if unset).*
-
----
-
-## Permanent Project Guardrails
-
-Every contribution must adhere strictly to the rules documented in [docs/PROJECT_CONTEXT.md](file:///d:/SatBhoomi/docs/PROJECT_CONTEXT.md):
-
-1. **Human-in-the-Loop**: The platform NEVER approves or rejects loans; bank officers make all credit determinations.
-2. **Supportive Framing**: Language must describe "repayment stress" and "support needed" — never personal distress or mental state.
-3. **Data Privacy**: No real farmer records in the repo; synthetic and mock datasets only.
-4. **Zero Hardcoded Secrets**: All credentials must use environment variables.
-5. **Score Traceability**: Model versions are captured with every score.
-6. **What-If Simulations**: Outputs are explicitly marked "estimate", not proof of causation.
-7. **Positioning**: Acknowledge existing solutions (e.g. SatSure); position SatBhoomi as "score to action".
-8. **Engineering Integrity**: Never state code is tested unless tests were actually executed.
+- [docs/DEMO_RUNSHEET.md](docs/DEMO_RUNSHEET.md): 6–7 minute step-by-step demonstration run sheet, click sequence, and talk tracks.
+- [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md): Permanent non-negotiable ethical, architectural, and development rules.
+- [docs/FRONTEND_HANDOFF.md](docs/FRONTEND_HANDOFF.md): REST API Contract (v0.6.0) specifications and frontend integration guide.
+- [docs/SECURITY_CHECKLIST.md](docs/SECURITY_CHECKLIST.md): Blueprint Section 10 threat matrix and technical mitigations.
+- [docs/TEST_STATUS.md](docs/TEST_STATUS.md): Blueprint test cases TC-001 through TC-011 execution status.
+- [docs/DECISIONS.md](docs/DECISIONS.md): Architecture Decision Records (ADR-1 through ADR-10).
+- [docs/PROGRESS.md](docs/PROGRESS.md): Task-by-task implementation status and verification evidence.
+- [docs/RISKS.md](docs/RISKS.md): Project risk register and mitigation protocols.
+- [docs/SCORER_REVIEW.md](docs/SCORER_REVIEW.md): Agronomic review and relative scoring methodology for Rules Baseline v2.0.
+- [docs/ALERTS.md](docs/ALERTS.md): In-season stress detection rules, threshold calibration, and historical replay logs.
